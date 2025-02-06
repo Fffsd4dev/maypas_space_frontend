@@ -26,17 +26,19 @@ const AuthLayout = ({
                     <div className="auth-brand">
                       <Link to="/" className="logo logo-dark text-center">
                         <span className="logo-lg">
-                          <img src={LogoDark} alt="" height="22" />
+                          {/* <img src={LogoDark} alt="" height="22" /> */}
+                          {/* <h3 color="red">MAYPAS BOOKING SYSTEM</h3> */}
                         </span>
                       </Link>
 
                       <Link to="/" className="logo logo-light text-center">
                         <span className="logo-lg">
-                          <img src={LogoLight} alt="" height="22" />
+                          {/* <img src={LogoLight} alt="" height="22" /> */}
+                          {/* <h3 color="red">MAYPAS BOOKING SYSTEM</h3> */}
                         </span>
                       </Link>
                     </div>
-                    <p className="text-muted mb-4 mt-3">{helpText}</p>
+                    {/* <p className="text-muted mb-4 mt-3">{helpText}</p> */}
                   </div>
                   {children}
                 </Card.Body>
@@ -49,12 +51,6 @@ const AuthLayout = ({
         </Container>
       </div>
 
-      <footer className="footer footer-alt">
-        2015 - {new Date().getFullYear()} &copy; UBold theme by{" "}
-        <Link to="#" className="text-white-50">
-          Coderthemes
-        </Link>
-      </footer>
     </>;
 };
 export default AuthLayout;

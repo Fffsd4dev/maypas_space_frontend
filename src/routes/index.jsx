@@ -58,6 +58,10 @@ const CRMContacts = React.lazy(() => import("../pages/apps/CRM/Contacts/"));
 const Opportunities = React.lazy(() => import("../pages/apps/CRM/Opportunities/"));
 const CRMLeads = React.lazy(() => import("../pages/apps/CRM/Leads/"));
 const CRMCustomers = React.lazy(() => import("../pages/apps/CRM/Customers/"));
+// - Accounts
+const Personal = React.lazy(() => import("../pages/Accounts/Personal"))
+const Teams = React.lazy(() => import("../pages/Accounts/Teams"))
+const Admin = React.lazy(() => import("../pages/Accounts/Admin"))
 // - email
 const Inbox = React.lazy(() => import("../pages/apps/Email/Inbox"));
 const EmailDetail = React.lazy(() => import("../pages/apps/Email/Detail"));
@@ -156,7 +160,8 @@ const ChartJs = React.lazy(() => import("../pages/charts/ChartJs"));
 
 // maps
 const VectorMaps = React.lazy(() => import("../pages/maps/VectorMaps"));
-// root routes
+// root routesimport Personal from '../pages/Accounts/Personal/index';
+
 // const rootRoute: RoutesProps = {
 //     path: '/',
 //     exact: true,
@@ -301,9 +306,30 @@ const crmAppRoutes = {
   }, {
     path: "/apps/crm/customers",
     name: "Customers",
+    // element: <Personal />,
     element: <CRMCustomers />,
     route: PrivateRoute
-  }]
+  }, 
+  {
+    path: "/account/personal",
+    name: "Personal",
+    element: <Personal />,
+    route: PrivateRoute
+  },
+  {
+    path: "/account/teams",
+    name: "Teams",
+    element: <Teams />,
+    route: PrivateRoute
+  },
+  {
+    path: "/account/admin",
+    name: "Admin",
+    element: <Admin />,
+    // element: <CRMCustomers />,
+    route: PrivateRoute
+  }
+]
 };
 const emailAppRoutes = {
   path: "/apps/email",

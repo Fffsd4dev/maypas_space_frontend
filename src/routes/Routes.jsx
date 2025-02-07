@@ -6,26 +6,27 @@ import VerticalLayout from "@/layouts/Vertical";
 import DetachedLayout from "@/layouts/Detached";
 import HorizontalLayout from "@/layouts/Horizontal/";
 import TwoColumnLayout from "@/layouts/TwoColumn/";
-import {
-  authProtectedFlattenRoutes,
-  publicProtectedFlattenRoutes,
-} from "./index";
+import { authProtectedFlattenRoutes, publicProtectedFlattenRoutes } from "./index";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import React from "react";
-const AllRoutes = (props) => {
-  const { isAuthenticated } = useAuthContext();
-  const { orientation } = useLayoutContext();
+const AllRoutes = props => {
+  const {
+    isAuthenticated
+  } = useAuthContext();
+  const {
+    orientation
+  } = useLayoutContext();
   const getLayout = () => {
     let layoutCls = TwoColumnLayout;
     switch (orientation) {
-      case "horizontal":
+      case 'horizontal':
         layoutCls = HorizontalLayout;
         break;
-      case "detached":
+      case 'detached':
         layoutCls = DetachedLayout;
         break;
-      case "vertical":
+      case 'vertical':
         layoutCls = VerticalLayout;
         break;
       default:
@@ -35,20 +36,13 @@ const AllRoutes = (props) => {
     return layoutCls;
   };
   const Layout = getLayout();
-  return (
-    <React.Fragment>
-      <Routes>
-        <Route>
-          {publicProtectedFlattenRoutes.map((route, idx) => (
-            <Route
-              path={route.path}
-              element={
-                <DefaultLayout {...props}>{route.element}</DefaultLayout>
-              }
-              key={idx}
-            />
-          ))}
-        </Route>
+  return <React.Fragment>
+            <Routes>
+                <Route>
+                    {publicProtectedFlattenRoutes.map((route, idx) => <Route path={route.path} element={<DefaultLayout {...props}>
+                                    {route.element}
+                                </DefaultLayout>} key={idx} />)}
+                </Route>
 
                 <Route>
                     {authProtectedFlattenRoutes.map((route, idx) => <Route path={route.path} element={!isAuthenticated ? <Navigate to={{
@@ -59,6 +53,5 @@ const AllRoutes = (props) => {
                 </Route>
             </Routes>
         </React.Fragment>;
-
 };
 export default AllRoutes;

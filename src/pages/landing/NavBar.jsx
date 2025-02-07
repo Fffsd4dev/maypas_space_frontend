@@ -50,11 +50,11 @@ const NavBar = () => {
                   Features
                 </Nav.Link>
               </Nav.Item>
-              <Nav.Item as="li" className="nav-item">
+              {/* <Nav.Item as="li" className="nav-item">
                 <Nav.Link className="nav-link" href="#demo">
                   Demos
                 </Nav.Link>
-              </Nav.Item>
+              </Nav.Item> */}
               <Nav.Item as="li" className="nav-item">
                 <Nav.Link className="nav-link" href="#pricing">
                   Pricing

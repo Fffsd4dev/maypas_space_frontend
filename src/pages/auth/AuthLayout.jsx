@@ -1,9 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import LogoDark from "@/assets/images/logo-dark.png";
 import LogoLight from "@/assets/images/logo-light.png";
-const AuthLayout = ({
+import { useParams } from "react-router-dom";
+
+
+// import Popup from '../../components/Popup/Popup'
+
+const AuthLayout =
+ ({
   helpText,
   bottomLinks,
   children,
@@ -15,6 +21,12 @@ const AuthLayout = ({
       if (document.body) document.body.classList.remove("authentication-bg", "authentication-bg-pattern");
     };
   }, []);
+
+  const { tenantSlug } = useParams();
+
+
+  // const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
+
   return <>
       <div className="account-pages mt-5 mb-5">
         <Container>
@@ -24,17 +36,17 @@ const AuthLayout = ({
                 <Card.Body className="p-4">
                   <div className="text-center w-75 m-auto">
                     <div className="auth-brand">
-                      <Link to="/" className="logo logo-dark text-center">
+                      <Link to="/auth/login" className="logo logo-dark text-center">
                         <span className="logo-lg">
-                          {/* <img src={LogoDark} alt="" height="22" /> */}
-                          {/* <h3 color="red">MAYPAS BOOKING SYSTEM</h3> */}
+                          <img src={LogoDark} alt="" height="82" />
+                          <h3 color="#FE0002"> {tenantSlug} </h3>
                         </span>
                       </Link>
 
-                      <Link to="/" className="logo logo-light text-center">
+                      <Link to="/auth/login" className="logo logo-light text-center">
                         <span className="logo-lg">
-                          {/* <img src={LogoLight} alt="" height="22" /> */}
-                          {/* <h3 color="red">MAYPAS BOOKING SYSTEM</h3> */}
+                          <img src={LogoLight} alt="" height="82" />
+                          <h3 color="#FE0002">{tenantSlug}</h3>
                         </span>
                       </Link>
                     </div>
@@ -48,6 +60,15 @@ const AuthLayout = ({
               {bottomLinks}
             </Col>
           </Row>
+          {/* {popup.isVisible && (
+                <Popup
+                    message={popup.message}
+                    type={popup.type}
+                    onClose={() => setPopup({ ...popup, isVisible: false })}
+                    buttonLabel={popup.buttonLabel}
+                    buttonRoute={popup.buttonRoute}
+                />
+            )} */}
         </Container>
       </div>
 

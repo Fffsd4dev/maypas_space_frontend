@@ -87,7 +87,7 @@ const TwoColumnLayout = ({
   return <>
             <div id="wrapper" className="menuitem-active">
                 <Suspense fallback={loading()}>
-                    <LeftSidebar />
+                    {/* <LeftSidebar /> */}
                 </Suspense>
 
                 <div className="content-page">

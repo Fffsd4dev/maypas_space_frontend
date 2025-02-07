@@ -9,6 +9,8 @@ import {
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import classNames from "classnames";
+import Popup from "../../components/Popup/Popup";
+import { useParams } from "react-router-dom";
 
 // components
 
@@ -21,24 +23,27 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 
 /* bottom links */
 const BottomLink = () => {
-  const { t } = useTranslation();
-  return (
-    <Row className="mt-3">
-      <Col className="text-center">
-        <p>
-          <Link to={"/auth/forget-password"} className="text-white-50 ms-1">
-            {t("Forgot your password?")}
-          </Link>
-        </p>
-        <p className="text-white-50">
-          {t("Don't have an account?")}{" "}
-          <Link to={"/auth/register"} className="text-white ms-1">
-            <b>{t("Sign Up")}</b>
-          </Link>
-        </p>
-      </Col>
-    </Row>
-  );
+  const {
+    t
+  } = useTranslation();
+  return <Row className="mt-3">
+            <Col className="text-center">
+            {/* <p className="text-white-50">
+                    {t("Don't have an account?")}{" "}
+                    <Link to={"/auth/register"} className="text-white ms-1">
+                        <b>{t("Sign Up")}</b>
+                    </Link>
+                </p> */}
+                <p className="text-white-50">
+                
+                    <Link to={"/auth/forget-password"} className="text-white ms-1">
+                        {t("Forgot your password?")}
+                    </Link>
+               
+                    
+                </p>
+            </Col>
+        </Row>;
 };
 
 /* social links */
@@ -85,8 +90,21 @@ const SocialLinks = () => {
   );
 };
 const Login = () => {
-  const { t } = useTranslation();
-  const { login, control } = useLogin();
+
+  const { tenantSlug } = useParams();
+
+  const {
+    t
+  } = useTranslation();
+  const {
+    login,
+    control,
+    popup,
+    setPopup
+  } = useLogin();
+
+  
+
   const [showPassword, setShowPassword] = useState(false);
   return (
     <>
@@ -171,12 +189,23 @@ const Login = () => {
           </div>
         </form>
 
-        <div className="text-center">
-          <h5 className="mt-3 text-muted">{t("Sign in with")}</h5>
-          <SocialLinks />
-        </div>
-      </AuthLayout>
-    </>
-  );
+                {/* SOCIAL LINK */}
+                {/* <div className="text-center">
+                    <h5 className="mt-3 text-muted">{t("Sign in with")}</h5>
+                    <SocialLinks />
+                </div> */}
+            </AuthLayout>
+
+             {/* Render the Popup UI when it is visible */}
+             {popup.isVisible && (
+                <Popup
+                    message={popup.message}
+                    type={popup.type}
+                    onClose={() => setPopup({ ...popup, isVisible: false })}
+                    buttonLabel={popup.buttonLabel}
+                    buttonRoute={popup.buttonRoute}
+                />
+            )}
+        </>;
 };
 export default Login;

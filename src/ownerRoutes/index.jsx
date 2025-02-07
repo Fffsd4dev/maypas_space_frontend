@@ -1,7 +1,7 @@
 import { Route, Navigate } from "react-router-dom";
 
 // components
-import PrivateRoute from "./PrivateRoute";
+import PrivateRoute from "./OwnerPrivateRoute";
 import React from "react";
 // import Root from './Root';
 
@@ -26,23 +26,23 @@ const LockScreen2 = React.lazy(() => import("../pages/auth2/LockScreen2"));
 const SignInSignUp2 = React.lazy(() => import("../pages/auth2/SignInSignUp2"));
 
 // landing
-const Landing = React.lazy(() => import("../pages/landing/"));
+const Landing = React.lazy(() => import("../pages/landing"));
 
 // dashboard
-const Dashboard1 = React.lazy(() => import("../pages/dashboard/Dashboard1/"));
-const Dashboard2 = React.lazy(() => import("../pages/dashboard/Dashboard2/"));
-const Dashboard3 = React.lazy(() => import("../pages/dashboard/Dashboard3/"));
-const Dashboard4 = React.lazy(() => import("../pages/dashboard/Dashboard4/"));
+const Dashboard1 = React.lazy(() => import("../pages/dashboard/Dashboard1"));
+const Dashboard2 = React.lazy(() => import("../pages/dashboard/Dashboard2"));
+const Dashboard3 = React.lazy(() => import("../pages/dashboard/Dashboard3"));
+const Dashboard4 = React.lazy(() => import("../pages/dashboard/Dashboard4"));
 
 // apps
-const CalendarApp = React.lazy(() => import("../pages/apps/Calendar/"));
-const Projects = React.lazy(() => import("../pages/apps/Projects/"));
-const ProjectDetail = React.lazy(() => import("../pages/apps/Projects/Detail/"));
+const CalendarApp = React.lazy(() => import("../pages/apps/Calendar"));
+const Projects = React.lazy(() => import("../pages/apps/Projects"));
+const ProjectDetail = React.lazy(() => import("../pages/apps/Projects/Detail"));
 const ProjectForm = React.lazy(() => import("../pages/apps/Projects/ProjectForm"));
 // - chat
-const ChatApp = React.lazy(() => import("../pages/apps/Chat/"));
+const ChatApp = React.lazy(() => import("../pages/apps/Chat"));
 // - ecommece pages
-const EcommerceDashboard = React.lazy(() => import("../pages/apps/Ecommerce/Dashboard/"));
+const EcommerceDashboard = React.lazy(() => import("../pages/apps/Ecommerce/Dashboard"));
 const EcommerceProducts = React.lazy(() => import("../pages/apps/Ecommerce/Products"));
 const ProductDetails = React.lazy(() => import("../pages/apps/Ecommerce/ProductDetails"));
 const ProductEdit = React.lazy(() => import("../pages/apps/Ecommerce/ProductEdit"));
@@ -53,11 +53,11 @@ const Sellers = React.lazy(() => import("../pages/apps/Ecommerce/Sellers"));
 const Cart = React.lazy(() => import("../pages/apps/Ecommerce/Cart"));
 const Checkout = React.lazy(() => import("../pages/apps/Ecommerce/Checkout"));
 // - crm pages
-const CRMDashboard = React.lazy(() => import("../pages/apps/CRM/Dashboard/"));
-const CRMContacts = React.lazy(() => import("../pages/apps/CRM/Contacts/"));
-const Opportunities = React.lazy(() => import("../pages/apps/CRM/Opportunities/"));
-const CRMLeads = React.lazy(() => import("../pages/apps/CRM/Leads/"));
-const CRMCustomers = React.lazy(() => import("../pages/apps/CRM/Customers/"));
+const CRMDashboard = React.lazy(() => import("../pages/apps/CRM/Dashboard"));
+const CRMContacts = React.lazy(() => import("../pages/apps/CRM/Contacts"));
+const Opportunities = React.lazy(() => import("../pages/apps/CRM/Opportunities"));
+const CRMLeads = React.lazy(() => import("../pages/apps/CRM/Leads"));
+const CRMCustomers = React.lazy(() => import("../pages/apps/CRM/Customers"));
 // - Accounts
 const Personal = React.lazy(() => import("../pages/Accounts/Personal"))
 const Teams = React.lazy(() => import("../pages/Accounts/Teams"))
@@ -67,26 +67,26 @@ const Inbox = React.lazy(() => import("../pages/apps/Email/Inbox"));
 const EmailDetail = React.lazy(() => import("../pages/apps/Email/Detail"));
 const EmailCompose = React.lazy(() => import("../pages/apps/Email/Compose"));
 // - social
-const SocialFeed = React.lazy(() => import("../pages/apps/SocialFeed/"));
+const SocialFeed = React.lazy(() => import("../pages/apps/SocialFeed"));
 // - companies
-const Companies = React.lazy(() => import("../pages/apps/Companies/"));
+const Companies = React.lazy(() => import("../pages/apps/Companies"));
 // - tasks
-const TaskList = React.lazy(() => import("../pages/apps/Tasks/List/"));
+const TaskList = React.lazy(() => import("../pages/apps/Tasks/List"));
 const TaskDetails = React.lazy(() => import("../pages/apps/Tasks/Details"));
-const Kanban = React.lazy(() => import("../pages/apps/Tasks/Board/"));
+const Kanban = React.lazy(() => import("../pages/apps/Tasks/Board"));
 // -contacts
-const ContactsList = React.lazy(() => import("../pages/apps/Contacts/List/"));
-const ContactsProfile = React.lazy(() => import("../pages/apps/Contacts/Profile/"));
+const ContactsList = React.lazy(() => import("../pages/apps/Contacts/List"));
+const ContactsProfile = React.lazy(() => import("../pages/apps/Contacts/Profile"));
 // -tickets
-const TicketsList = React.lazy(() => import("../pages/apps/Tickets/List/"));
-const TicketsDetails = React.lazy(() => import("../pages/apps/Tickets/Details/"));
+const TicketsList = React.lazy(() => import("../pages/apps/Tickets/List"));
+const TicketsDetails = React.lazy(() => import("../pages/apps/Tickets/Details"));
 // - file
 const FileManager = React.lazy(() => import("../pages/apps/FileManager"));
 
 // extra pages
 const Starter = React.lazy(() => import("../pages/other/Starter"));
 const Timeline = React.lazy(() => import("../pages/other/Timeline"));
-const Sitemap = React.lazy(() => import("../pages/other/Sitemap/"));
+const Sitemap = React.lazy(() => import("../pages/other/Sitemap"));
 const Error404 = React.lazy(() => import("../pages/error/Error404"));
 const Error404Two = React.lazy(() => import("../pages/error/Error404Two"));
 const Error404Alt = React.lazy(() => import("../pages/error/Error404Alt"));
@@ -95,10 +95,10 @@ const Error500Two = React.lazy(() => import("../pages/error/Error500Two"));
 // - other
 const Invoice = React.lazy(() => import("../pages/other/Invoice"));
 const FAQ = React.lazy(() => import("../pages/other/FAQ"));
-const SearchResults = React.lazy(() => import("../pages/other/SearchResults/"));
+const SearchResults = React.lazy(() => import("../pages/other/SearchResults"));
 const Upcoming = React.lazy(() => import("../pages/other/Upcoming"));
 const Pricing = React.lazy(() => import("../pages/other/Pricing"));
-const Gallery = React.lazy(() => import("../pages/other/Gallery/"));
+const Gallery = React.lazy(() => import("../pages/other/Gallery"));
 const Maintenance = React.lazy(() => import("../pages/other/Maintenance"));
 
 // uikit
@@ -134,13 +134,13 @@ const LoadingButtons = React.lazy(() => import("../pages/uikit/LoadingButtons"))
 const Widgets = React.lazy(() => import("../pages/uikit/Widgets"));
 
 // icons
-const FeatherIcons = React.lazy(() => import("../pages/icons/FeatherIcons/"));
-const Dripicons = React.lazy(() => import("../pages/icons/Dripicons/"));
-const MDIIcons = React.lazy(() => import("../pages/icons/MDIIcons/"));
-const FontAwesomeIcons = React.lazy(() => import("../pages/icons/FontAwesomeIcons/"));
-const ThemifyIcons = React.lazy(() => import("../pages/icons/ThemifyIcons/"));
-const SimpleLineIcons = React.lazy(() => import("../pages/icons/SimpleLineIcons/"));
-const WeatherIcons = React.lazy(() => import("../pages/icons/WeatherIcons/"));
+const FeatherIcons = React.lazy(() => import("../pages/icons/FeatherIcons"));
+const Dripicons = React.lazy(() => import("../pages/icons/Dripicons"));
+const MDIIcons = React.lazy(() => import("../pages/icons/MDIIcons"));
+const FontAwesomeIcons = React.lazy(() => import("../pages/icons/FontAwesomeIcons"));
+const ThemifyIcons = React.lazy(() => import("../pages/icons/ThemifyIcons"));
+const SimpleLineIcons = React.lazy(() => import("../pages/icons/SimpleLineIcons"));
+const WeatherIcons = React.lazy(() => import("../pages/icons/WeatherIcons"));
 
 // forms
 const BasicForms = React.lazy(() => import("../pages/forms/Basic"));
@@ -785,37 +785,37 @@ const uiRoutes = {
 
 // auth
 const authRoutes = [{
-  path: "/:tenantSlug/auth/login",
-  name: "Tenant Login",
+  path: "/auth/login",
+  name: "Login",
   element: <Login />,
   route: Route
 }, {
-  path: "/:tenantSlug/auth/register",
-  name: "Tenant Register",
+  path: "/auth/register",
+  name: "Register",
   element: <Register />,
   route: Route
 }, {
-  path: "/:tenantSlug/auth/confirm",
-  name: "TenantConfirm",
+  path: "/auth/confirm",
+  name: "Confirm",
   element: <Confirm />,
   route: Route
 }, {
-  path: "/:tenantSlug/auth/forget-password",
-  name: "Tenant Forget Password",
+  path: "/auth/forget-password",
+  name: "Forget Password",
   element: <ForgetPassword />,
   route: Route
 }, {
-  path: "/:tenantSlug/auth/signin-signup",
-  name: "Tenants SignIn-SignUp",
+  path: "/auth/signin-signup",
+  name: "SignIn-SignUp",
   element: <SignInSignUp />,
   route: Route
 }, {
-  path: "/:tenantSlug/auth/lock-screen",
-  name: "Tenants Lock Screen",
+  path: "/auth/lock-screen",
+  name: "Lock Screen",
   element: <LockScreen />,
   route: Route
 }, {
-  path: "/:tenantSlug/auth/logout",
+  path: "/auth/logout",
   name: "Logout",
   element: <Logout />,
   route: Route

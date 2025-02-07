@@ -8,6 +8,7 @@ import FAQ from "./FAQ";
 import Features from "./Features";
 import Footer from "./Footer";
 import Hero from "./Hero";
+import OwnersLanding from "./OwnerHero";
 import Layouts from "./Layouts";
 import NavBar from "./NavBar";
 import Pricing from "./Pricing";
@@ -45,7 +46,8 @@ const Landing = () => {
       <NavBar />
 
       {/* hero */}
-      <Hero />
+      {/* <Hero /> */}
+      <OwnersLanding />
 
       {/* Clients */}
       <Clients />
@@ -54,7 +56,7 @@ const Landing = () => {
       <Services services={services} />
 
       {/* layout demos */}
-      <Layouts layouts={layouts} />
+      {/* <Layouts layouts={layouts} /> */}
 
       {/* features */}
       <Features features={features} />

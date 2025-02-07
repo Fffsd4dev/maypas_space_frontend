@@ -70,6 +70,7 @@ const SideBarContent = () => {
             <UserBox />
 
             {/* <div id="sidebar-menu"> */}
+            {/* THE APP MEnu */}
             <AppMenu menuItems={getMenuItems()} />
             {/* </div> */}
 

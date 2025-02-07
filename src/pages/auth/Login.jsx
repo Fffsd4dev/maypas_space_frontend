@@ -2,6 +2,8 @@ import { Button, Row, Col, FormGroup, FormLabel, FormControl } from "react-boots
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import classNames from "classnames";
+import Popup from "../../components/Popup/Popup";
+import { useParams } from "react-router-dom";
 
 // components
 
@@ -19,16 +21,19 @@ const BottomLink = () => {
   } = useTranslation();
   return <Row className="mt-3">
             <Col className="text-center">
-                <p>
-                    <Link to={"/auth/forget-password"} className="text-white-50 ms-1">
-                        {t("Forgot your password?")}
-                    </Link>
-                </p>
-                <p className="text-white-50">
+            {/* <p className="text-white-50">
                     {t("Don't have an account?")}{" "}
                     <Link to={"/auth/register"} className="text-white ms-1">
                         <b>{t("Sign Up")}</b>
                     </Link>
+                </p> */}
+                <p className="text-white-50">
+                
+                    <Link to={"/auth/forget-password"} className="text-white ms-1">
+                        {t("Forgot your password?")}
+                    </Link>
+               
+                    
                 </p>
             </Col>
         </Row>;
@@ -62,13 +67,21 @@ const SocialLinks = () => {
         </>;
 };
 const Login = () => {
+
+  const { tenantSlug } = useParams();
+
   const {
     t
   } = useTranslation();
   const {
     login,
-    control
+    control,
+    popup,
+    setPopup
   } = useLogin();
+
+  
+
   const [showPassword, setShowPassword] = useState(false);
   return <>
             <AuthLayout helpText={t("Enter your email address and password to access admin panel.")} bottomLinks={<BottomLink />}>
@@ -114,11 +127,23 @@ const Login = () => {
                     </div>
                 </form>
 
-                <div className="text-center">
+                {/* SOCIAL LINK */}
+                {/* <div className="text-center">
                     <h5 className="mt-3 text-muted">{t("Sign in with")}</h5>
                     <SocialLinks />
-                </div>
+                </div> */}
             </AuthLayout>
+
+             {/* Render the Popup UI when it is visible */}
+             {popup.isVisible && (
+                <Popup
+                    message={popup.message}
+                    type={popup.type}
+                    onClose={() => setPopup({ ...popup, isVisible: false })}
+                    buttonLabel={popup.buttonLabel}
+                    buttonRoute={popup.buttonRoute}
+                />
+            )}
         </>;
 };
 export default Login;

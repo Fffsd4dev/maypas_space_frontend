@@ -59,6 +59,7 @@ $grays: (
 $blue:       #4a81d4;
 $indigo:     #675aa9;
 $purple:     #6658dd;
+$mayPasRed: #FE0002;
 $pink:       #f672a7;
 $red:        #f1556c;
 $orange:     #fd7e14;
@@ -318,7 +319,7 @@ $cyans: (
 // fusv-enable
 
 // scss-docs-start theme-color-variables
-$primary:       $purple;
+$primary:       $mayPasRed;
 $secondary:     $gray-700;
 $success:       $green;
 $info:          $cyan;

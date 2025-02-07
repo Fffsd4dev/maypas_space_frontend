@@ -74,22 +74,22 @@ const MENU_ITEMS = [
     icon: FiAirplay,
     children: [
       {
-        key: "personal",
-        label: "Personal",
+        key: "user",
+        label: "User",
         // url: "/dashboard-2",
         url: "/account/personal",
         parentKey: "accounts",
       },
       {
-        key: "teams",
-        label: "Teams",
+        key: "organisations",
+        label: "Organisations",
         // url: "/dashboard-3",
         url: "/account/teams",
         parentKey: "accounts",
       },
       {
-        key: "admin",
-        label: "Admin",
+        key: "administrators",
+        label: "Administrators",
         // url: "/dashboard-4",
         url: "/account/admin",
         parentKey: "accounts",

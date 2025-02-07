@@ -46,7 +46,7 @@ const AllRoutes = props => {
 
                 <Route>
                     {authProtectedFlattenRoutes.map((route, idx) => <Route path={route.path} element={!isAuthenticated ? <Navigate to={{
-          pathname: "/auth/login",
+          pathname: "/auth/login2",
           // hash:route.path,
           search: "next=" + route.path
         }} /> : <Layout {...props}>{route.element}</Layout>} key={idx} />)}

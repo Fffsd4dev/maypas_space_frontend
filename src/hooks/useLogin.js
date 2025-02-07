@@ -45,7 +45,7 @@ const useLogin = () => {
     console.log({tenantSlug})
     try {
       // WILL EDIT HERE
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/{tenantSlug}/login`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -84,7 +84,7 @@ const useLogin = () => {
                         type: "error",
                         isVisible: true,
                         buttonLabel: "Retry",
-                        buttonRoute: "/auth/login",
+                        buttonRoute: `/${tenantSlug}/auth/login`,
                     });
       }
     } catch (e) {
@@ -94,7 +94,7 @@ const useLogin = () => {
                     type: "error",
                     isVisible: true,
                     buttonLabel: "Retry",
-                    buttonRoute: "/auth/login",
+                    buttonRoute: `/${tenantSlug}/auth/login`,
                 });
 
       if (e.response?.data?.error) {

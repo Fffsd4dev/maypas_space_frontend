@@ -50,29 +50,15 @@ const AllRoutes = (props) => {
           ))}
         </Route>
 
-        <Route>
-          {authProtectedFlattenRoutes.map((route, idx) => (
-            <Route
-              path={route.path}
-              element={
-                !isAuthenticated ? (
-                  <Navigate
-                    to={{
-                      pathname: "/auth/login",
-                      // hash:route.path,
-                      search: "next=" + route.path,
-                    }}
-                  />
-                ) : (
-                  <Layout {...props}>{route.element}</Layout>
-                )
-              }
-              key={idx}
-            />
-          ))}
-        </Route>
-      </Routes>
-    </React.Fragment>
-  );
+                <Route>
+                    {authProtectedFlattenRoutes.map((route, idx) => <Route path={route.path} element={!isAuthenticated ? <Navigate to={{
+          pathname: "/auth/login2",
+          // hash:route.path,
+          search: "next=" + route.path
+        }} /> : <Layout {...props}>{route.element}</Layout>} key={idx} />)}
+                </Route>
+            </Routes>
+        </React.Fragment>;
+
 };
 export default AllRoutes;

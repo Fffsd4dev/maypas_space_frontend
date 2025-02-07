@@ -796,7 +796,7 @@ const authRoutes = [{
   route: Route
 }, {
   path: "/:tenantSlug/auth/confirm",
-  name: "TenantConfirm",
+  name: "Tenant Confirm",
   element: <Confirm />,
   route: Route
 }, {
@@ -819,7 +819,9 @@ const authRoutes = [{
   name: "Logout",
   element: <Logout />,
   route: Route
-}, {
+},
+
+{
   path: "/auth/login2",
   name: "Login2",
   element: <Login2 />,

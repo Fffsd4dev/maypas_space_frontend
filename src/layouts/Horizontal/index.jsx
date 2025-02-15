@@ -22,7 +22,7 @@ const HorizontalLayout = ({
   const [isMenuOpened, setIsMenuOpened] = useState(false);
   const {
     topBar,
-    menu,
+    menu, 
     width: layoutWidth,
     theme,
     showTwoToneIcons,

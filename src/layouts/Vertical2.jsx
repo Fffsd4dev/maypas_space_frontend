@@ -8,11 +8,11 @@ import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 
 // code splitting and lazy loading
 const Topbar = React.lazy(() => import("./Topbar"));
-const LeftSidebar = React.lazy(() => import("./LeftSidebar"));
+const LeftSidebar2 = React.lazy(() => import("./LeftSidebar2"));
 const Footer = React.lazy(() => import("./Footer"));
 const RightSidebar = React.lazy(() => import("./RightSidebar"));
 const loading = () => <div className=""></div>;
-const VerticalLayout = ({
+const VerticalLayout2 = ({
   children
 }) => {
   const {
@@ -93,7 +93,7 @@ const VerticalLayout = ({
   return <>
             <div id="wrapper">
                 <Suspense fallback={loading()}>
-                    <LeftSidebar isCondensed={isCondensed} hideLogo={false} />
+                    <LeftSidebar2 isCondensed={isCondensed} hideLogo={false} />
                 </Suspense>
 
                 <div className="content-page">
@@ -117,4 +117,4 @@ const VerticalLayout = ({
                 </Suspense>}
         </>;
 };
-export default VerticalLayout;
+export default VerticalLayout2;

@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 // All layouts containers
 import DefaultLayout from "@/layouts/Default";
 import VerticalLayout from "@/layouts/Vertical";
+import VerticalLayout2 from "@/layouts/Vertical2";
 import DetachedLayout from "@/layouts/Detached";
 import HorizontalLayout from "@/layouts/Horizontal/";
 import TwoColumnLayout from "@/layouts/TwoColumn/";
@@ -28,6 +29,9 @@ const AllRoutes = props => {
         break;
       case 'vertical':
         layoutCls = VerticalLayout;
+        break;
+      case 'vertical2':
+        layoutCls = VerticalLayout2;
         break;
       default:
         layoutCls = TwoColumnLayout;

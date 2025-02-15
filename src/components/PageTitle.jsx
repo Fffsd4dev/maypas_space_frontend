@@ -8,7 +8,7 @@ const PageTitle = props => {
         <div className="page-title-box">
           <div className="page-title-right">
             <Breadcrumb className="m-0">
-              <Breadcrumb.Item href="/">Maypas Workspace</Breadcrumb.Item>
+              <Breadcrumb.Item href="/">Maypas Booking</Breadcrumb.Item>
 
               {(props["breadCrumbItems"] || []).map((item, index) => {
               return item.active ? <Breadcrumb.Item active key={index}>

@@ -1,11 +1,18 @@
-import { Button } from "react-bootstrap";
+import { Button, FormGroup, FormLabel, FormControl } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import classNames from "classnames";
+import Popup from "../../components/Popup/Popup";
+import { useParams } from "react-router-dom";
+import useLogin2 from "@/hooks/useLogin2.js";
+import { Controller } from "react-hook-form";
+import Feedback from "react-bootstrap/esm/Feedback";
+import { useState } from "react";
 
 // components
 import { VerticalForm, FormInput } from "@/components";
 import AuthLayout from "./AuthLayout";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 /* bottom link */
 const BottomLink = () => {
@@ -53,6 +60,14 @@ const Login2 = () => {
   const {
     t
   } = useTranslation();
+  const {
+    login,
+    control,
+    popup,
+    setPopup
+  } = useLogin2();
+    const [showPassword, setShowPassword] = useState(false);
+  
   return <>
 
       <AuthLayout bottomLinks={<BottomLink />}>
@@ -60,33 +75,61 @@ const Login2 = () => {
         <p className="text-muted mb-4">
           {t("Enter your email address and password to access account.")}
         </p>
+        <form onSubmit={login}>
 
-        <VerticalForm onSubmit={() => {}} defaultValues={{
-        username: "test",
-        password: "test"
-      }}>
-          <FormInput label={t("Username")} type="text" name="username" placeholder={t("Enter your Username")} containerClass={"mb-3"} />
-          <FormInput label={t("Password")} type="password" name="password" placeholder={t("Enter your password")} containerClass={"mb-3"}>
-            <Link to="/auth/forget-password2" className="text-muted float-end">
-              <small>{t("Forgot your password?")}</small>
-            </Link>
-          </FormInput>
+<div className="mb-3">
+    <Controller name="email" control={control} render={({
+field,
+fieldState
+}) => <FormGroup>
+                <FormLabel htmlFor="email">
+                    {t("Email")}
+                </FormLabel>
+                <FormControl id="email" {...field} isInvalid={Boolean(fieldState.error?.message)} />
+                {fieldState.error?.message && <Feedback type="invalid" className="text-danger">{fieldState.error?.message}</Feedback>}
+            </FormGroup>} />
+</div>
 
-          <FormInput label="Remember me" type="checkbox" name="checkbox" containerClass={"mb-3"} />
+<div className="mb-3">
+    <Controller name="password" control={control} render={({
+field,
+fieldState
+}) => <FormGroup>
+                <FormLabel htmlFor="password">
+                    {t("Password")}
+                </FormLabel>
 
-          <div className="d-grid mb-0 text-center">
-            <Button variant="primary" type="submit">
-              {t("Log In")}
-            </Button>
-          </div>
+                <div className="position-relative">
+                    <FormControl id="password" type={showPassword ? 'text' : 'password'} {...field} isInvalid={Boolean(fieldState.error?.message)} />
+                    {fieldState.error?.message && <Feedback type="invalid" className="text-danger">{fieldState.error?.message}</Feedback>}
+                    <span className="d-flex position-absolute top-50 end-0 translate-middle-y p-0 pe-2 me-2" onClick={() => setShowPassword(!showPassword)}>
+                  {!fieldState.error && (showPassword ? <FiEye height={18} width={18} className="cursor-pointer" /> : <FiEyeOff height={18} width={18} className="cursor-pointer" />)}
+                </span>
+                </div>
+            </FormGroup>} />
+</div>
 
-          {/* social links */}
-          <div className="text-center mt-4">
-            <p className="text-muted font-16">{t("Sign in with")}</p>
-            <SocialLinks />
-          </div>
-        </VerticalForm>
+<div className="text-center d-grid">
+    <Button variant="primary" type="submit">
+        {t("Log In")}
+    </Button>
+</div>
+</form>
+       
+        
       </AuthLayout>
+      
+             {/* Render the Popup UI when it is visible */}
+             {popup.isVisible && (
+                <Popup
+                    message={popup.message}
+                    type={popup.type}
+                    onClose={() => setPopup({ ...popup, isVisible: false })}
+                    buttonLabel={popup.buttonLabel}
+                    buttonRoute={popup.buttonRoute}
+                />
+            )}
+
     </>;
 };
 export default Login2;

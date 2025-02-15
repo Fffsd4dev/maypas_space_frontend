@@ -10,7 +10,7 @@ import { useParams } from "react-router-dom";
 
 import Popup from '../components/Popup/Popup';
 
-const useLogin = () => {
+const useLogin2 = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const {
@@ -27,32 +27,32 @@ const useLogin = () => {
   } = useForm({
     resolver: yupResolver(loginFormSchema),
     defaultValues: {
-      email: 'user@demo11.com',
-      password: '123456'
-    }
+        email: 'user@demo22.com',
+        password: '223456'
+      }
   });
   const redirectUser = () => {
     const redirectLink = searchParams.get('redirectTo');
-    if (redirectLink) navigate(redirectLink);else navigate('/dashboard-1');
+    if (redirectLink) navigate(redirectLink);else navigate('/dashboard-3');
   };
 
   const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
   const { tenantSlug } = useParams();
 
   const login = handleSubmit( async (data) => {
-    
-    console.log('submitting');
-    console.log({tenantSlug})
     console.log(data);
+    console.log('submitting');
+  
     try {
       // WILL EDIT HERE
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/login`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/system-admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
       });
+      console.log(data);
       console.log(res);
 
       const result = await res.json();
@@ -72,8 +72,8 @@ const useLogin = () => {
           message: "Login successful!",
           type: "success",
           isVisible: true,
-          buttonLabel: "Proceed to the Admin Dashboard",
-          buttonRoute: "/dashboard-1",
+          buttonLabel: "Proceed to the Owners Dashboard",
+          buttonRoute: "/dashboard-3",
       });
 
         redirectUser();
@@ -85,7 +85,7 @@ const useLogin = () => {
                         type: "error",
                         isVisible: true,
                         buttonLabel: "Retry",
-                        buttonRoute: `/${tenantSlug}/auth/login`,
+                        buttonRoute: `/auth/login2`,
                     });
       }
     } catch (e) {
@@ -95,7 +95,7 @@ const useLogin = () => {
                     type: "error",
                     isVisible: true,
                     buttonLabel: "Retry",
-                    buttonRoute: `/${tenantSlug}/auth/login`,
+                    buttonRoute: `/auth/login2`,
                 });
 
       if (e.response?.data?.error) {
@@ -120,4 +120,4 @@ const useLogin = () => {
     setPopup
   };
 };
-export default useLogin;
+export default useLogin2;

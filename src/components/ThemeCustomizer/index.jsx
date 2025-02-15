@@ -72,8 +72,11 @@ const ThemeCustomizer = () => {
             case "vertical":
                 changeLayoutOrientation('vertical');
                 break;
+            case "vertical2":
+                changeLayoutOrientation('vertical2');
+                break;
             default:
-                changeLayoutOrientation('two-column');
+                changeLayoutOrientation('two-column2');
                 break;
         }
     };

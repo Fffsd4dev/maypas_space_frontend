@@ -32,8 +32,8 @@ const MENU_ITEMS = [
     isTitle: true,
   },
   {
-    key: "dashboard",
-    label: "Dashboard",
+    key: "dashboards",
+    label: "Dashboards",
     isTitle: false,
     icon: FiAirplay,
     badge: {
@@ -42,90 +42,72 @@ const MENU_ITEMS = [
     },
     children: [
       {
-        key: "ds-dashboard-1",
-        label: "Dashoard 1",
-        url: "/dashboard-1",
+        key: "ds-dashboard-3",
+        label: "Dashboaaaard 3",
+        url: "/dashboard-3",
         parentKey: "dashboards",
       },
+    ],
+  },
+  // {
+  //   key: "accounts",
+  //   label: "Accounts",
+  //   isTitle: false,
+  //   icon: FiAirplay,
+  //   children: [
+  //     {
+  //       key: "user",
+  //       label: "User",
+  //       // url: "/dashboard-2",
+  //       url: "/account/personal",
+  //       parentKey: "accounts",
+  //     },
+  //     {
+  //       key: "organisations",
+  //       label: "Organisations",
+  //       // url: "/dashboard-3",
+  //       url: "/account/teams",
+  //       parentKey: "accounts",
+  //     },
+  //     {
+  //       key: "administrators",
+  //       label: "Administrators",
+  //       // url: "/dashboard-4",
+  //       url: "/account/admin",
+  //       parentKey: "accounts",
+  //     },
+  //   ],
+  // },
+  {
+    key: "Tenants Management",
+    label: "Tenants Management",
+    isTitle: false,
+    icon: FiAirplay,
+    children: [
+      {
+        key: "create-tenant",
+        label: "Create Tenants",
+        url: "/CreateTenants",
+        parentKey: "create-tenant",
+      },
+      {
+        key: "fetch-all-tenants",
+        label: "Fetch All Tenants",
+        url: "/fetchAll",
+        parentKey: "fetchAll",
+      },
       // {
-      //   key: "ds-dashboard-2",
-      //   label: "Dashboard 2",
-      //   url: "/dashboard-2",
-      //   parentKey: "dashboards",
-      // },
-      // {
-      //   key: "ds-dashboard-3",
-      //   label: "Dashboard 3",
-      //   url: "/dashboard-3",
-      //   parentKey: "dashboards",
-      // },
-      // {
-      //   key: "ds-dashboard-4",
-      //   label: "Dashboard 4",
+      //   key: "office-pod",
+      //   label: "Office Pod",
       //   url: "/dashboard-4",
-      //   parentKey: "dashboards",
+      //   parentKey: "booking",
       // },
-    ],
-  },
-  {
-    key: "accounts",
-    label: "Accounts",
-    isTitle: false,
-    icon: FiAirplay,
-    children: [
-      {
-        key: "user",
-        label: "User",
-        // url: "/dashboard-2",
-        url: "/account/personal",
-        parentKey: "accounts",
-      },
-      {
-        key: "organisations",
-        label: "Organisations",
-        // url: "/dashboard-3",
-        url: "/account/teams",
-        parentKey: "accounts",
-      },
-      {
-        key: "administrators",
-        label: "Administrators",
-        // url: "/dashboard-4",
-        url: "/account/admin",
-        parentKey: "accounts",
-      },
-    ],
-  },
-  {
-    key: "booking-management",
-    label: "Booking Management",
-    isTitle: false,
-    icon: FiAirplay,
-    children: [
-      {
-        key: "meeting-room",
-        label: "Meeting Room",
-        url: "/dashboard-2",
-        parentKey: "booking",
-      },
-      {
-        key: "private-office",
-        label: "Private Office",
-        url: "/dashboard-3",
-        parentKey: "booking",
-      },
-      {
-        key: "office-pod",
-        label: "Office Pod",
-        url: "/dashboard-4",
-        parentKey: "booking",
-      },
-      {
-        key: "dedicated-desk",
-        label: "Dedicated Desk",
-        url: "/dashboard-4",
-        parentKey: "booking",
-      },
+      // {
+      //   key: "dedicated-desk",
+      //   label: "Dedicated Desk",
+      //   url: "/dashboard-4",
+      //   parentKey: "booking",
+      // },
     ],
   },
   {
@@ -898,18 +880,7 @@ const HORIZONTAL_MENU_ITEMS = [
     label: "Dashboard",
     isTitle: true,
     children: [
-      {
-        key: "ds-dashboard-1",
-        label: "Dashboard 1",
-        url: "/dashboard-1",
-        parentKey: "dashboard",
-      },
-      {
-        key: "ds-dashboard-2",
-        label: "Dashboard 2",
-        url: "/dashboard-2",
-        parentKey: "dashboard",
-      },
+    
       {
         key: "ds-dashboard-3",
         label: "Dashboard 3",

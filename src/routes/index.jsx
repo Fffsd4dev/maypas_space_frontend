@@ -34,6 +34,11 @@ const Dashboard2 = React.lazy(() => import("../pages/dashboard/Dashboard2/"));
 const Dashboard3 = React.lazy(() => import("../pages/dashboard/Dashboard3/"));
 const Dashboard4 = React.lazy(() => import("../pages/dashboard/Dashboard4/"));
 
+// Tenants
+const CreateTenants = React.lazy(() => import("../pages/tenants/CreateTenants/"));
+const FetchAllTenants = React.lazy(() => import("../pages/tenants/FetchAll/"));
+
+
 // apps
 const CalendarApp = React.lazy(() => import("../pages/apps/Calendar/"));
 const Projects = React.lazy(() => import("../pages/apps/Projects/"));
@@ -202,6 +207,39 @@ const dashboardRoutes = {
     route: PrivateRoute
   }]
 };
+const tenantsRoutes = {
+  path: "/tenants",
+  name: "Tenants",
+  icon: "airplay",
+  header: "Navigation",
+  children: [{
+    path: "/",
+    name: "Root",
+    element: <Navigate to="/CreateTenants" />,
+    route: PrivateRoute
+  }, {
+    path: "/CreateTenants",
+    name: "Create Tenants",
+    element: <CreateTenants />,
+    route: PrivateRoute
+  }, {
+    path: "/fetchall",
+    name: "Fetch All Tenants",
+    element: <FetchAllTenants />,
+    route: PrivateRoute
+  }, {
+    path: "/dashboard-3",
+    name: "Dashboard 3",
+    element: <Dashboard3 />,
+    route: PrivateRoute
+  }, {
+    path: "/dashboard-4",
+    name: "Dashboard 4",
+    element: <Dashboard4 />,
+    route: PrivateRoute
+  }]
+};
+
 const calendarAppRoutes = {
   path: "/apps/calendar",
   name: "Calendar",
@@ -783,7 +821,7 @@ const uiRoutes = {
   }]
 };
 
-// auth
+// tenant auth
 const authRoutes = [{
   path: "/:tenantSlug/auth/login",
   name: "Tenant Login",
@@ -910,7 +948,7 @@ const flattenRoutes = routes => {
 };
 
 // All routes
-const authProtectedRoutes = [dashboardRoutes, ...appRoutes, extrapagesRoutes, uiRoutes];
+const authProtectedRoutes = [dashboardRoutes, tenantsRoutes, ...appRoutes, extrapagesRoutes, uiRoutes];
 const publicRoutes = [...authRoutes, ...otherPublicRoutes];
 const authProtectedFlattenRoutes = flattenRoutes([...authProtectedRoutes]);
 const publicProtectedFlattenRoutes = flattenRoutes([...publicRoutes]);

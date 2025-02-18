@@ -223,7 +223,7 @@ const MENU_ITEMS = [
       },
       {
         key: "crm-leads",
-        label: "Leads",
+        label: "Leads", 
         url: "/apps/crm/leads",
         parentKey: "apps-crm",
       },

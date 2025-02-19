@@ -38,6 +38,10 @@ const Dashboard4 = React.lazy(() => import("../pages/dashboard/Dashboard4/"));
 const CreateTenants = React.lazy(() => import("../pages/tenants/CreateTenants/"));
 const FetchAllTenants = React.lazy(() => import("../pages/tenants/FetchAll/"));
 
+const CreateSubscription = React.lazy(() => import("../pages/subscriptions/CreateSubscription"));
+const GetAllSub = React.lazy(() => import("../pages/subscriptions/GetAllSub"));
+
+
 
 // apps
 const CalendarApp = React.lazy(() => import("../pages/apps/Calendar/"));
@@ -236,6 +240,39 @@ const tenantsRoutes = {
     path: "/dashboard-4",
     name: "Dashboard 4",
     element: <Dashboard4 />,
+    route: PrivateRoute
+  }]
+};
+
+const subscriptionRoutes = {
+  path: "/subscription",
+  name: "Subscription",
+  icon: "airplay",
+  header: "Navigation",
+  children: [{
+    path: "/",
+    name: "Root",
+    element: <Navigate to="/CreateSubscription" />,
+    route: PrivateRoute
+  }, {
+    path: "/CreateSubscription",
+    name: "Create Subcription",
+    element: <CreateSubscription />,
+    route: PrivateRoute
+  }, {
+    path: "/getallsub",
+    name: "Get All Subscriptions",
+    element: <GetAllSub />,
+    route: PrivateRoute
+  }, {
+    path: "/",
+    name: "",
+    element: <CreateSubscription />,
+    route: PrivateRoute
+  }, {
+    path: "/",
+    name: "",
+    element: <CreateSubscription />,
     route: PrivateRoute
   }]
 };
@@ -948,7 +985,7 @@ const flattenRoutes = routes => {
 };
 
 // All routes
-const authProtectedRoutes = [dashboardRoutes, tenantsRoutes, ...appRoutes, extrapagesRoutes, uiRoutes];
+const authProtectedRoutes = [dashboardRoutes, tenantsRoutes, subscriptionRoutes, ...appRoutes, extrapagesRoutes, uiRoutes];
 const publicRoutes = [...authRoutes, ...otherPublicRoutes];
 const authProtectedFlattenRoutes = flattenRoutes([...authProtectedRoutes]);
 const publicProtectedFlattenRoutes = flattenRoutes([...publicRoutes]);

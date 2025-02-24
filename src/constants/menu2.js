@@ -58,7 +58,7 @@ const MENU_ITEMS = [
     children: [
       {
         key: "create-subscription",
-        label: "Create Subscription Plans",
+        label: "Subscription Plans",
         // url: "/dashboard-2",
         url: "/CreateSubscription",
         parentKey: "subscription",

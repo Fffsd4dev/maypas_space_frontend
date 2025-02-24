@@ -12,7 +12,7 @@ export function useAuthContext() {
     return context;
 }
 
-const authSessionKey = '_UBOLD_AUTH_KEY_';
+const authSessionKey = '_MAYPAS_AUTH_KEY_';
 
 export function AuthProvider({
                                  children

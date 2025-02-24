@@ -13,7 +13,7 @@ const Popup = ({ message, type, onClose, buttonLabel, buttonRoute, onAction, chi
   };
 
   return (
-    <div className="popup-overlay" onClick={onClose}>
+    <div className="popup-overlay" >
       <div
         className={`popup-box ${type === "success" ? "popup-success" : type === "error" ? "popup-error" : ""}`}
         onClick={(e) => e.stopPropagation()}

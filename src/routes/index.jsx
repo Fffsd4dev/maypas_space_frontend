@@ -35,8 +35,9 @@ const Dashboard3 = React.lazy(() => import("../pages/dashboard/Dashboard3/"));
 const Dashboard4 = React.lazy(() => import("../pages/dashboard/Dashboard4/"));
 
 // Tenants
-const CreateTenants = React.lazy(() => import("../pages/tenants/CreateTenants/"));
-const FetchAllTenants = React.lazy(() => import("../pages/tenants/FetchAll/"));
+// import Tenants from "../pages/tenants";
+const Tenants = React.lazy(() => import("../pages/tenants"));
+// const FetchAllTenants = React.lazy(() => import("../pages/Tenants/FetchAll"));
 
 const CreateSubscription = React.lazy(() => import("../pages/subscriptions/CreateSubscription"));
 const GetAllSub = React.lazy(() => import("../pages/subscriptions/GetAllSub"));
@@ -211,38 +212,49 @@ const dashboardRoutes = {
     route: PrivateRoute
   }]
 };
-const tenantsRoutes = {
-  path: "/tenants",
+
+const tenantRoutes = {
+  path: "/account/tenants",
   name: "Tenants",
+  route: PrivateRoute,
+  roles: ["Admin"],
   icon: "airplay",
-  header: "Navigation",
-  children: [{
-    path: "/",
-    name: "Root",
-    element: <Navigate to="/CreateTenants" />,
-    route: PrivateRoute
-  }, {
-    path: "/CreateTenants",
-    name: "Create Tenants",
-    element: <CreateTenants />,
-    route: PrivateRoute
-  }, {
-    path: "/fetchall",
-    name: "Fetch All Tenants",
-    element: <FetchAllTenants />,
-    route: PrivateRoute
-  }, {
-    path: "/dashboard-3",
-    name: "Dashboard 3",
-    element: <Dashboard3 />,
-    route: PrivateRoute
-  }, {
-    path: "/dashboard-4",
-    name: "Dashboard 4",
-    element: <Dashboard4 />,
-    route: PrivateRoute
-  }]
+  element: <Tenants />,
+  header: "Apps"
 };
+
+// const tenantsRoutes = {
+//   path: "/tenants",
+//   name: "Tenants",
+//   icon: "airplay",
+//   header: "Navigation",
+//   children: [{
+//     path: "/",
+//     name: "Root",
+//     element: <Navigate to="/CreateTenants" />,
+//     route: PrivateRoute
+//   }, {
+//     path: "/CreateTenants",
+//     name: "Create Tenants",
+//     element: <CreateTenants />,
+//     route: PrivateRoute
+//   }, {
+//     path: "/fetchall",
+//     name: "Fetch All Tenants",
+//     element: <FetchAllTenants />,
+//     route: PrivateRoute
+//   }, {
+//     path: "/dashboard-3",
+//     name: "Dashboard 3",
+//     element: <Dashboard3 />,
+//     route: PrivateRoute
+//   }, {
+//     path: "/dashboard-4",
+//     name: "Dashboard 4",
+//     element: <Dashboard4 />,
+//     route: PrivateRoute
+//   }]
+// };
 
 const subscriptionRoutes = {
   path: "/subscription",
@@ -392,8 +404,8 @@ const crmAppRoutes = {
     route: PrivateRoute
   },
   {
-    path: "/account/teams",
-    name: "Teams",
+    path: "/account/organisation",
+    name: "Organisation",
     element: <Teams />,
     route: PrivateRoute
   },
@@ -985,7 +997,7 @@ const flattenRoutes = routes => {
 };
 
 // All routes
-const authProtectedRoutes = [dashboardRoutes, tenantsRoutes, subscriptionRoutes, ...appRoutes, extrapagesRoutes, uiRoutes];
+const authProtectedRoutes = [dashboardRoutes, tenantRoutes, subscriptionRoutes, ...appRoutes, extrapagesRoutes, uiRoutes];
 const publicRoutes = [...authRoutes, ...otherPublicRoutes];
 const authProtectedFlattenRoutes = flattenRoutes([...authProtectedRoutes]);
 const publicProtectedFlattenRoutes = flattenRoutes([...publicRoutes]);

@@ -106,10 +106,10 @@ const Teams = () => {
   };
   return <React.Fragment>
       <PageTitle breadCrumbItems={[{
-      label: "Teams",
+      label: "Organisation",
       path: "/apps/crm/customers",
       active: true
-    }]} title={"Teams"} />
+    }]} title={"Organisation"} />
 
       <Row>
         <Col>

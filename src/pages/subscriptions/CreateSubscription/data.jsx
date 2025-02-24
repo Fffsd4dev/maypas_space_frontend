@@ -1072,7 +1072,7 @@ const orders = [{
   payment_method: "Credit Card",
   order_status: "Cancelled"
 }];
-const customers = [{
+const subscriptions = [{
   id: 1,
   name: "Paul J. Friend",
   phone: "050 414 8778",
@@ -2255,4 +2255,4 @@ const cartItems = [{
   qty: 1,
   total: 129.99
 }];
-export { products, orders, customers, sellers, cartItems };
+export { products, orders, subscriptions, sellers, cartItems };

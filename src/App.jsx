@@ -4,11 +4,11 @@ import "jsvectormap/dist/css/jsvectormap.min.css";
 import "react-datepicker/dist/react-datepicker.min.css";
 import '@/assets/scss/Default.scss';
 import "@/assets/scss/Icons.scss";
-import configureFakeBackend from "@/helpers/fake-backend.js";
+// import configureFakeBackend from "@/helpers/fake-backend.js";
 import AllRoutes from "@/routes/Routes.jsx";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AppProvidersWrapper from "@/components/AppProvidersWrapper.jsx";
-configureFakeBackend();
+// configureFakeBackend();
 function App() {
   return <>
             <Fragment>

@@ -51,6 +51,39 @@ const MENU_ITEMS = [
     // ],
   },
   {
+    key: "accounts",
+    label: "Account",
+    isTitle: false,
+    icon: FiAirplay,
+    children: [
+      {
+        key: "administrators",
+        label: "Administrators",
+        url: "/account/admin",
+        parentKey: "accounts",
+      },
+      {
+        key: "tenants",
+        label: "Tenants",
+        url: "/account/tenants",
+        parentKey: "accounts",
+      },
+      {
+        key: "create-subscription",
+        label: "Organisation",
+        url: "/account/organisation",
+        parentKey: "accounts",
+      },
+      {
+        key: "Submit tenant plan",
+        label: "Submit Tenant Plan",
+        // url: "/dashboard-3",
+        url: "/getallsub",
+        parentKey: "accounts",
+      },
+    ],
+  },
+  {
     key: "subscription",
     label: "Subscription Management",
     isTitle: false,

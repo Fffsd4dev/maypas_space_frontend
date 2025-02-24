@@ -84,7 +84,7 @@ const MENU_ITEMS = [
         key: "organisations",
         label: "Organisations",
         // url: "/dashboard-3",
-        url: "/account/teams",
+        url: "/account/organisations",
         parentKey: "accounts",
       },
       {

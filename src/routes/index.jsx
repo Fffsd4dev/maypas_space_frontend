@@ -40,7 +40,7 @@ const Tenants = React.lazy(() => import("../pages/tenants"));
 // const FetchAllTenants = React.lazy(() => import("../pages/Tenants/FetchAll"));
 
 const CreateSubscription = React.lazy(() => import("../pages/subscriptions/CreateSubscription"));
-const GetAllSub = React.lazy(() => import("../pages/subscriptions/GetAllSub"));
+const TenantSub = React.lazy(() => import("../pages/subscriptions/TenantSub"));
 
 
 
@@ -272,9 +272,9 @@ const subscriptionRoutes = {
     element: <CreateSubscription />,
     route: PrivateRoute
   }, {
-    path: "/getallsub",
+    path: "/TenantSub",
     name: "Get All Subscriptions",
-    element: <GetAllSub />,
+    element: <TenantSub />,
     route: PrivateRoute
   }, {
     path: "/",

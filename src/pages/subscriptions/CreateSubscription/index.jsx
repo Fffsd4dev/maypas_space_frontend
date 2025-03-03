@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Row, Col, Card, Button } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import classNames from "classnames";
 import { useAuthContext } from "@/context/useAuthContext";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Popup from "../../../components/Popup/Popup";
 import axios from "axios";
 
 // components
 import PageTitle from "../../../components/PageTitle";
-import Table from "../../../components/Table";
+import Table2 from "../../../components/Table2";
 import AddSubscription from "./AddSubscription";
 
 // dummy data
-import { subscriptions } from "./data";
+// import { subscriptions } from "./data";
 
 /* name column render */
 const NameColumn = ({ row }) => {
@@ -26,16 +26,6 @@ const NameColumn = ({ row }) => {
     </div>
   );
 };
-
-/* last order column render */
-// const LastOrderColumn = ({
-//   row
-// }) => {
-//   return <>
-//       {row.original.last_order.date}{" "}
-//       <small className="text-muted">{row.original.last_order.time}</small>
-//     </>;
-// };
 
 /* status column render */
 const StatusColumn = ({ row }) => {
@@ -57,14 +47,13 @@ const StatusColumn = ({ row }) => {
 const ActionColumn = ({ row, onDelete, onUpdate }) => {
   return (
     <React.Fragment>
-      {/* <Link to="#" className="action-icon">
-        {" "}
-        <i className="mdi mdi-eye"></i>
-      </Link> */}
       <Link
         to="#"
         className="action-icon"
-        onClick={() => onUpdate(row.original.id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onUpdate(row.original.id)}
+        }
       >
         {" "}
         <i className="mdi mdi-square-edit-outline"></i>
@@ -72,7 +61,10 @@ const ActionColumn = ({ row, onDelete, onUpdate }) => {
       <Link
         to="#"
         className="action-icon"
-        onClick={() => onDelete(row.original.id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(row.original.id);
+        }}
       >
         {" "}
         <i className="mdi mdi-delete"></i>
@@ -81,35 +73,12 @@ const ActionColumn = ({ row, onDelete, onUpdate }) => {
   );
 };
 
-// give page size
-const sizePerPageList = [
-  {
-    text: "5",
-    value: 5,
-  },
 
-  {
-    text: "10",
-    value: 10,
-  },
-  {
-    text: "15",
-    value: 15,
-  },
-  {
-    text: "25",
-    value: 25,
-  },
-  {
-    text: "All",
-    value: subscriptions.length,
-  },
-];
 
 const CreateSubscription = () => {
   const styles = {
     input: {
-      width: "100%",
+      width: "75%",
       padding: "10px",
       marginTop: "5px",
       borderRadius: "4px",
@@ -150,7 +119,7 @@ const CreateSubscription = () => {
     isVisible: false,
     id: null,
   });
-
+  const [rowLoading, setRowLoading] = useState(null); // State for row loading
   const [queryPopup, setQueryPopup] = useState({
     isVisible: false,
     id: null,
@@ -172,10 +141,18 @@ const CreateSubscription = () => {
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
 
-  const fetchSubscriptions = async () => {
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    nextPageUrl: null,
+    prevPageUrl: null,
+    pageSize: 5,
+  });
+
+  const fetchSubscriptions = async (page = 1, pageSize = 5) => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/view-plans`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/view-plans?page=${page}&per_page=${pageSize}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       console.log(response);
@@ -190,6 +167,13 @@ const CreateSubscription = () => {
           new Date(a.updated_at || a.created_at)
       );
       setSubscriptions(data);
+      setPagination({
+        currentPage: response.data.current_page,
+        totalPages: response.data.last_page,
+        nextPageUrl: response.data.next_page_url,
+        prevPageUrl: response.data.prev_page_url,
+        pageSize: pageSize,
+      });
     } catch (error) {
       console.error("Error fetching subscriptions:", error);
     } finally {
@@ -197,10 +181,37 @@ const CreateSubscription = () => {
     }
   };
 
+    
+  // give page size
+const sizePerPageList = [
+  {
+    text: "5",
+    value: 5,
+  },
+
+  {
+    text: "10",
+    value: 10,
+  },
+  {
+    text: "15",
+    value: 15,
+  },
+  {
+    text: "25",
+    value: 25,
+  },
+  {
+    text: "All",
+    value: subscriptions.length,
+  },
+];
+
   // Call fetchSubscriptions inside useEffect
   useEffect(() => {
-    fetchSubscriptions();
-  }, []);
+    fetchSubscriptions(pagination.currentPage, pagination.pageSize);
+  }, [pagination.currentPage, pagination.pageSize]);
+
   const confirmDelete = () => {
     const { id } = deletePopup;
     handleDelete(id);
@@ -214,7 +225,6 @@ const CreateSubscription = () => {
     });
   };
   const handleDelete = async (id) => {
-    // if (!window.confirm("Are you sure you want to delete this plan?")) return;
     try {
       await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/delete-plan`,
@@ -261,9 +271,7 @@ const CreateSubscription = () => {
 
     try {
       await axios.post(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/system-admin/update-plan/${id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/update-plan/${id}`,
         { name, price, duration },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -286,7 +294,7 @@ const CreateSubscription = () => {
       });
 
       // Refresh subscriptions
-      fetchSubscriptions();
+      fetchSubscriptions(pagination.currentPage, pagination.pageSize);
     } catch (error) {
       setQueryPopup({
         isVisible: false,
@@ -305,18 +313,65 @@ const CreateSubscription = () => {
   };
 
   const handleUpdateClick = (id) => {
-    setQueryPopup({
-      isVisible: true,
-      id: id,
-      name: "",
-      price: "",
-      duration: "",
-      errorMessage: "", // Reset error message
-    });
+    const subscription = subscriptions.find((sub) => sub.id === id);
+
+    if (subscription) {
+      setQueryPopup({
+        isVisible: true,
+        id: subscription.id,
+        name: subscription.name,
+        price: subscription.price,
+        duration: subscription.duration,
+        errorMessage: "", // Reset error message
+      });
+    }
+  };
+
+  const handleRowClick = async (id) => {
+    setRowLoading(id); // Set the row loading state
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/view-plan/${id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Fetched Subscription Plan details:", result);
+
+      const newWindow = window.open(`/plan-details/${id}`, "_blank");
+      if (newWindow) {
+        newWindow.onload = () => {
+          newWindow.plan = result.data;
+        };
+      } else {
+        console.error(
+          "Failed to open new window. It might be blocked by the browser."
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching Subscription Plan details:", error);
+    } finally {
+      setRowLoading(null); // Reset the row loading state
+    }
   };
 
   // columns to render
   const columns = [
+    {
+      Header: "S/N",
+      accessor: (row, i) => i + 1,
+      id: "serialNo",
+      sort: false,
+    },
     {
       Header: "Subscription Name",
       accessor: "name",
@@ -345,12 +400,6 @@ const CreateSubscription = () => {
       sort: true,
       Cell: ({ row }) => formatDateTime(row.original.updated_at),
     },
-    //  {
-    //   Header: "Status",
-    //   accessor: "status",
-    //   sort: true,
-    //   Cell: StatusColumn
-    // },
 
     {
       Header: "Action",
@@ -372,7 +421,6 @@ const CreateSubscription = () => {
     try {
       console.log(token);
       setLoading(true);
-      // WILL EDIT HERE
       const res = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/create-plan`,
         {
@@ -384,23 +432,15 @@ const CreateSubscription = () => {
           body: JSON.stringify(data),
         }
       );
-      console.log(res);
 
       const result = await res.json();
+      console.log(res);
 
-      console.log(result);
       if (res.ok) {
         console.log(res.ok);
 
-        // saveSession({ ...(result ?? {}), token: result.token });
-
-        // saveSession({
-        //   ...(res.data ?? {}),
-        //   token: res.data.token
-        // });
-
         setPopup({
-          message: "Plan Created successful!",
+          message: "Plan Created successfully!",
           type: "success",
           isVisible: true,
           buttonLabel: "",
@@ -409,12 +449,12 @@ const CreateSubscription = () => {
 
         redirectUser();
         // Refresh subscriptions table
-        fetchSubscriptions();
+        fetchSubscriptions(pagination.currentPage, pagination.pageSize);
       } else {
-        console.error("Login Failed:", res);
+        console.error("Creating a Subscription Plan Failed:", res);
         const errorMessages = result.message;
         setPopup({
-          message: `Creating a Subcription Plan Failed: ${errorMessages}`,
+          message: `Creating a Subscription Plan Failed: ${errorMessages}`,
           type: "error",
           isVisible: true,
           buttonLabel: "Retry",
@@ -422,7 +462,7 @@ const CreateSubscription = () => {
         });
       }
     } catch (e) {
-      console.error("Error during Login:", e);
+      console.error("Error during creating Subscription Plan:", e);
       setPopup({
         message: "An error occurred. Please try again.",
         type: "error",
@@ -430,22 +470,12 @@ const CreateSubscription = () => {
         buttonLabel: "Retry",
         buttonRoute: `/CreateSubscription`,
       });
-
-      if (e.response?.data?.error) {
-        control.setError("email", {
-          type: "custom",
-          message: e.response?.data?.error,
-        });
-        control.setError("password", {
-          type: "custom",
-          message: e.response?.data?.error,
-        });
-      }
     } finally {
       setLoading(false);
     }
     onCloseModal();
   };
+
   return (
     <React.Fragment>
       <PageTitle
@@ -479,33 +509,43 @@ const CreateSubscription = () => {
                   </Button>
                 </Col>
 
-                <Col sm={8}>
-                  {/* <div className="text-sm-end">
-                      <Button className="btn btn-success mb-2 me-1">
-                        <i className="mdi mdi-cog-outline"></i>
-                      </Button>
-  
-                      <Button className="btn btn-light mb-2 me-1">Import</Button>
-  
-                      <Button className="btn btn-light mb-2">Export</Button>
-                    </div> */}
-                </Col>
+                <Col sm={8}></Col>
               </Row>
 
               {isLoading ? (
-                <p>Loading subscriptions...</p>
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />{" "}
+                  Loading Subscription plans...
+                </>
               ) : (
-                <Table
+                <Table2
                   columns={columns}
                   data={subscriptions}
-                  pageSize={5}
+                  pageSize={pagination.pageSize}
                   sizePerPageList={sizePerPageList}
-                  isSortable={true}
-                  pagination={true}
+                  isSortable
+                  pagination
                   isSelectable={false}
-                  isSearchable={true}
+                  isSearchable
                   tableClass="table-striped dt-responsive nowrap w-100"
                   searchBoxClass="my-2"
+                  getRowProps={(row) => ({
+                    style: { cursor: "pointer" },
+                    onClick: () => handleRowClick(row.original.id),
+                  })}
+                  rowLoading={rowLoading} // Pass the row loading state
+                  paginationProps={{
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    onPageChange: (page) => setPagination((prev) => ({ ...prev, currentPage: page })),
+                    onPageSizeChange: (pageSize) => setPagination((prev) => ({ ...prev, pageSize })),
+                  }}
                 />
               )}
             </Card.Body>
@@ -513,7 +553,6 @@ const CreateSubscription = () => {
         </Col>
       </Row>
 
-      {/* add customer modal */}
       <AddSubscription
         show={show}
         onHide={onCloseModal}
@@ -522,7 +561,6 @@ const CreateSubscription = () => {
         setLoading={setLoading}
       />
 
-      {/* Render the Popup UI when it is visible */}
       {popup.isVisible && (
         <Popup
           message={popup.message}
@@ -557,45 +595,54 @@ const CreateSubscription = () => {
             })
           }
         >
-          <input
-            style={styles.input}
-            type="text"
-            value={queryPopup.name}
-            onChange={(e) =>
-              setQueryPopup({ ...queryPopup, name: e.target.value })
-            }
-            placeholder="New Plan Name"
-            required
-          />
-          <input
-            style={styles.input}
-            type="number"
-            value={queryPopup.price}
-            onChange={(e) =>
-              setQueryPopup({ ...queryPopup, price: e.target.value })
-            }
-            placeholder="New Price"
-            required
-          />
-          <input
-            style={styles.input}
-            type="number"
-            value={queryPopup.duration}
-            onChange={(e) =>
-              setQueryPopup({ ...queryPopup, duration: e.target.value })
-            }
-            placeholder="Duration"
-            required
-          />
+          <div>
+            <label htmlFor="">PlanName: </label>
+            <input
+              style={styles.input}
+              type="text"
+              value={queryPopup.name}
+              onChange={(e) =>
+                setQueryPopup({ ...queryPopup, name: e.target.value })
+              }
+              placeholder="New Plan Name"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="">Price/fee: </label>
+            <input
+              style={styles.input}
+              type="number"
+              value={queryPopup.price}
+              onChange={(e) =>
+                setQueryPopup({ ...queryPopup, price: e.target.value })
+              }
+              placeholder="New Price"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="">Duration: </label>
+            <input
+              style={styles.input}
+              type="number"
+              value={queryPopup.duration}
+              onChange={(e) =>
+                setQueryPopup({ ...queryPopup, duration: e.target.value })
+              }
+              placeholder="Duration"
+              required
+            />
+          </div>
+
           {queryPopup.errorMessage && (
             <span style={{ color: "red" }}>{queryPopup.errorMessage}</span>
           )}
 
           <div>
-            <button
-              onClick={handleUpdateSubmit}
-              className="btn btn-primary mt-2"
-            >
+            <button onClick={handleUpdateSubmit} className="btn btn-primary mt-2">
               Update Subscription
             </button>
           </div>
@@ -604,4 +651,5 @@ const CreateSubscription = () => {
     </React.Fragment>
   );
 };
+
 export default CreateSubscription;

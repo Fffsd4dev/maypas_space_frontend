@@ -69,7 +69,7 @@ const MENU_ITEMS = [
         parentKey: "accounts",
       },
       {
-        key: "create-subscription",
+        key: "organisation",
         label: "Organisation",
         url: "/account/organisation",
         parentKey: "accounts",
@@ -97,10 +97,10 @@ const MENU_ITEMS = [
         parentKey: "subscription",
       },
       {
-        key: "Submit tenant plan",
-        label: "Submit Tenant Plan",
+        key: "Workspace Subscription",
+        label: "Workspace Subscription",
         // url: "/dashboard-3",
-        url: "/getallsub",
+        url: "/TenantSub",
         parentKey: "subscription",
       },
       // {

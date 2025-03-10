@@ -44,7 +44,7 @@ const MENU_ITEMS = [
       {
         key: "ds-dashboard-1",
         label: "Dashoard 1",
-        url: "/dashboard-1",
+        url: "/:tenantSlug/dashboard-1",
         parentKey: "dashboards",
       },
       // {

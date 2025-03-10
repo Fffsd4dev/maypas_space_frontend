@@ -14,10 +14,18 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import React from "react";
 import PlanDetails from "../pages/subscriptions/PlanDetails";
 
+import Error404Alt from "../pages/error/Error404Alt";
+
 const AllRoutes = props => {
   const { isAuthenticated } = useAuthContext();
   const { orientation } = useLayoutContext();
-  const getLayout = () => {
+
+  const getLayout = (path) => {
+    if (path.includes("/dashboard-3")) {
+      return VerticalLayout2;
+    } else if (path.includes("/dashboard-1")) {
+      return VerticalLayout;
+    }
     let layoutCls = TwoColumnLayout;
     switch (orientation) {
       case 'horizontal':
@@ -38,7 +46,7 @@ const AllRoutes = props => {
     }
     return layoutCls;
   };
-  const Layout = getLayout();
+
   return (
     <React.Fragment>
       <Routes>
@@ -48,9 +56,15 @@ const AllRoutes = props => {
         {publicProtectedFlattenRoutes.map((route, idx) => (
           <Route path={route.path} element={<DefaultLayout {...props}>{route.element}</DefaultLayout>} key={idx} />
         ))}
-        {authProtectedFlattenRoutes.map((route, idx) => (
-          <Route path={route.path} element={!isAuthenticated ? <Navigate to={{ pathname: "/landing", search: "next=" + route.path }} /> : <Layout {...props}>{route.element}</Layout>} key={idx} />
-        ))}
+        {authProtectedFlattenRoutes.map((route, idx) => {
+          const Layout = getLayout(route.path);
+          return (
+            <Route path={route.path} element={!isAuthenticated ? <Navigate to={{ pathname: "/landing", search: "next=" + route.path }} /> : <Layout {...props}>{route.element}</Layout>} key={idx} />
+          );
+        })}
+
+        {/* Catch all undefined routes and show the 404 error page */}
+        <Route path="*" element={<Error404Alt />} />
       </Routes>
     </React.Fragment>
   );

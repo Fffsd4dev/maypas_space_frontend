@@ -69,6 +69,7 @@ const MENU_ITEMS = [
         parentKey: "accounts",
       },
       {
+
         key: "roles",
         label: "Roles",
         url: "/account/roles",
@@ -96,10 +97,10 @@ const MENU_ITEMS = [
         parentKey: "subscription",
       },
       {
-        key: "Submit tenant plan",
-        label: "Submit Tenant Plan",
+        key: "Workspace Subscription",
+        label: "Workspace Subscription",
         // url: "/dashboard-3",
-        url: "/getallsub",
+        url: "/TenantSub",
         parentKey: "subscription",
       },
       // {

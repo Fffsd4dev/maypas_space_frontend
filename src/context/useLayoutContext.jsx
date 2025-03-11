@@ -13,7 +13,7 @@ const useLayoutContext = () => {
 const LayoutProvider = ({children}) => {
     const INIT_STATE = {
         theme: 'light',
-        orientation: 'vertical',
+        orientation: 'vertical2',
         mode: 'fluid',
         width: "fluid",
         topBar: {

@@ -1,115 +1,102 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Row, Col, Card, Button } from "react-bootstrap";
+import { Row, Col, Card, Button, Table } from "react-bootstrap";
 import classNames from "classnames";
-
-// components
 import PageTitle from "../../../components/PageTitle";
-import Table from "../../../components/Table";
-import AddUser from "./AddCustomer";
+import RolesRegistrationForm from "./RolesRegistrationForm";
+import { useAuthContext } from "@/context/useAuthContext.jsx";
 
-// dummy data
-import { customers } from "./data";
-
-/* name column render */
-const NameColumn = ({
-  row
-}) => {
-  return <div className="table-user">
-      <img src={row.original.avatar} alt="" className="me-2 rounded-circle" />
-      <Link to="#" className="text-body fw-semibold">
-        {row.original.name}
-      </Link>
-    </div>;
-};
-
-/* status column render */
-const StatusColumn = ({
-  row
-}) => {
-  return <React.Fragment>
-      <span className={classNames("badge", {
-      "bg-soft-success text-success": row.original.status === "Active",
-      "bg-soft-danger text-danger": row.original.status === "Blocked"
-    })}>
-        {row.original.status}
-      </span>
-    </React.Fragment>;
-};
-
-/* action column render */
-const ActionColumn = () => {
-  return <React.Fragment>
-      <Link to="#" className="action-icon">
-        {" "}
-        <i className="mdi mdi-eye"></i>
-      </Link>
-      <Link to="#" className="action-icon">
-        {" "}
-        <i className="mdi mdi-square-edit-outline"></i>
-      </Link>
-      <Link to="#" className="action-icon">
-        {" "}
-        <i className="mdi mdi-delete"></i>
-      </Link>
-    </React.Fragment>;
-};
-const columns = [{
-  Header: "Customer",
-  accessor: "name",
-  sort: true,
-  Cell: NameColumn,
-  classes: "table-user"
-}, {
-  Header: "Phone",
-  accessor: "phone",
-  sort: false
-}, {
-  Header: "Email",
-  accessor: "email",
-  sort: false
-}, {
-  Header: "Location",
-  accessor: "location",
-  sort: false
-}, {
-  Header: "Create Date",
-  accessor: "created_on",
-  sort: false
-}, {
-  Header: "Status",
-  accessor: "status",
-  sort: false,
-  Cell: StatusColumn
-}, {
-  Header: "Action",
-  accessor: "action",
-  sort: false,
-  classes: "table-action",
-  Cell: ActionColumn
-}];
-
-// main component
-const Teams = () => {
-  /*
-   *   modal handeling
-   */
+const Admin = () => {
+  const { user } = useAuthContext();
+  console.log("Auth Token:", user?.token);
   const [show, setShow] = useState(false);
-  const onCloseModal = () => setShow(false);
-  const onOpenModal = () => setShow(true);
+  const [selectedAdmin, setSelectedAdmin] = useState(null);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  /*
-    handle form submission
-    */
-  const onSubmit = () => {
-    onCloseModal();
+  useEffect(() => {
+    if (!user?.token) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch("https://trial.maypasworkspace.com/api/system-admin/view-roles", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${user?.token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("Parsed response data:", result.data);
+
+        if (result && Array.isArray(result.data)) {
+          setData(result.data);
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (error) {
+        console.error("Error fetching admins:", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  const handleEdit = (admin) => {
+    setSelectedAdmin(admin);
+    setShow(true);
   };
-  return <React.Fragment>
-      <PageTitle breadCrumbItems={[{
-      label: "Organisation",
-      path: "/apps/crm/customers",
-      active: true
-    }]} title={"Organisation"} />
+
+  const handleClose = () => {
+    setShow(false);
+    setSelectedAdmin(null);
+  };
+
+  const handleDelete = async (adminId) => {
+    if (!user?.token) return;
+
+    if (!window.confirm("Are you sure you want to delete this admin?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch("https://trial.maypasworkspace.com/api/system-admin/delete-role", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${user.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: adminId }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      setData(data.filter((admin) => admin.id !== adminId));
+      alert("Admin deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting admin:", error);
+      alert("Failed to delete admin.");
+    }
+  };
+
+  return (
+    <>
+      <PageTitle breadCrumbItems={[{ label: "Roles", path: "/account/roles", active: true }]} title="Roles" />
 
       <Row>
         <Col>
@@ -117,32 +104,53 @@ const Teams = () => {
             <Card.Body>
               <Row className="mb-2">
                 <Col sm={4}>
-                  <Button variant="danger" className="waves-effect waves-light" onClick={onOpenModal}>
-                    <i className="mdi mdi-plus-circle me-1"></i> Add User
+                  <Button variant="danger" className="waves-effect waves-light" onClick={() => setShow(true)}>
+                    <i className="mdi mdi-plus-circle me-1"></i> Add Roles
                   </Button>
-                </Col>
-
-                <Col sm={8}>
-                  <div className="text-sm-end mt-2 mt-sm-0">
-                    <Button className="btn btn-success mb-2 me-1">
-                      <i className="mdi mdi-cog"></i>
-                    </Button>
-
-                    <Button className="btn btn-light mb-2 me-1">Import</Button>
-
-                    <Button className="btn btn-light mb-2">Export</Button>
-                  </div>
                 </Col>
               </Row>
 
-              <Table columns={columns} data={customers} pageSize={12} isSortable={true} pagination={true} isSelectable={true} tableClass="table-nowrap table-striped" />
+              {error ? (
+                <p className="text-danger">Error: {error}</p>
+              ) : loading ? (
+                <p>Loading Admins...</p>
+              ) : (
+                <>
+                  <Table striped bordered hover responsive>
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.map((admin) => (
+                        <tr key={admin.id}>
+                          <td>{admin.id}</td>
+                          <td>{admin.role}</td>
+                          <td>
+                            <Link to="#" className="action-icon" onClick={() => handleEdit(admin)}>
+                              <i className="mdi mdi-square-edit-outline"></i>
+                            </Link>
+                            <Link to="#" className="action-icon" onClick={() => handleDelete(admin.id)}>
+                              <i className="mdi mdi-delete"></i>
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </>
+              )}
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      {/* add customer modal */}
-      <AddUser show={show} onHide={onCloseModal} onSubmit={onSubmit} />
-    </React.Fragment>;
+      <RolesRegistrationForm show={show} onHide={handleClose} selectedAdmin={selectedAdmin} />
+    </>
+  );
 };
-export default Teams;
+
+export default Admin;

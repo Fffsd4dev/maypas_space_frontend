@@ -31,13 +31,13 @@ const AuthLayout = ({
                 <div className="auth-logo">
                   <Link to="/" className="logo logo-dark text-center outline-none">
                     <span className="logo-lg">
-                      <img src={LogoDark} alt="" height="22" />
+                      <img src={LogoDark} alt="" height="52" />
                     </span>
                   </Link>
 
                   <Link to="/" className="logo logo-light text-center">
                     <span className="logo-lg">
-                      <img src={LogoLight} alt="" height="22" />
+                      <img src={LogoLight} alt="" height="52" />
                     </span>
                   </Link>
                 </div>
@@ -53,7 +53,7 @@ const AuthLayout = ({
 
         {/* Auth fluid right content */}
         <div className="auth-fluid-right text-center">
-          <div className="auth-user-testimonial">
+          {/* <div className="auth-user-testimonial">
             <h2 className="mb-3 text-white">{t("I love the color!")}</h2>
             <p className="lead">
               <i className="mdi mdi-format-quote-open"></i>{" "}
@@ -63,7 +63,7 @@ const AuthLayout = ({
             <h5 className="text-white">
               {t("- Fadlisaad (Ubold Admin User)")}
             </h5>
-          </div>
+          </div> */}
         </div>
       </div>
     </>;

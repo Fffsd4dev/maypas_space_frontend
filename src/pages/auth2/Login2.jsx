@@ -16,120 +16,161 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 
 /* bottom link */
 const BottomLink = () => {
-  const {
-    t
-  } = useTranslation();
-  return <footer className="footer footer-alt">
+  const { t } = useTranslation();
+  return (
+    <footer className="footer footer-alt">
       <p className="text-muted">
         {t("Don't have an account?")}{" "}
         <Link to={"/auth/register2"} className="text-muted ms-1">
           <b>{t("Sign Up")}</b>
         </Link>
       </p>
-    </footer>;
+    </footer>
+  );
 };
 
 /* social links */
 const SocialLinks = () => {
-  const socialLinks = [{
-    variant: "primary",
-    icon: "facebook"
-  }, {
-    variant: "danger",
-    icon: "google"
-  }, {
-    variant: "info",
-    icon: "twitter"
-  }, {
-    variant: "secondary",
-    icon: "github"
-  }];
-  return <>
+  const socialLinks = [
+    {
+      variant: "primary",
+      icon: "facebook",
+    },
+    {
+      variant: "danger",
+      icon: "google",
+    },
+    {
+      variant: "info",
+      icon: "twitter",
+    },
+    {
+      variant: "secondary",
+      icon: "github",
+    },
+  ];
+  return (
+    <>
       <ul className="social-list list-inline mt-3 mb-0">
         {(socialLinks || []).map((item, index) => {
-        return <li key={index} className="list-inline-item">
-              <Link to="#" className={classNames("social-list-item", "border-" + item.variant, "text-" + item.variant)}>
+          return (
+            <li key={index} className="list-inline-item">
+              <Link
+                to="#"
+                className={classNames(
+                  "social-list-item",
+                  "border-" + item.variant,
+                  "text-" + item.variant
+                )}
+              >
                 <i className={classNames("mdi", "mdi-" + item.icon)}></i>
               </Link>
-            </li>;
-      })}
+            </li>
+          );
+        })}
       </ul>
-    </>;
+    </>
+  );
 };
 const Login2 = () => {
-  const {
-    t
-  } = useTranslation();
-  const {
-    login,
-    control,
-    popup,
-    setPopup
-  } = useLogin2();
-    const [showPassword, setShowPassword] = useState(false);
-  
-  return <>
+  const { t } = useTranslation();
+  const { login, control, popup, setPopup } = useLogin2();
+  const [showPassword, setShowPassword] = useState(false);
 
+  return (
+    <>
       <AuthLayout bottomLinks={<BottomLink />}>
         <h4 className="mt-0">{t("Sign In")}</h4>
         <p className="text-muted mb-4">
           {t("Enter your email address and password to access account.")}
         </p>
         <form onSubmit={login}>
+          <div className="mb-3">
+            <Controller
+              name="email"
+              control={control}
+              render={({ field, fieldState }) => (
+                <FormGroup>
+                  <FormLabel htmlFor="email">{t("Email")}</FormLabel>
+                  <FormControl
+                    id="email"
+                    {...field}
+                    isInvalid={Boolean(fieldState.error?.message)}
+                  />
+                  {fieldState.error?.message && (
+                    <Feedback type="invalid" className="text-danger">
+                      {fieldState.error?.message}
+                    </Feedback>
+                  )}
+                </FormGroup>
+              )}
+            />
+          </div>
 
-<div className="mb-3">
-    <Controller name="email" control={control} render={({
-field,
-fieldState
-}) => <FormGroup>
-                <FormLabel htmlFor="email">
-                    {t("Email")}
-                </FormLabel>
-                <FormControl id="email" {...field} isInvalid={Boolean(fieldState.error?.message)} />
-                {fieldState.error?.message && <Feedback type="invalid" className="text-danger">{fieldState.error?.message}</Feedback>}
-            </FormGroup>} />
-</div>
+          <div className="mb-3">
+            <Controller
+              name="password"
+              control={control}
+              render={({ field, fieldState }) => (
+                <FormGroup>
+                  <FormLabel htmlFor="password">{t("Password")}</FormLabel>
 
-<div className="mb-3">
-    <Controller name="password" control={control} render={({
-field,
-fieldState
-}) => <FormGroup>
-                <FormLabel htmlFor="password">
-                    {t("Password")}
-                </FormLabel>
+                  <div className="position-relative">
+                    <FormControl
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      {...field}
+                      isInvalid={Boolean(fieldState.error?.message)}
+                    />
+                    {fieldState.error?.message && (
+                      <Feedback type="invalid" className="text-danger">
+                        {fieldState.error?.message}
+                      </Feedback>
+                    )}
+                    <span
+                      className="d-flex position-absolute top-50 end-0 translate-middle-y p-0 pe-2 me-2"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {!fieldState.error &&
+                        (showPassword ? (
+                          <FiEye
+                            height={18}
+                            width={18}
+                            className="cursor-pointer"
+                          />
+                        ) : (
+                          <FiEyeOff
+                            height={18}
+                            width={18}
+                            className="cursor-pointer"
+                          />
+                        ))}
+                    </span>
+                  </div>
+                </FormGroup>
+              )}
+            />
+          </div>
 
-                <div className="position-relative">
-                    <FormControl id="password" type={showPassword ? 'text' : 'password'} {...field} isInvalid={Boolean(fieldState.error?.message)} />
-                    {fieldState.error?.message && <Feedback type="invalid" className="text-danger">{fieldState.error?.message}</Feedback>}
-                    <span className="d-flex position-absolute top-50 end-0 translate-middle-y p-0 pe-2 me-2" onClick={() => setShowPassword(!showPassword)}>
-                  {!fieldState.error && (showPassword ? <FiEye height={18} width={18} className="cursor-pointer" /> : <FiEyeOff height={18} width={18} className="cursor-pointer" />)}
-                </span>
-                </div>
-            </FormGroup>} />
-</div>
-
-<div className="text-center d-grid">
-    <Button variant="primary" type="submit">
-        {t("Log In")}
-    </Button>
-</div>
-</form>
-       
-        
+          <div className="text-center d-grid">
+            <Button variant="primary" type="submit">
+              {t("Log In")}
+            </Button>
+          </div>
+        </form>
       </AuthLayout>
-      
-             {/* Render the Popup UI when it is visible */}
-             {popup.isVisible && (
-                <Popup
-                    message={popup.message}
-                    type={popup.type}
-                    onClose={() => setPopup({ ...popup, isVisible: false })}
-                    buttonLabel={popup.buttonLabel}
-                    buttonRoute={popup.buttonRoute}
-                />
-            )}
 
-    </>;
+      {/* Render the Popup UI when it is visible */}
+      {popup.isVisible && (
+        <Popup
+          message={popup.message}
+          type={popup.type}
+          onClose={() => setPopup({ ...popup, isVisible: false })}
+          buttonLabel={popup.buttonLabel}
+          buttonRoute={popup.buttonRoute}
+        />
+      )}
+    </>
+  );
 };
 export default Login2;

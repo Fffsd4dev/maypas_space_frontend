@@ -340,58 +340,54 @@ const crmAppRoutes = {
   route: PrivateRoute,
   roles: ["Admin"],
   icon: "users",
-  children: [
-    {
-      path: "/apps/crm/dashboard",
-      name: "Dashboard",
-      element: <CRMDashboard />,
-      route: PrivateRoute
-    },
-    {
-      path: "/apps/crm/contacts",
-      name: "Contacts",
-      element: <CRMContacts />,
-      route: PrivateRoute
-    },
-    {
-      path: "/apps/crm/opportunities",
-      name: "Opportunities",
-      element: <Opportunities />,
-      route: PrivateRoute
-    },
-    {
-      path: "/apps/crm/leads",
-      name: "Leads",
-      element: <CRMLeads />,
-      route: PrivateRoute
-    },
-    {
-      path: "/apps/crm/customers",
-      name: "Customers",
-      // element: <Personal />,
-      element: <CRMCustomers />,
-      route: PrivateRoute
-    },
-    {
-      path: "/account/personal",
-      name: "Personal",
-      element: <Personal />,
-      route: PrivateRoute
-    },
-    {
-      path: "/account/organisation",
-      name: "Organisation",
-      element: <Teams />,
-      route: PrivateRoute
-    },
-    {
-      path: "/account/admin",
-      name: "Admin",
-      element: <Admin />,
-      // element: <CRMCustomers />,
-      route: PrivateRoute
-    }
-  ]
+
+  children: [{
+    path: "/apps/crm/dashboard",
+    name: "Dashboard",
+    element: <CRMDashboard />,
+    route: PrivateRoute
+  }, {
+    path: "/apps/crm/contacts",
+    name: "Contacts",
+    element: <CRMContacts />,
+    route: PrivateRoute
+  }, {
+    path: "/apps/crm/opportunities",
+    name: "Opportunities",
+    element: <Opportunities />,
+    route: PrivateRoute
+  }, {
+    path: "/apps/crm/leads",
+    name: "Leads",
+    element: <CRMLeads />,
+    route: PrivateRoute
+  }, {
+    path: "/apps/crm/customers",
+    name: "Customers",
+    // element: <Personal />,
+    element: <CRMCustomers />,
+    route: PrivateRoute
+  }, 
+  {
+    path: "/account/personal",
+    name: "Personal",
+    element: <Personal />,
+    route: PrivateRoute
+  },
+  {
+    path: "/account/roles",
+    name: "Organisation",
+    element: <Teams />,
+    route: PrivateRoute
+  },
+  {
+    path: "/account/admin",
+    name: "Admin",
+    element: <Admin />,
+    // element: <CRMCustomers />,
+    route: PrivateRoute
+  }
+]
 };
 const emailAppRoutes = {
   path: "/apps/email",

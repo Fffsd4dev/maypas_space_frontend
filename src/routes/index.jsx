@@ -404,7 +404,7 @@ const crmAppRoutes = {
     route: PrivateRoute
   },
   {
-    path: "/account/organisation",
+    path: "/account/roles",
     name: "Organisation",
     element: <Teams />,
     route: PrivateRoute

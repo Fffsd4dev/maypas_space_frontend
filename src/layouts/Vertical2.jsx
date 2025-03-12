@@ -7,7 +7,7 @@ import { useViewport } from "@/hooks/useViewPort";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 
 // code splitting and lazy loading
-const Topbar = React.lazy(() => import("./Topbar"));
+const Topbar2 = React.lazy(() => import("./Topbar2"));
 const LeftSidebar2 = React.lazy(() => import("./LeftSidebar2"));
 const Footer = React.lazy(() => import("./Footer"));
 const RightSidebar2 = React.lazy(() => import("./RightSideBar2"));
@@ -97,7 +97,7 @@ const VerticalLayout2 = ({ children }) => {
 
         <div className="content-page">
           <Suspense fallback={loading()}>
-            <Topbar openLeftMenuCallBack={openMenu} />
+            <Topbar2 openLeftMenuCallBack={openMenu} />
           </Suspense>
 
           <div className="content">

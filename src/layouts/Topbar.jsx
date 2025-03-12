@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 // components
 import TopbarSearch from "@/components/TopbarSearch";
@@ -20,6 +20,7 @@ import logoLight2 from "@/assets/images/logo-light-2.png";
 import { useViewport } from "@/hooks/useViewPort";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { toggleDocumentAttribute } from "@/utils";
+
 // get the notifications
 const Notifications = [{
   id: 1,
@@ -55,25 +56,6 @@ const Notifications = [{
   subText: "13 days ago",
   icon: "mdi mdi-heart",
   bgColor: "secondary"
-}];
-
-// get the profilemenu
-const ProfileMenus = [{
-  label: "My Account",
-  icon: "fe-user",
-  redirectTo: "#"
-}, {
-  label: "Settings",
-  icon: "fe-settings",
-  redirectTo: "#"
-}, {
-  label: "Lock Screen",
-  icon: "fe-lock",
-  redirectTo: "/auth/lock-screen"
-}, {
-  label: "Logout",
-  icon: "fe-log-out",
-  redirectTo: "/auth/logout"
 }];
 
 // dummy search results
@@ -142,8 +124,27 @@ const Topbar = ({
     changeMenuSize,
     themeCustomizer
   } = useLayoutContext();
+  const { tenantSlug } = useParams();
   const navbarCssClasses = navCssClasses || "";
   const containerCssClasses = !hideLogo ? "container-fluid" : "";
+
+  const ProfileMenus = [{
+    label: "My Account",
+    icon: "fe-user",
+    redirectTo: "#"
+  }, {
+    label: "Settings",
+    icon: "fe-settings",
+    redirectTo: "#"
+  }, {
+    label: "Lock Screen",
+    icon: "fe-lock",
+    redirectTo: `/${tenantSlug}/auth/lock-screen`
+  }, {
+    label: "Logout",
+    icon: "fe-log-out",
+    redirectTo: `/${tenantSlug}/auth/logout`
+  }];
 
   /**
    * Toggle the leftmenu when having mobile screen
@@ -250,7 +251,7 @@ const Topbar = ({
                             <NotificationDropdown notifications={Notifications} />
                         </li>
                         <li className="dropdown">
-                            <ProfileDropdown profilePic={profilePic} menuItems={ProfileMenus} username={"Geneva"} userTitle={"Founder"} />
+                            <ProfileDropdown profilePic={profilePic} menuItems={ProfileMenus} username={tenantSlug} userTitle={"Founder"} />
                         </li>
                         <li>
                             <button className="nav-link dropdown-toggle right-bar-toggle waves-effect waves-light btn btn-link shadow-none" onClick={themeCustomizer.toggle}>

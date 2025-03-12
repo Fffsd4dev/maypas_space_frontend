@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 // components
 import TopbarSearch from "@/components/TopbarSearch";
@@ -20,6 +20,7 @@ import logoLight2 from "@/assets/images/logo-light-2.png";
 import { useViewport } from "@/hooks/useViewPort";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { toggleDocumentAttribute } from "@/utils";
+
 // get the notifications
 const Notifications = [{
   id: 1,
@@ -55,25 +56,6 @@ const Notifications = [{
   subText: "13 days ago",
   icon: "mdi mdi-heart",
   bgColor: "secondary"
-}];
-
-// get the profilemenu
-const ProfileMenus = [{
-  label: "My Account",
-  icon: "fe-user",
-  redirectTo: "#"
-}, {
-  label: "Settings",
-  icon: "fe-settings",
-  redirectTo: "#"
-}, {
-  label: "Lock Screen",
-  icon: "fe-lock",
-  redirectTo: "/auth/lock-screen"
-}, {
-  label: "Logout",
-  icon: "fe-log-out",
-  redirectTo: "/auth/logout"
 }];
 
 // dummy search results
@@ -142,8 +124,27 @@ const Topbar2 = ({
     changeMenuSize,
     themeCustomizer
   } = useLayoutContext();
+  const { tenantSlug } = useParams();
   const navbarCssClasses = navCssClasses || "";
   const containerCssClasses = !hideLogo ? "container-fluid" : "";
+
+  const ProfileMenus = [{
+    label: "My Account",
+    icon: "fe-user",
+    redirectTo: "#"
+  }, {
+    label: "Settings",
+    icon: "fe-settings",
+    redirectTo: "#"
+  }, {
+    label: "Lock Screen",
+    icon: "fe-lock",
+    redirectTo: `auth/lock-screen`
+  }, {
+    label: "Logout",
+    icon: "fe-log-out",
+    redirectTo: `/auth/logout2`
+  }];
 
   /**
    * Toggle the leftmenu when having mobile screen
@@ -194,11 +195,6 @@ const Topbar2 = ({
       document.body.style.overflow = "visible";
     }
   }
-
-  const handleToggleRightSidebar2 = () => {
-    themeCustomizer.toggle();
-  };
-
   return <React.Fragment>
             <div className={`navbar-custom ${navbarCssClasses}`}>
                 <div className={`topbar ${containerCssClasses}`}>
@@ -236,33 +232,35 @@ const Topbar2 = ({
                     </div>
 
                     <ul className="topbar-menu d-flex align-items-center">
-                        <li className="dropdown d-none d-lg-block" onClick={handleToggleRightSidebar2}>
-                            <a className="nav-link dropdown-toggle arrow-none" href="#" role="button">
-                                <i className="fe-settings noti-icon"></i>
-                            </a>
+                        <li className="app-search dropdown d-none d-lg-block">
+                            <TopbarSearch items={SearchResults} />
                         </li>
-                        <li className="dropdown d-none d-lg-block">
+                        {/* <li className="dropdown d-inline-block d-lg-none">
+                         <SearchDropdown />
+                         </li> */}
+                        <li className="dropdown d-none d-lg-inline-block">
                             <MaximizeScreen />
                         </li>
-                        <li className="dropdown d-none d-lg-block">
-                            <TopbarSearch searchOptions={SearchResults} />
-                        </li>
-                        <li className="dropdown d-none d-lg-block">
+                        <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
                             <AppsDropdown />
                         </li>
-                        <li className="dropdown d-none d-lg-block">
+                        <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
                             <LanguageDropdown />
                         </li>
-                        <li className="dropdown d-none d-lg-block">
+                        <li className="dropdown notification-list">
                             <NotificationDropdown notifications={Notifications} />
                         </li>
-                        <li className="dropdown d-none d-lg-block">
-                            <ProfileDropdown profileMenus={ProfileMenus} />
+                        <li className="dropdown">
+                            <ProfileDropdown profilePic={profilePic} menuItems={ProfileMenus} username={"Geneva"} userTitle={"Founder"} />
+                        </li>
+                        <li>
+                            <button className="nav-link dropdown-toggle right-bar-toggle waves-effect waves-light btn btn-link shadow-none" onClick={themeCustomizer.toggle}>
+                                <i className="fe-settings noti-icon font-22"></i>
+                            </button>
                         </li>
                     </ul>
                 </div>
             </div>
         </React.Fragment>;
 };
-
 export default Topbar2;

@@ -13,14 +13,17 @@ import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import React from "react";
 import PlanDetails from "../pages/subscriptions/PlanDetails";
+import { useParams } from "react-router-dom";
 
 import Error404Alt from "../pages/error/Error404Alt";
 
 const AllRoutes = props => {
   const { isAuthenticated } = useAuthContext();
   const { orientation } = useLayoutContext();
+  const { tenantSlug } = useParams();
 
   const getLayout = (path) => {
+    if (!path) return TwoColumnLayout;
     if (path.includes("/dashboard-3")) {
       return VerticalLayout2;
     } else if (path.includes("/dashboard-1")) {
@@ -54,12 +57,12 @@ const AllRoutes = props => {
         <Route path="/plan-details/:id" element={<PlanDetails />} />
 
         {publicProtectedFlattenRoutes.map((route, idx) => (
-          <Route path={route.path} element={<DefaultLayout {...props}>{route.element}</DefaultLayout>} key={idx} />
+          <Route path={route.path} element={<DefaultLayout {...props} tenantSlug={tenantSlug}>{route.element}</DefaultLayout>} key={idx} />
         ))}
         {authProtectedFlattenRoutes.map((route, idx) => {
           const Layout = getLayout(route.path);
           return (
-            <Route path={route.path} element={!isAuthenticated ? <Navigate to={{ pathname: "/landing", search: "next=" + route.path }} /> : <Layout {...props}>{route.element}</Layout>} key={idx} />
+            <Route path={route.path} element={!isAuthenticated ? <Navigate to={{ pathname: "/landing", search: "next=" + route.path }} /> : <Layout {...props} tenantSlug={tenantSlug}>{route.element}</Layout>} key={idx} />
           );
         })}
 

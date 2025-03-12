@@ -16,7 +16,6 @@ const MenuItemWithChildren = ({
   toggleMenu
 }) => {
   const [open, setOpen] = useState(activeMenuItems.includes(item.key));
-  // ;
 
   useEffect(() => {
     setOpen(activeMenuItems.includes(item.key));

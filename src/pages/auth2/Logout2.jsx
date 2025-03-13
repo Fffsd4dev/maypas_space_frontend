@@ -1,5 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
+import { useAuthContext } from "@/context/useAuthContext";
+import axios from "axios";
 
 // components
 import AuthLayout from "./AuthLayout";
@@ -9,23 +12,59 @@ const LogoutIcon = () => {
 
 /* bottom link */
 const BottomLink = () => {
-  const {
-    t
-  } = useTranslation();
-  return <footer className="footer footer-alt">
+  const { t } = useTranslation();
+  return (
+    <footer className="footer footer-alt">
       <p className="text-muted">
         {t("Back to ")}{" "}
         <Link to={"/auth/login2"} className="text-muted ms-1">
           <b>{t("Sign In")}</b>
         </Link>
       </p>
-    </footer>;
+    </footer>
+  );
 };
+
 const Logout2 = () => {
-  const {
-    t
-  } = useTranslation();
-  return <>
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { removeSession, user } = useAuthContext();
+
+  const token = user?.token;
+
+  useEffect(() => {
+    const logout = async () => {
+      console.log(token);
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/logout`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        if (res.status === 200) {
+          console.log(res.data.message);
+          removeSession();
+
+        } else {
+          console.error('Logout Failed:', res);
+        }
+      } catch (e) {
+        console.error('Error during Logout:', e);
+       
+      }
+    };
+
+    logout();
+  }, [ removeSession, navigate, token]);
+
+  return (
+    <>
       <AuthLayout bottomLinks={<BottomLink />}>
         <div className="text-center">
           <div className="mt-4">
@@ -38,10 +77,12 @@ const Logout2 = () => {
 
           <p className="text-muted">
             {" "}
-            {t("You are now successfully sign out.")}{" "}
+            {t("You are now successfully signed out.")}{" "}
           </p>
         </div>
       </AuthLayout>
-    </>;
+    </>
+  );
 };
+
 export default Logout2;

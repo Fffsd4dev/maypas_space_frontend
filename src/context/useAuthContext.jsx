@@ -31,7 +31,6 @@ export function AuthProvider({
     const removeSession = () => {
         removeCookie(authSessionKey);
         setUser(undefined);
-        navigate('/auth/login');
     };
     return <AuthContext.Provider value={{
         user,

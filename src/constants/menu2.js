@@ -85,7 +85,7 @@ const MENU_ITEMS = [
   },
   {
     key: "subscription",
-    label: "Subscription Management",
+    label: "Manage Subscription",
     isTitle: false,
     icon: FiAirplay,
     children: [
@@ -97,7 +97,7 @@ const MENU_ITEMS = [
         parentKey: "subscription",
       },
       {
-        key: "Workspace Subscription",
+        key: "workspace-subscription",
         label: "Workspace Subscription",
         // url: "/dashboard-3",
         url: "/TenantSub",

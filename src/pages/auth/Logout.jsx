@@ -1,6 +1,9 @@
 import { Row, Col } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
+import { useAuthContext } from "@/context/useAuthContext";
+import axios from "axios";
 
 // components
 import AuthLayout from "./AuthLayout";
@@ -10,25 +13,64 @@ const LogoutIcon = () => {
 
 /* bottom link */
 const BottomLink = () => {
-  const {
-    t
-  } = useTranslation();
-  return <Row className="mt-3">
+  const { tenantSlug } = useParams();
+
+  const { t } = useTranslation();
+  return (
+    <Row className="mt-3">
       <Col className="text-center">
         <p className="text-white-50">
           {t("Back to")}{" "}
-          <Link to={"/auth/login"} className="text-white ms-1">
+          <Link to={`/${tenantSlug}/auth/login`} className="text-white ms-1">
             <b>{t("Sign In")}</b>
           </Link>
         </p>
       </Col>
-    </Row>;
+    </Row>
+  );
 };
+
 const Logout = () => {
-  const {
-    t
-  } = useTranslation();
-  return <>
+  const { t } = useTranslation();
+  const { tenantSlug } = useParams();
+  const navigate = useNavigate();
+  const { removeSession, user } = useAuthContext();
+
+  const token = user?.tenantToken;
+
+  useEffect(() => {
+    const logout = async () => {
+      console.log(token);
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/logout`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        if (res.status === 200) {
+          console.log(res.data.message);
+          removeSession();
+
+        } else {
+          console.error('Logout Failed:', res);
+        }
+      } catch (e) {
+        console.error('Error during Logout:', e);
+       
+      }
+    };
+
+    logout();
+  }, [tenantSlug, removeSession, navigate, token]);
+
+  return (
+    <>
       <AuthLayout bottomLinks={<BottomLink />}>
         <div className="text-center">
           <div className="mt-4">
@@ -41,10 +83,12 @@ const Logout = () => {
 
           <p className="text-muted">
             {" "}
-            {t("You are now successfully sign out.")}{" "}
+            {t("You are now successfully signed out.")}{" "}
           </p>
         </div>
       </AuthLayout>
-    </>;
+    </>
+  );
 };
+
 export default Logout;

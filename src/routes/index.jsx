@@ -1,4 +1,4 @@
-import { Route, Navigate } from "react-router-dom";
+import { Route, Navigate, useParams } from "react-router-dom";
 
 // components
 import PrivateRoute from "./PrivateRoute";
@@ -35,9 +35,7 @@ const Dashboard3 = React.lazy(() => import("../pages/dashboard/Dashboard3/"));
 const Dashboard4 = React.lazy(() => import("../pages/dashboard/Dashboard4/"));
 
 // Tenants
-// import Tenants from "../pages/tenants";
 const Tenants = React.lazy(() => import("../pages/tenants"));
-// const FetchAllTenants = React.lazy(() => import("../pages/Tenants/FetchAll"));
 
 const CreateSubscription = React.lazy(() => import("../pages/subscriptions/CreateSubscription"));
 const TenantSub = React.lazy(() => import("../pages/subscriptions/TenantSub"));
@@ -168,13 +166,12 @@ const ChartJs = React.lazy(() => import("../pages/charts/ChartJs"));
 
 // maps
 const VectorMaps = React.lazy(() => import("../pages/maps/VectorMaps"));
-// root routesimport Personal from '../pages/Accounts/Personal/index';
 
 const rootRoute = {
-    path: '/',
-    exact: true,
-    element:  <Root />,
-    route: Route,
+  path: '/',
+  exact: true,
+  element: <Root />,
+  route: Route,
 };
 
 // dashboards
@@ -340,54 +337,56 @@ const crmAppRoutes = {
   route: PrivateRoute,
   roles: ["Admin"],
   icon: "users",
-
-  children: [{
-    path: "/apps/crm/dashboard",
-    name: "Dashboard",
-    element: <CRMDashboard />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/crm/contacts",
-    name: "Contacts",
-    element: <CRMContacts />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/crm/opportunities",
-    name: "Opportunities",
-    element: <Opportunities />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/crm/leads",
-    name: "Leads",
-    element: <CRMLeads />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/crm/customers",
-    name: "Customers",
-    // element: <Personal />,
-    element: <CRMCustomers />,
-    route: PrivateRoute
-  }, 
-  {
-    path: "/account/personal",
-    name: "Personal",
-    element: <Personal />,
-    route: PrivateRoute
-  },
-  {
-    path: "/account/roles",
-    name: "Organisation",
-    element: <Teams />,
-    route: PrivateRoute
-  },
-  {
-    path: "/account/admin",
-    name: "Admin",
-    element: <Admin />,
-    // element: <CRMCustomers />,
-    route: PrivateRoute
-  }
-]
+  children: [
+    {
+      path: "/apps/crm/dashboard",
+      name: "Dashboard",
+      element: <CRMDashboard />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/crm/contacts",
+      name: "Contacts",
+      element: <CRMContacts />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/crm/opportunities",
+      name: "Opportunities",
+      element: <Opportunities />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/crm/leads",
+      name: "Leads",
+      element: <CRMLeads />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/crm/customers",
+      name: "Customers",
+      element: <CRMCustomers />,
+      route: PrivateRoute
+    },
+    {
+      path: "/account/personal",
+      name: "Personal",
+      element: <Personal />,
+      route: PrivateRoute
+    },
+    {
+      path: "/account/roles",
+      name: "Organisation",
+      element: <Teams />,
+      route: PrivateRoute
+    },
+    {
+      path: "/account/admin",
+      name: "Admin",
+      element: <Admin />,
+      route: PrivateRoute
+    }
+  ]
 };
 const emailAppRoutes = {
   path: "/apps/email",
@@ -986,7 +985,7 @@ const authRoutes = [
     element: <Logout2 />,
     route: Route
   },
-  {
+    {
     path: "/auth/register2",
     name: "Register2",
     element: <Register2 />,
@@ -1082,4 +1081,5 @@ const authProtectedRoutes = [dashboardRoutes, tenantRoutes, subscriptionRoutes, 
 const publicRoutes = [rootRoute, ...authRoutes, ...otherPublicRoutes];
 const authProtectedFlattenRoutes = flattenRoutes([...authProtectedRoutes]);
 const publicProtectedFlattenRoutes = flattenRoutes([...publicRoutes]);
+
 export { publicRoutes, authProtectedRoutes, authProtectedFlattenRoutes, publicProtectedFlattenRoutes };

@@ -1,19 +1,18 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import * as yup from 'yup';
 import { useAuthContext } from '@/context/useAuthContext';
 import httpClient from '@/helpers/httpClient';
-import { useParams } from "react-router-dom";
-
-import Popup from '../components/Popup/Popup';
 
 const useLogin = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { saveSession } = useAuthContext();
   const [searchParams] = useSearchParams();
+  const { user } = useAuthContext();
+  const { tenantSlug } = useParams();
   const loginFormSchema = yup.object({
     email: yup.string().email('Please enter a valid email').required('Please enter your email'),
     password: yup.string().required('Please enter your password')
@@ -31,7 +30,6 @@ const useLogin = () => {
   };
 
   const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
-  const { tenantSlug } = useParams();
 
   const login = handleSubmit(async (data) => {
     console.log('submitting');
@@ -52,9 +50,9 @@ const useLogin = () => {
       console.log(result);
       if (result.token && res.ok) {
         console.log(res.ok);
-
-        saveSession({ ...(result ?? {}), token: result.token, tenant: tenantSlug });
-
+        console.log(result.user.tenant_id);
+        saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id });
+        console.log(user.tenant_id);
         setPopup({
           message: "Login successful!",
           type: "success",

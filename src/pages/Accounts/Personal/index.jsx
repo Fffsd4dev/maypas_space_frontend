@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Table } from "react-bootstrap";
 import classNames from "classnames";
 import PageTitle from "../../../components/PageTitle";
-import WorkspaceUserRegistrationModal from "./UsersRegistrationForm";
+import UsersRegistrationModal from "./UsersRegistrationForm";
 import { useAuthContext } from '@/context/useAuthContext.jsx';
 
 
@@ -20,7 +19,19 @@ const Personal = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedWorkspace, setSelectedWorkspace] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const formatDateTime = (isoString) => {
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    };
+    return new Date(isoString).toLocaleDateString("en-US", options);
+  };
+
 
   useEffect(() => {
     if (!tenantToken) return;
@@ -45,7 +56,13 @@ const Personal = () => {
         console.log('Parsed response data:', result.data.data);
 
         if (result && Array.isArray(result.data.data)) {
-          setData(result.data.data);
+          const data = result.data.data;
+          data.sort(
+            (a, b) =>
+              new Date(b.updated_at || b.created_at) -
+              new Date(a.updated_at || a.created_at)
+          );
+          setData(data);
         } else {
           throw new Error("Invalid response format");
         }
@@ -60,13 +77,13 @@ const Personal = () => {
     fetchData();
   }, [user]);
 
-  const handleEditClick = (workspace) => {
-    setSelectedWorkspace(workspace);
+  const handleEditClick = (myUser) => {
+    setSelectedUser(myUser);
     setShow(true);
   };
 
 
-  const handleDeleteClick = async (workspaceId) => {
+  const handleDeleteClick = async (myUserID) => {
     if (!user?.token) return;
   
     if (!window.confirm("Are you sure you want to delete this workspace?")) return;
@@ -78,14 +95,14 @@ const Personal = () => {
           "Authorization": `Bearer ${user?.token}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({id: workspaceId})
+        body: JSON.stringify({id: myUserID})
       });
   
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
   
-      setData((prevData) => prevData.filter((workspace) => workspace.id !== workspaceId));
+      setData((prevData) => prevData.filter((myUser) => myUser.id !== myUserID));
       alert("Workspace deleted successfully!");
     } catch (error) {
       console.error("Error deleting workspace:", error);
@@ -104,7 +121,7 @@ const Personal = () => {
             <Card.Body>
               <Row className="mb-2">
                 <Col sm={4}>
-                  <Button variant="danger" className="waves-effect waves-light" onClick={() => { setShow(true); setSelectedWorkspace(null); }}>
+                  <Button variant="danger" className="waves-effect waves-light" onClick={() => { setShow(true); setSelectedUser(null); }}>
                     <i className="mdi mdi-plus-circle me-1"></i> Add a User
                   </Button>
                 </Col>
@@ -113,44 +130,50 @@ const Personal = () => {
               {error ? (
                 <p className="text-danger">Error: {error}</p>
               ) : loading ? (
-                <p>Loading Workspaces...</p>
+                <p>Loading Users...</p>
               ) : (
                 <Table striped bordered hover responsive>
                   <thead>
                     <tr>
+                      <th>S/N</th>
                       <th>ID</th>
-                      <th>Company Name</th>
-                      <th>Amount of Locations</th>
-                      <th>Countries</th>
+                      <th>First Name</th>
+                      <th>Last Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
                       <th>Created On</th>
-                      <th>Status</th>
+                      <th>Updated On</th>
+                      {/* <th>Status</th> */}
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.map((workspace) => (
-                      <tr key={workspace.id}>
-                        <td>{workspace.id}</td>
-                        <td>{workspace.company_name}</td>
-                        <td>{workspace.company_no_location}</td>
-                        <td>{workspace.company_countries}</td>
-                        <td>{workspace.created_at}</td>
-                        <td>
+                    {data.map((myUser, index) => (
+                      <tr key={myUser.id}>
+                        <td>{index + 1}</td> {/* Fix S/N column */}
+                        <td>{myUser.id}</td>
+                        <td>{myUser.first_name}</td>
+                        <td>{myUser.last_name}</td>
+                        <td>{myUser.email}</td>
+                        <td>{myUser.phone}</td>
+                        <td>{formatDateTime(myUser.created_at)}</td>
+                        <td>{formatDateTime(myUser.updated_at)}</td>
+                        {/* <td>
                           <span className={classNames("badge", {
-                            "bg-soft-success text-success": workspace.status === "Active",
-                            "bg-soft-danger text-danger": workspace.status === "Blocked"
+                            "bg-soft-success text-success": myUser.status === "Active",
+                            "bg-soft-danger text-danger": myUser.status === "Blocked"
                           })}>
-                            {workspace.status}
+                            {myUser.status}
                           </span>
-                        </td>
+                        </td> */}
                         <td>
-                          <Link to="#" className="action-icon" onClick={() => handleEditClick(workspace)}>
+                          <Link to="#" className="action-icon" onClick={() => handleEditClick(myUser)}>
                             <i className="mdi mdi-square-edit-outline"></i>
                           </Link>
                           {/* <Link to="#" className="action-icon">
                             <i className="mdi mdi-delete"></i>
                           </Link> */}
-                          <Link to="#" className="action-icon" onClick={() => handleDeleteClick(workspace.id)}>
+                          <Link to="#" className="action-icon" onClick={() => handleDeleteClick(myUser.id)}>
   <i className="mdi mdi-delete"></i>
 </Link>
 
@@ -165,11 +188,11 @@ const Personal = () => {
         </Col>
       </Row>
 
-      <WorkspaceUserRegistrationModal
+      <UsersRegistrationModal
         show={show}
-        onHide={() => { setShow(false); setSelectedWorkspace(null); }}
+        onHide={() => { setShow(false); setSelectedUser(null); }}
         onSubmit={() => setShow(false)}
-        workspace={selectedWorkspace}
+        myUser={selectedUser}
       />
       
     </>

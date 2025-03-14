@@ -119,7 +119,7 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     return (
         <Modal show={show} onHide={onHide} centered>
             <Modal.Header className="bg-light" closeButton>
-                <Modal.Title>{myUser ? "Edit myUser" : "Add a New myUser"}</Modal.Title>
+                <Modal.Title>{myUser ? "Edit User" : "Add a New User"}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-4">
                 {errorMessage && (

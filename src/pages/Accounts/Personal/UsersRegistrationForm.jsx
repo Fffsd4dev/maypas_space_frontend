@@ -8,8 +8,9 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     const { user } = useAuthContext();
     const tenantSlug = user?.tenant;
     const tenantID = user?.tenant_id;
-    console.log(tenantID)
+    const [roles, setRoles] = useState([]);
     
+   
     const [formData, setFormData] = useState({
        
         first_name: "",
@@ -31,7 +32,7 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                 last_name: myUser.last_name || "",
                 email: myUser.email || "",
                 phone: myUser.phone || "",
-                user_type_id: myUser.user_type_id || tenantID,
+                user_type_id: myUser.user_type_id ||"",
                
             });
         } else {
@@ -41,11 +42,33 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                 last_name: "",
                 email: "",
                 phone: "",
-                user_type_id: tenantID,
+                user_type_id: "",
             });
         }
     }, [myUser]);
 
+    // Fetch roles when modal opens
+    useEffect(() => {
+        if (show && user?.token) {
+            const fetchRoles = async () => {
+                try {
+                    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/system-admin/view-roles`, {
+                        headers: { Authorization: `Bearer ${user.tenantToken}` },
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        setRoles(result.data);
+                    } else {
+                        throw new Error(result.message || "Failed to fetch roles.");
+                    }
+                } catch (error) {
+                    setErrorMessage(error.message);
+                    setIsError(true);
+                }
+            };
+            fetchRoles();
+        }
+    }, [show, user?.tenantToken]);
     const handleInputChange = (e) => {
         const { name, value } = e.target;
     
@@ -84,10 +107,10 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             console.log(result);
 
             if (response.ok) {
-                setErrorMessage(myUser ? "User updated successfully!" : "myUser registered successfully!");
+                setErrorMessage(myUser ? "User updated successfully!" : "User registered successfully!");
                 setIsError(false);
                 setTimeout(() => {
-                    onSubmit();
+                    onSubmit(); // Call onSubmit to reload users
                     onHide();
                 }, 2000);
             } else {
@@ -158,7 +181,6 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
         name="first_name"
         value={formData.first_name}
         onChange={handleInputChange}
-        disabled={!!myUser}  // Disable when editing
     />
 </Form.Group>
 
@@ -169,7 +191,6 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
         name="last_name"
         value={formData.last_name}
         onChange={handleInputChange}
-        disabled={!!myUser}
     />
 </Form.Group>
 
@@ -180,7 +201,6 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
         name="email"
         value={formData.email}
         onChange={handleInputChange}
-        disabled={!!myUser}
     />
 </Form.Group>
 
@@ -191,9 +211,18 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
         name="phone"
         value={formData.phone}
         onChange={handleInputChange}
-        disabled={!!myUser}
     />
 </Form.Group>
+
+ <Form.Group className="mb-3" controlId="user_type_id">
+                        <Form.Label>Role</Form.Label>
+                        <Form.Select name="user_type_id" value={formData.user_type_id} onChange={handleInputChange} required>
+                            <option value="">Select a role</option>
+                            {roles.map((role) => (
+                                <option key={role.id} value={role.id}>{role.role}</option>
+                            ))}
+                        </Form.Select>
+                    </Form.Group>
 
                     <Button variant="primary" type="submit" className="w-100" disabled={isLoading}>
                         {isLoading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : myUser ? "Update" : "Create"} User

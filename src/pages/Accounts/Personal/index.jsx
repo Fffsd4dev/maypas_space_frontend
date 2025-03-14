@@ -33,47 +33,46 @@ const Personal = () => {
   };
 
 
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/view-users`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${user?.tenantToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+        console.log(response);
+      }
+
+      const result = await response.json();
+      console.log('Parsed response data:', result.data.data);
+
+      if (result && Array.isArray(result.data.data)) {
+        const data = result.data.data;
+        data.sort(
+          (a, b) =>
+            new Date(b.updated_at || b.created_at) -
+            new Date(a.updated_at || a.created_at)
+        );
+        setData(data);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      console.error("Error fetching workspaces:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!tenantToken) return;
-
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/view-users`, {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${user?.tenantToken}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-          console.log(response);
-        }
-
-        const result = await response.json();
-        console.log('Parsed response data:', result.data.data);
-
-        if (result && Array.isArray(result.data.data)) {
-          const data = result.data.data;
-          data.sort(
-            (a, b) =>
-              new Date(b.updated_at || b.created_at) -
-              new Date(a.updated_at || a.created_at)
-          );
-          setData(data);
-        } else {
-          throw new Error("Invalid response format");
-        }
-      } catch (error) {
-        console.error("Error fetching workspaces:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [user]);
 
@@ -82,6 +81,11 @@ const Personal = () => {
     setShow(true);
   };
 
+  const handleClose = () => {
+    setShow(false);
+    setSelectedUser(null);
+    fetchData(); // Reload users after closing the modal
+  };
 
   const handleDeleteClick = async (myUserID) => {
     if (!user?.token) return;
@@ -104,6 +108,7 @@ const Personal = () => {
   
       setData((prevData) => prevData.filter((myUser) => myUser.id !== myUserID));
       alert("Workspace deleted successfully!");
+      fetchData(); // Reload users after deleting a user
     } catch (error) {
       console.error("Error deleting workspace:", error);
       alert("Failed to delete workspace. Please try again.");
@@ -143,6 +148,7 @@ const Personal = () => {
                       <th>Phone</th>
                       <th>Created On</th>
                       <th>Updated On</th>
+                      <th>User type</th>
                       {/* <th>Status</th> */}
                       <th>Action</th>
                     </tr>
@@ -158,6 +164,7 @@ const Personal = () => {
                         <td>{myUser.phone}</td>
                         <td>{formatDateTime(myUser.created_at)}</td>
                         <td>{formatDateTime(myUser.updated_at)}</td>
+                        <td>{myUser.user_type.user_type}</td>
                         {/* <td>
                           <span className={classNames("badge", {
                             "bg-soft-success text-success": myUser.status === "Active",
@@ -190,9 +197,9 @@ const Personal = () => {
 
       <UsersRegistrationModal
         show={show}
-        onHide={() => { setShow(false); setSelectedUser(null); }}
-        onSubmit={() => setShow(false)}
+        onHide={handleClose}
         myUser={selectedUser}
+        onSubmit={fetchData} // Reload users after adding or editing a user
       />
       
     </>

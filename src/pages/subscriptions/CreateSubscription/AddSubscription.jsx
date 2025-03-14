@@ -1,4 +1,4 @@
-import { Modal, Button } from "react-bootstrap";
+import { Modal, Button, Spinner } from "react-bootstrap";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
@@ -38,7 +38,15 @@ const AddSubscription = ({
             <div className="text-end">
 
               <Button variant="success" type="submit" className="waves-effect waves-light me-1">
-                {loading ? (" Creatin Plan...") : (" Create Plan")} 
+                {loading ? ( <> <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                            />{" "}
+                 Creating Plan...      </>) : (" Create Plan")} 
+                 
               </Button>
               <Button variant="danger" className="waves-effect waves-light" onClick={onHide}>
                 Hide

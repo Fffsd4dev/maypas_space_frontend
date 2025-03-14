@@ -421,22 +421,30 @@ const sizePerPageList = [
     try {
       console.log(token);
       setLoading(true);
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/create-plan`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(data),
-        }
-      );
+      
+        const payload = {
+          name: data.name,
+          price: data.price,
+          duration: data.duration,
+        };
+  
+        const res = await axios.post (
+          `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/create-plan`, payload,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            
+          }
+        );
 
-      const result = await res.json();
+      const result = res;
       console.log(res);
+      console.log(result);
 
-      if (res.ok) {
+
+      if (res.status === 201 || res.status === 200) {
         console.log(res.ok);
 
         setPopup({
@@ -452,9 +460,10 @@ const sizePerPageList = [
         fetchSubscriptions(pagination.currentPage, pagination.pageSize);
       } else {
         console.error("Creating a Subscription Plan Failed:", res);
-        const errorMessages = result.message;
+        const errorMessages = result?.data?.message;
+
         setPopup({
-          message: `Creating a Subscription Plan Failed: ${errorMessages}`,
+          message: `Creating a Subscription Plan Failed: ${JSON.stringify(errorMessages)}`,
           type: "error",
           isVisible: true,
           buttonLabel: "Retry",

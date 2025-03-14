@@ -23,10 +23,16 @@ const AllRoutes = props => {
   const { tenantSlug } = useParams();
 
   const getLayout = (path) => {
-    if (!path) return TwoColumnLayout;
-    if (path.includes("/dashboard-3")) {
+    if (!path) return VerticalLayout;
+    if (tenantSlug) {
+      // Ensure tenant routes do not use VerticalLayout2
+      return VerticalLayout;
+    }
+    if (path.includes("/dashboard-3") || path.includes("/account") || path.includes("/CreateSubscription") || path.includes("/TenantSub")) {
+      // Ensure owner's routes use VerticalLayout2
       return VerticalLayout2;
-    } else if (path.includes("/dashboard-1")) {
+    }
+    if (path.includes("/dashboard-1") || path.includes("/workspaceAccount") || path.includes("/dashboard-4")) {
       return VerticalLayout;
     }
     let layoutCls = TwoColumnLayout;

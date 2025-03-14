@@ -1,110 +1,119 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Row, Col, Card, Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
+import { Row, Col, Card, Button, Table } from "react-bootstrap";
 import classNames from "classnames";
-
-// components
 import PageTitle from "../../../components/PageTitle";
-import Table from "../../../components/Table";
-import AddUser from "./AddCustomer";
+import UsersRegistrationModal from "./UsersRegistrationForm";
+import { useAuthContext } from '@/context/useAuthContext.jsx';
 
-// dummy data
-import { customers } from "./data";
 
-/* name column render */
-const NameColumn = ({
-  row
-}) => {
-  return <div className="table-user">
-      <Link to="#" className="text-body fw-semibold">
-        {row.original.name}
-      </Link>
-    </div>;
-};
-
-/* status column render */
-const StatusColumn = ({
-  row
-}) => {
-  return <React.Fragment>
-      <span className={classNames("badge", {
-      "bg-soft-success text-success": row.original.status === "Active",
-      "bg-soft-danger text-danger": row.original.status === "Blocked"
-    })}>
-        {row.original.status}
-      </span>
-    </React.Fragment>;
-};
-
-/* action column render */
-const ActionColumn = () => {
-  return <React.Fragment>
-      <Link to="#" className="action-icon">
-        {" "}
-        <i className="mdi mdi-eye"></i>
-      </Link>
-      <Link to="#" className="action-icon">
-        {" "}
-        <i className="mdi mdi-square-edit-outline"></i>
-      </Link>
-      <Link to="#" className="action-icon">
-        {" "}
-        <i className="mdi mdi-delete"></i>
-      </Link>
-    </React.Fragment>;
-};
-const columns = [{
-  Header: "User",
-  accessor: "user",
-  sort: true,
-  Cell: NameColumn,
-  classes: "table-user"
-}, {
-  Header: "Phone",
-  accessor: "phone",
-  sort: false
-}, {
-  Header: "Email",
-  accessor: "email",
-  sort: false
-}, {
-  Header: "Create Date",
-  accessor: "created_on",
-  sort: false
-}, {
-  Header: "Status",
-  accessor: "status",
-  sort: false,
-  Cell: StatusColumn
-}, {
-  Header: "Action",
-  accessor: "action",
-  sort: false,
-  classes: "table-action",
-  Cell: ActionColumn
-}];
-
-// main component
 const Personal = () => {
-  /*
-   *   modal handeling
-   */
-  const [show, setShow] = useState(false);
-  const onCloseModal = () => setShow(false);
-  const onOpenModal = () => setShow(true);
+  const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken
+  console.log("Tenant Auth Token:", tenantToken);
+  const { tenantSlug } = useParams();
+  const tenantSlugg = user?.tenant;
+  console.log("Tenant Slug:", tenantSlugg);
 
-  /*
-    handle form submission
-    */
-  const onSubmit = () => {
-    onCloseModal();
+  const [show, setShow] = useState(false);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const formatDateTime = (isoString) => {
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    };
+    return new Date(isoString).toLocaleDateString("en-US", options);
   };
-  return <React.Fragment>
-      <PageTitle breadCrumbItems={[{
-      label: "Personal",
-      path: "/account/personal",
-      active: true
-    }]} title={"Personal"} />
+
+
+  useEffect(() => {
+    if (!tenantToken) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/view-users`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${user?.tenantToken}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+          console.log(response);
+        }
+
+        const result = await response.json();
+        console.log('Parsed response data:', result.data.data);
+
+        if (result && Array.isArray(result.data.data)) {
+          const data = result.data.data;
+          data.sort(
+            (a, b) =>
+              new Date(b.updated_at || b.created_at) -
+              new Date(a.updated_at || a.created_at)
+          );
+          setData(data);
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (error) {
+        console.error("Error fetching workspaces:", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  const handleEditClick = (myUser) => {
+    setSelectedUser(myUser);
+    setShow(true);
+  };
+
+
+  const handleDeleteClick = async (myUserID) => {
+    if (!user?.token) return;
+  
+    if (!window.confirm("Are you sure you want to delete this workspace?")) return;
+  
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/delete-user`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${user?.token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({id: myUserID})
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      setData((prevData) => prevData.filter((myUser) => myUser.id !== myUserID));
+      alert("Workspace deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting workspace:", error);
+      alert("Failed to delete workspace. Please try again.");
+    }
+  };
+  
+
+  return (
+    <>
+      <PageTitle breadCrumbItems={[{ label: "Users", path: "/account/admin", active: true }]} title="Users" />
 
       <Row>
         <Col>
@@ -112,32 +121,82 @@ const Personal = () => {
             <Card.Body>
               <Row className="mb-2">
                 <Col sm={4}>
-                  <Button variant="danger" className="waves-effect waves-light" onClick={onOpenModal}>
-                    <i className="mdi mdi-plus-circle me-1"></i> Add User
+                  <Button variant="danger" className="waves-effect waves-light" onClick={() => { setShow(true); setSelectedUser(null); }}>
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a User
                   </Button>
                 </Col>
-
-                {/* <Col sm={8}>
-                  <div className="text-sm-end mt-2 mt-sm-0">
-                    <Button className="btn btn-success mb-2 me-1">
-                      <i className="mdi mdi-cog"></i>
-                    </Button>
-
-                    <Button className="btn btn-light mb-2 me-1">Import</Button>
-
-                    <Button className="btn btn-light mb-2">Export</Button>
-                  </div>
-                </Col> */}
               </Row>
 
-              <Table columns={columns} data={customers} pageSize={12} isSortable={true} pagination={true} isSelectable={true} tableClass="table-nowrap table-striped" />
+              {error ? (
+                <p className="text-danger">Error: {error}</p>
+              ) : loading ? (
+                <p>Loading Users...</p>
+              ) : (
+                <Table striped bordered hover responsive>
+                  <thead>
+                    <tr>
+                      <th>S/N</th>
+                      <th>ID</th>
+                      <th>First Name</th>
+                      <th>Last Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Created On</th>
+                      <th>Updated On</th>
+                      {/* <th>Status</th> */}
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.map((myUser, index) => (
+                      <tr key={myUser.id}>
+                        <td>{index + 1}</td> {/* Fix S/N column */}
+                        <td>{myUser.id}</td>
+                        <td>{myUser.first_name}</td>
+                        <td>{myUser.last_name}</td>
+                        <td>{myUser.email}</td>
+                        <td>{myUser.phone}</td>
+                        <td>{formatDateTime(myUser.created_at)}</td>
+                        <td>{formatDateTime(myUser.updated_at)}</td>
+                        {/* <td>
+                          <span className={classNames("badge", {
+                            "bg-soft-success text-success": myUser.status === "Active",
+                            "bg-soft-danger text-danger": myUser.status === "Blocked"
+                          })}>
+                            {myUser.status}
+                          </span>
+                        </td> */}
+                        <td>
+                          <Link to="#" className="action-icon" onClick={() => handleEditClick(myUser)}>
+                            <i className="mdi mdi-square-edit-outline"></i>
+                          </Link>
+                          {/* <Link to="#" className="action-icon">
+                            <i className="mdi mdi-delete"></i>
+                          </Link> */}
+                          <Link to="#" className="action-icon" onClick={() => handleDeleteClick(myUser.id)}>
+  <i className="mdi mdi-delete"></i>
+</Link>
+
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              )}
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      {/* add customer modal */}
-      <AddUser show={show} onHide={onCloseModal} onSubmit={onSubmit} />
-    </React.Fragment>;
+      <UsersRegistrationModal
+        show={show}
+        onHide={() => { setShow(false); setSelectedUser(null); }}
+        onSubmit={() => setShow(false)}
+        myUser={selectedUser}
+      />
+      
+    </>
+  );
 };
+
 export default Personal;

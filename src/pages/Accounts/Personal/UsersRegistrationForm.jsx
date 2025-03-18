@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
-import TenantSub from "../../subscriptions/TenantSub";
 import { useParams } from "react-router-dom";
 
 const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     const { user } = useAuthContext();
     const tenantSlug = user?.tenant;
-    const tenantID = user?.tenant_id;
+
     const [roles, setRoles] = useState([]);
+
+    // const [roles, setRoles] = useState([
+    //     { id: 1, role: "Owner" },
+    //     { id: 2, role: "Admin" },
+    // ]);
+    
     
    
     const [formData, setFormData] = useState({
-       
         first_name: "",
         last_name: "",
         email: "",
@@ -27,17 +31,14 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     useEffect(() => {
         if (myUser) {
             setFormData({
-               
                 first_name: myUser.first_name || "",
                 last_name: myUser.last_name || "",
                 email: myUser.email || "",
                 phone: myUser.phone || "",
-                user_type_id: myUser.user_type_id ||"",
-               
+                user_type_id: myUser.user_type_id || "",
             });
         } else {
             setFormData({
-                
                 first_name: "",
                 last_name: "",
                 email: "",
@@ -48,36 +49,37 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     }, [myUser]);
 
     // Fetch roles when modal opens
+    const fetchRoles = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/usertype/list-user-types`, {
+                headers: { Authorization: `Bearer ${user.tenantToken}` },
+            });
+            const result = await response.json();
+            if (response.ok) {
+                console.log("Roles:", result.data.data);
+                setRoles(result.data.data || []);
+            } else {
+                throw new Error(result.message || "Failed to fetch roles.");
+            }
+        } catch (error) {
+            setErrorMessage(error.message);
+            setIsError(true);
+        }
+    };
+
     useEffect(() => {
-        if (show && user?.token) {
-            const fetchRoles = async () => {
-                try {
-                    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/system-admin/view-roles`, {
-                        headers: { Authorization: `Bearer ${user.tenantToken}` },
-                    });
-                    const result = await response.json();
-                    if (response.ok) {
-                        setRoles(result.data);
-                    } else {
-                        throw new Error(result.message || "Failed to fetch roles.");
-                    }
-                } catch (error) {
-                    setErrorMessage(error.message);
-                    setIsError(true);
-                }
-            };
+        if (show && user?.tenantToken) {
             fetchRoles();
         }
     }, [show, user?.tenantToken]);
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-    
         setFormData((prev) => ({
             ...prev,
             [name]: name === "company_countries" ? value.split(",").map(c => c.trim()) : value,
         }));
     };
-    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -149,77 +151,52 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                     <Alert variant={isError ? "danger" : "success"}>{errorMessage}</Alert>
                 )}
                 <Form onSubmit={handleSubmit}>
-  
+                    <Form.Group className="mb-3" controlId="first_name">
+                        <Form.Label>First Name</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="first_name"
+                            value={formData.first_name}
+                            onChange={handleInputChange}
+                        />
+                    </Form.Group>
 
-{/* <Form.Group className="mb-3" controlId="company_no_location">
-    <Form.Label>Number of Locations</Form.Label>
-    <Form.Control
-        type="number"
-        name="company_no_location"
-        value={formData.user_type_id}
-        onChange={handleInputChange}
-        required
-    />
-</Form.Group> */}
+                    <Form.Group className="mb-3" controlId="last_name">
+                        <Form.Label>Last Name</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="last_name"
+                            value={formData.last_name}
+                            onChange={handleInputChange}
+                        />
+                    </Form.Group>
 
-{/* <Form.Group className="mb-3" controlId="company_countries">
-    <Form.Label>Company Countries</Form.Label>
-    <Form.Control
-        type="text"
-        name="company_countries"
-        value={formData.company_countries} // Ensure it's displayed properly
-        onChange={handleInputChange}
-        required
-    />
-</Form.Group> */}
+                    <Form.Group className="mb-3" controlId="email">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                        />
+                    </Form.Group>
 
-{/* Disable all other fields if editing */}
-<Form.Group className="mb-3" controlId="first_name">
-    <Form.Label>First Name</Form.Label>
-    <Form.Control
-        type="text"
-        name="first_name"
-        value={formData.first_name}
-        onChange={handleInputChange}
-    />
-</Form.Group>
+                    <Form.Group className="mb-3" controlId="phone">
+                        <Form.Label>Phone</Form.Label>
+                        <Form.Control
+                            type="tel"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleInputChange}
+                        />
+                    </Form.Group>
 
-<Form.Group className="mb-3" controlId="last_name">
-    <Form.Label>Last Name</Form.Label>
-    <Form.Control
-        type="text"
-        name="last_name"
-        value={formData.last_name}
-        onChange={handleInputChange}
-    />
-</Form.Group>
-
-<Form.Group className="mb-3" controlId="email">
-    <Form.Label>Email</Form.Label>
-    <Form.Control
-        type="email"
-        name="email"
-        value={formData.email}
-        onChange={handleInputChange}
-    />
-</Form.Group>
-
-<Form.Group className="mb-3" controlId="phone">
-    <Form.Label>Phone</Form.Label>
-    <Form.Control
-        type="tel"
-        name="phone"
-        value={formData.phone}
-        onChange={handleInputChange}
-    />
-</Form.Group>
-
- <Form.Group className="mb-3" controlId="user_type_id">
+                    <Form.Group className="mb-3" controlId="user_type_id">
                         <Form.Label>Role</Form.Label>
                         <Form.Select name="user_type_id" value={formData.user_type_id} onChange={handleInputChange} required>
                             <option value="">Select a role</option>
-                            {roles.map((role) => (
-                                <option key={role.id} value={role.id}>{role.role}</option>
+                            {Array.isArray(roles) && roles.map((role) => (
+                                <option key={role.id} value={role.id}>{role.user_type}</option>
                             ))}
                         </Form.Select>
                     </Form.Group>
@@ -234,9 +211,3 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
 };
 
 export default UsersRegistrationModal;
-
-
-
-
-
-

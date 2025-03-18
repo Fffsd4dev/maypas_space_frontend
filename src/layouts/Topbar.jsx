@@ -20,6 +20,7 @@ import logoLight2 from "@/assets/images/logo-light-2.png";
 import { useViewport } from "@/hooks/useViewPort";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { toggleDocumentAttribute } from "@/utils";
+import { useAuthContext } from "@/context/useAuthContext.jsx";
 
 // get the notifications
 const Notifications = [{
@@ -124,7 +125,9 @@ const Topbar = ({
     changeMenuSize,
     themeCustomizer
   } = useLayoutContext();
-  const { tenantSlug } = useParams();
+
+  const {user} = useAuthContext();
+  const  tenantSlug  = user?.tenant;
   const navbarCssClasses = navCssClasses || "";
   const containerCssClasses = !hideLogo ? "container-fluid" : "";
 

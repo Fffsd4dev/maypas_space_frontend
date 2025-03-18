@@ -70,10 +70,10 @@ const MENU_ITEMS = [
       //   parentKey: "accounts",
       // },
       {
-        key: "administrators",
-        label: "My Administrators",
+        key: "my-roles",
+        label: "My Roles & Permissions",
         // url: "/dashboard-4",
-        url: "/workspaceAccount/admin",
+        url: "/workspaceAccount/roles",
         parentKey: "workspaces-accounts",
       },
     ],

@@ -68,7 +68,7 @@ const CRMCustomers = React.lazy(() => import("../pages/apps/CRM/Customers/"));
 const Personal = React.lazy(() => import("../pages/Accounts/Personal"))
 const Teams = React.lazy(() => import("../pages/Accounts/Teams"))
 const Admin = React.lazy(() => import("../pages/Accounts/Admin"))
-const WorkspaceAdmin = React.lazy(() => import("../pages/Accounts/WorkspaceAdmin"))
+const WorkspaceRoles = React.lazy(() => import("../pages/Accounts/WorkspaceRoles"))
 // - email
 const Inbox = React.lazy(() => import("../pages/apps/Email/Inbox"));
 const EmailDetail = React.lazy(() => import("../pages/apps/Email/Detail"));
@@ -388,9 +388,9 @@ const crmAppRoutes = {
       route: PrivateRoute
     },
     {
-      path: "/workspaceAccount/admin",
+      path: "/workspaceAccount/roles",
       name: "Workspace Admin",
-      element: <WorkspaceAdmin />,
+      element: <WorkspaceRoles />,
       route: PrivateRoute
     }
   ]

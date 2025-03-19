@@ -3,11 +3,11 @@ import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Table, Spinner } from "react-bootstrap";
 import classNames from "classnames";
 import PageTitle from "../../../components/PageTitle";
-import UsersRegistrationModal from "./UsersRegistrationForm";
+import LocationRegistrationModal from "./LocationRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 
-const Personal = () => {
+const MyLocations = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const { tenantSlug } = useParams();
@@ -50,7 +50,7 @@ const Personal = () => {
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/view-users`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/list-locations`,
         {
           method: "GET",
           headers: {
@@ -104,11 +104,11 @@ const Personal = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/delete-user`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/delete`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.token}`,
+            Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ id: myUserID }),
@@ -123,7 +123,7 @@ const Personal = () => {
         prevData.filter((myUser) => myUser.id !== myUserID)
       );
       setPopup({
-        message: "Plan deleted successfully!",
+        message: "Location deleted successfully!",
         type: "success",
         isVisible: true,
       });
@@ -156,9 +156,9 @@ const Personal = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Users", path: "/account/admin", active: true },
+          { label: "My Locations", path: "/account/admin", active: true },
         ]}
-        title="Users"
+        title="My Locations"
       />
 
       <Row>
@@ -175,7 +175,7 @@ const Personal = () => {
                       setSelectedUser(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a User
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a Location
                   </Button>
                 </Col>
               </Row>
@@ -183,7 +183,7 @@ const Personal = () => {
               {error ? (
                 <p className="text-danger">Error: {error}</p>
               ) : loading ? (
-                <p>Loading Users...</p>
+                <p>Loading locations...</p>
               ) : isLoading ? (
                 <div className="text-center">
                   <Spinner animation="border" role="status">
@@ -196,29 +196,26 @@ const Personal = () => {
                   <thead>
                     <tr>
                       <th>S/N</th>
-                      <th>ID</th>
-                      <th>First Name</th>
-                      <th>Last Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
+                      {/* <th>ID</th> */}
+                      <th>Name</th>
+                      <th>State</th>
+                      <th>Address</th>
                       <th>Created On</th>
                       <th>Updated On</th>
-                      <th>User type</th>
-                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.map((myUser, index) => (
                       <tr key={myUser.id}>
                         <td>{index + 1}</td> {/* Fix S/N column */}
-                        <td>{myUser.id}</td>
-                        <td>{myUser.first_name}</td>
-                        <td>{myUser.last_name}</td>
-                        <td>{myUser.email}</td>
-                        <td>{myUser.phone}</td>
+                        {/* <td>{myUser.id}</td> */}
+                        <td>{myUser.name}</td>
+                        <td>{myUser.state}</td>
+                        <td>{myUser.address}</td>
+                       
                         <td>{formatDateTime(myUser.created_at)}</td>
                         <td>{formatDateTime(myUser.updated_at)}</td>
-                        <td>{myUser.user_type.user_type}</td>
+                       
                         <td>
                           <Link
                             to="#"
@@ -245,7 +242,7 @@ const Personal = () => {
         </Col>
       </Row>
 
-      <UsersRegistrationModal
+      <LocationRegistrationModal
         show={show}
         onHide={handleClose}
         myUser={selectedUser}
@@ -264,7 +261,7 @@ const Personal = () => {
             
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this application?"
+          message="Are you sure you want to delete this location?"
           type="confirm"
           onClose={() => setDeletePopup({ isVisible: false, myUserID: null })}
           buttonLabel="Yes"
@@ -275,4 +272,4 @@ const Personal = () => {
   );
 };
 
-export default Personal;
+export default MyLocations;

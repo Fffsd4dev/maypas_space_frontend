@@ -186,14 +186,16 @@ const WorkspaceRoles = () => {
                   <Table striped bordered hover responsive>
                     <thead>
                       <tr>
-                        <th>ID</th>
+                        
+                        <th>S/N</th>
                         <th>Role Name</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {data.map((admin) => (
+                      {data.map((admin, index) => (
                         <tr key={admin.id}>
-                          <td>{admin.id}</td>
+                           <td>{index + 1}</td>
+                         
                           <td>{admin.user_type}</td>
                           <td>
                             <Link
@@ -240,7 +242,7 @@ const WorkspaceRoles = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this application?"
+          message="Are you sure you want to delete this role?"
           type="confirm"
           onClose={() => setDeletePopup({ isVisible: false, adminId: null })}
           buttonLabel="Yes"

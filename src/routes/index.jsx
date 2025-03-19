@@ -65,10 +65,13 @@ const Opportunities = React.lazy(() => import("../pages/apps/CRM/Opportunities/"
 const CRMLeads = React.lazy(() => import("../pages/apps/CRM/Leads/"));
 const CRMCustomers = React.lazy(() => import("../pages/apps/CRM/Customers/"));
 // - Accounts
-const Personal = React.lazy(() => import("../pages/Accounts/Personal"))
 const Teams = React.lazy(() => import("../pages/Accounts/Teams"))
 const Admin = React.lazy(() => import("../pages/Accounts/Admin"))
-const WorkspaceRoles = React.lazy(() => import("../pages/Accounts/WorkspaceRoles"))
+// My workspace acct
+const Personal = React.lazy(() => import("../pages/MyWorkspaceAccount/Personal"))
+const WorkspaceRoles = React.lazy(() => import("../pages/MyWorkspaceAccount/WorkspaceRoles"))
+// facility mangement
+const MyLocations = React.lazy(() => import("../pages/facility/myLocations"))
 // - email
 const Inbox = React.lazy(() => import("../pages/apps/Email/Inbox"));
 const EmailDetail = React.lazy(() => import("../pages/apps/Email/Detail"));
@@ -332,6 +335,47 @@ const ecommerceAppRoutes = {
     }
   ]
 };
+const workspacesRoutes = {
+  path: "/workspace",
+  name: "Workspace",
+  route: PrivateRoute,
+  roles: ["Admin"],
+  icon: "users",
+  children: [
+    {
+      path: "/workspaceAccount/users",
+      name: "Personal",
+      element: <Personal />,
+      route: PrivateRoute
+    },
+    {
+      path: "/workspaceAccount/roles",
+      name: "Workspace Admin",
+      element: <WorkspaceRoles />,
+      route: PrivateRoute
+    },
+    {
+      path: "/facility/my-locations",
+      name: "Personal",
+      element: <MyLocations />,
+      route: PrivateRoute
+    },
+    {
+      path: "/account/roles",
+      name: "Organisation",
+      element: <Teams />,
+      route: PrivateRoute
+    },
+    {
+      path: "/account/admin",
+      name: "Admin",
+      element: <Admin />,
+      route: PrivateRoute
+    },
+   
+  ]
+};
+
 const crmAppRoutes = {
   path: "/apps/crm",
   name: "CRM",
@@ -370,12 +414,6 @@ const crmAppRoutes = {
       route: PrivateRoute
     },
     {
-      path: "/workspaceAccount/personal",
-      name: "Personal",
-      element: <Personal />,
-      route: PrivateRoute
-    },
-    {
       path: "/account/roles",
       name: "Organisation",
       element: <Teams />,
@@ -387,12 +425,7 @@ const crmAppRoutes = {
       element: <Admin />,
       route: PrivateRoute
     },
-    {
-      path: "/workspaceAccount/roles",
-      name: "Workspace Admin",
-      element: <WorkspaceRoles />,
-      route: PrivateRoute
-    }
+   
   ]
 };
 const emailAppRoutes = {
@@ -542,7 +575,7 @@ const fileAppRoutes = {
   icon: "folder-plus",
   element: <FileManager />
 };
-const appRoutes = [calendarAppRoutes, chatAppRoutes, ecommerceAppRoutes, crmAppRoutes, emailAppRoutes, socialAppRoutes, companiesAppRoutes, projectAppRoutes, taskAppRoutes, contactsRoutes, ticketsRoutes, fileAppRoutes];
+const appRoutes = [calendarAppRoutes, chatAppRoutes, ecommerceAppRoutes, workspacesRoutes, crmAppRoutes, emailAppRoutes, socialAppRoutes, companiesAppRoutes, projectAppRoutes, taskAppRoutes, contactsRoutes, ticketsRoutes, fileAppRoutes];
 
 // pages
 const extrapagesRoutes = {

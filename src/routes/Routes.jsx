@@ -13,6 +13,7 @@ import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import React from "react";
 import PlanDetails from "../pages/subscriptions/PlanDetails";
+import RoleDetails from "../pages/MyWorkspaceAccount/WorkspaceRoles/RoleDetails";
 import { useParams } from "react-router-dom";
 
 import Error404Alt from "../pages/error/Error404Alt";
@@ -32,7 +33,7 @@ const AllRoutes = props => {
       // Ensure owner's routes use VerticalLayout2
       return VerticalLayout2;
     }
-    if (path.includes("/dashboard-1") || path.includes("/workspaceAccount") || path.includes("/dashboard-4")) {
+    if (path.includes("/dashboard-1") || path.includes("/workspaceAccount") || path.includes("/dashboard-4")|| path.includes("/facility")) {
       return VerticalLayout;
     }
     let layoutCls = TwoColumnLayout;
@@ -61,6 +62,7 @@ const AllRoutes = props => {
       <Routes>
         <Route path="/subscription-details/:id" element={<SubscriptionDetails />} />
         <Route path="/plan-details/:id" element={<PlanDetails />} />
+        <Route path="/role-details/:id" element={<RoleDetails />} />
 
         {publicProtectedFlattenRoutes.map((route, idx) => (
           <Route path={route.path} element={<DefaultLayout {...props} tenantSlug={tenantSlug}>{route.element}</DefaultLayout>} key={idx} />

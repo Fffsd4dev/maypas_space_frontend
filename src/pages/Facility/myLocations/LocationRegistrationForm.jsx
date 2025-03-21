@@ -3,7 +3,7 @@ import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { useParams } from "react-router-dom";
 
-const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
+const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     const { user } = useAuthContext();
     const tenantSlug = user?.tenant;
 
@@ -17,11 +17,11 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     
    
     const [formData, setFormData] = useState({
-        first_name: "",
-        last_name: "",
-        email: "",
-        phone: "",
-        user_type_id: "",
+        name: "",
+        state: "",
+        address: "",
+        // phone: "",
+        // user_type_id: "",
     });
 
     const [errorMessage, setErrorMessage] = useState("");
@@ -31,19 +31,19 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     useEffect(() => {
         if (myUser) {
             setFormData({
-                first_name: myUser.first_name || "",
-                last_name: myUser.last_name || "",
-                email: myUser.email || "",
-                phone: myUser.phone || "",
-                user_type_id: myUser.user_type_id || "",
+                name: myUser.name || "",
+                state: myUser.state || "",
+                address: myUser.address || "",
+                // phone: myUser.phone || "",
+                // user_type_id: myUser.user_type_id || "",
             });
         } else {
             setFormData({
-                first_name: "",
-                last_name: "",
-                email: "",
-                phone: "",
-                user_type_id: "",
+                name: "",
+                state: "",
+                address: "",
+                // phone: "",
+                // user_type_id: "",
             });
         }
     }, [myUser]);
@@ -92,8 +92,8 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             if (!user?.tenantToken) throw new Error("Authorization token is missing.");
 
             const url = myUser
-                ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/update-user/${myUser.id}`
-                : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/add-user`;
+                ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/update/${myUser.id}`
+                : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/create`;
             
             const method = myUser ? "POST" : "POST";
             const response = await fetch(url, {
@@ -109,7 +109,7 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             console.log(result);
 
             if (response.ok) {
-                setErrorMessage(myUser ? "User updated successfully!" : "User registered successfully!");
+                setErrorMessage(myUser ? "Location updated successfully!" : "Location registered successfully!");
                 setIsError(false);
                 setTimeout(() => {
                     onSubmit(); // Call onSubmit to reload users
@@ -144,65 +144,47 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     return (
         <Modal show={show} onHide={onHide} centered>
             <Modal.Header className="bg-light" closeButton>
-                <Modal.Title>{myUser ? "Edit User" : "Add a New User"}</Modal.Title>
+                <Modal.Title>{myUser ? "Location User" : "Add a New Location"}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-4">
                 {errorMessage && (
                     <Alert variant={isError ? "danger" : "success"}>{errorMessage}</Alert>
                 )}
                 <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-3" controlId="first_name">
-                        <Form.Label>First Name</Form.Label>
+                    <Form.Group className="mb-3" controlId="name">
+                        <Form.Label>Location Name</Form.Label>
                         <Form.Control
                             type="text"
-                            name="first_name"
-                            value={formData.first_name}
+                            name="name"
+                            value={formData.name}
                             onChange={handleInputChange}
                         />
                     </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="last_name">
-                        <Form.Label>Last Name</Form.Label>
+                    <Form.Group className="mb-3" controlId="state">
+                        <Form.Label>State</Form.Label>
                         <Form.Control
                             type="text"
-                            name="last_name"
-                            value={formData.last_name}
+                            name="state"
+                            value={formData.state}
                             onChange={handleInputChange}
                         />
                     </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="email">
-                        <Form.Label>Email</Form.Label>
+                    <Form.Group className="mb-3" controlId="address">
+                        <Form.Label>Address</Form.Label>
                         <Form.Control
-                            type="email"
-                            name="email"
-                            value={formData.email}
+                            type="text"
+                            name="address"
+                            value={formData.address}
                             onChange={handleInputChange}
                         />
                     </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="phone">
-                        <Form.Label>Phone</Form.Label>
-                        <Form.Control
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                        />
-                    </Form.Group>
-
-                    <Form.Group className="mb-3" controlId="user_type_id">
-                        <Form.Label>Role</Form.Label>
-                        <Form.Select name="user_type_id" value={formData.user_type_id} onChange={handleInputChange} required>
-                            <option value="">Select a role</option>
-                            {Array.isArray(roles) && roles.map((role) => (
-                                <option key={role.id} value={role.id}>{role.user_type}</option>
-                            ))}
-                        </Form.Select>
-                    </Form.Group>
+                   
 
                     <Button variant="primary" type="submit" className="w-100" disabled={isLoading}>
-                        {isLoading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : myUser ? "Update" : "Create"} User
+                        {isLoading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : myUser ? "Update" : "Create"} Location
                     </Button>
                 </Form>
             </Modal.Body>
@@ -210,4 +192,4 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     );
 };
 
-export default UsersRegistrationModal;
+export default LocationRegistrationModal;

@@ -51,8 +51,9 @@ const useLogin = () => {
       if (result.token && res.ok) {
         console.log(res.ok);
         console.log(result.user.tenant_id);
-        saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id });
+        saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id });
         console.log(user.tenant_id);
+        console.log(result)
         setPopup({
           message: "Login successful!",
           type: "success",

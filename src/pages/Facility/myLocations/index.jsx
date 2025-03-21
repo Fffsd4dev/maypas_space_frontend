@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-import UsersRegistrationModal from "./UsersRegistrationForm";
+import LocationRegistrationModal from "./LocationRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 
-const Personal = () => {
+const MyLocations = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
+  const { tenantSlug } = useParams();
   const tenantSlugg = user?.tenant;
 
   const [show, setShow] = useState(false);
@@ -31,6 +32,14 @@ const Personal = () => {
     myUserID: null,
   });
 
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    nextPageUrl: null,
+    prevPageUrl: null,
+    pageSize: 10,
+  });
+
   const formatDateTime = (isoString) => {
     const options = {
       year: "numeric",
@@ -43,13 +52,13 @@ const Personal = () => {
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
 
-  const fetchData = async () => {
+  const fetchData = async (page = 1, pageSize = 10) => {
     setLoading(true);
     setError(null);
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/view-users`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/list-locations?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
@@ -71,6 +80,13 @@ const Personal = () => {
             new Date(a.updated_at || a.created_at)
         );
         setData(data);
+        setPagination({
+          currentPage: result.data.current_page,
+          totalPages: result.data.last_page,
+          nextPageUrl: result.data.next_page_url,
+          prevPageUrl: result.data.prev_page_url,
+          pageSize: pageSize,
+        });
       } else {
         throw new Error("Invalid response format");
       }
@@ -78,13 +94,13 @@ const Personal = () => {
       setError(error.message);
     } finally {
       setLoading(false);
-    } 
+    }
   };
 
   useEffect(() => {
     if (!tenantToken) return;
-    fetchData();
-  }, [user]);
+    fetchData(pagination.currentPage, pagination.pageSize);
+  }, [user, pagination.currentPage, pagination.pageSize]);
 
   const handleEditClick = (myUser) => {
     setSelectedUser(myUser);
@@ -94,7 +110,7 @@ const Personal = () => {
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
-    fetchData(); // Reload users after closing the modal
+    fetchData(pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
   };
 
   const handleDelete = async (myUserID) => {
@@ -103,11 +119,11 @@ const Personal = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/delete-user`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/delete`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.token}`,
+            Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ id: myUserID }),
@@ -122,11 +138,11 @@ const Personal = () => {
         prevData.filter((myUser) => myUser.id !== myUserID)
       );
       setPopup({
-        message: "Plan deleted successfully!",
+        message: "Location deleted successfully!",
         type: "success",
         isVisible: true,
       });
-      fetchData(); // Reload users after deleting a user
+      fetchData(pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
     } catch (error) {
       setPopup({
         message: "Failed to delete plan!",
@@ -151,13 +167,72 @@ const Personal = () => {
     setDeletePopup({ isVisible: false, myUserID: null });
   };
 
+  const columns = [
+    {
+      Header: "S/N",
+      accessor: (row, i) => i + 1,
+      id: "serialNo",
+      sort: false,
+    },
+    {
+      Header: "Name",
+      accessor: "name",
+      sort: true,
+    },
+    {
+      Header: "State",
+      accessor: "state",
+      sort: true,
+    },
+    {
+      Header: "Address",
+      accessor: "address",
+      sort: true,
+    },
+    {
+      Header: "Created On",
+      accessor: "created_at",
+      sort: true,
+      Cell: ({ row }) => formatDateTime(row.original.created_at),
+    },
+    {
+      Header: "Updated On",
+      accessor: "updated_at",
+      sort: true,
+      Cell: ({ row }) => formatDateTime(row.original.updated_at),
+    },
+    {
+      Header: "Action",
+      accessor: "action",
+      sort: false,
+      Cell: ({ row }) => (
+        <>
+          <Link
+            to="#"
+            className="action-icon"
+            onClick={() => handleEditClick(row.original)}
+          >
+            <i className="mdi mdi-square-edit-outline"></i>
+          </Link>
+          <Link
+            to="#"
+            className="action-icon"
+            onClick={() => handleDeleteButton(row.original.id)}
+          >
+            <i className="mdi mdi-delete"></i>
+          </Link>
+        </>
+      ),
+    },
+  ];
+
   return (
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Users", path: "/account/admin", active: true },
+          { label: "My Locations", path: "/account/admin", active: true },
         ]}
-        title="Users"
+        title="My Locations"
       />
 
       <Row>
@@ -174,7 +249,7 @@ const Personal = () => {
                       setSelectedUser(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a User
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a Location
                   </Button>
                 </Col>
               </Row>
@@ -182,7 +257,7 @@ const Personal = () => {
               {error ? (
                 <p className="text-danger">Error: {error}</p>
               ) : loading ? (
-                <p>Loading Users...</p>
+                <p>Loading locations...</p>
               ) : isLoading ? (
                 <div className="text-center">
                   <Spinner animation="border" role="status">
@@ -191,79 +266,48 @@ const Personal = () => {
                   Deleting...
                 </div>
               ) : (
-                <Table2 striped bordered hover responsive>
-                  <thead>
-                    <tr>
-                      <th>S/N</th>
-                      <th>ID</th>
-                      <th>First Name</th>
-                      <th>Last Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Created On</th>
-                      <th>Updated On</th>
-                      <th>User type</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.map((myUser, index) => (
-                      <tr key={myUser.id}>
-                        <td>{index + 1}</td> {/* Fix S/N column */}
-                        <td>{myUser.id}</td>
-                        <td>{myUser.first_name}</td>
-                        <td>{myUser.last_name}</td>
-                        <td>{myUser.email}</td>
-                        <td>{myUser.phone}</td>
-                        <td>{formatDateTime(myUser.created_at)}</td>
-                        <td>{formatDateTime(myUser.updated_at)}</td>
-                        <td>{myUser.user_type.user_type}</td>
-                        <td>
-                          <Link
-                            to="#"
-                            className="action-icon"
-                            onClick={() => handleEditClick(myUser)}
-                          >
-                            <i className="mdi mdi-square-edit-outline"></i>
-                          </Link>
-                          <Link
-                            to="#"
-                            className="action-icon"
-                            onClick={() => handleDeleteButton(myUser.id)}
-                          >
-                            <i className="mdi mdi-delete"></i>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table2>
+                <Table2
+                  columns={columns}
+                  data={data}
+                  pageSize={pagination.pageSize}
+                  isSortable
+                  pagination
+                  isSearchable
+                  tableClass="table-striped dt-responsive nowrap w-100"
+                  searchBoxClass="my-2"
+                  paginationProps={{
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    onPageChange: (page) => setPagination((prev) => ({ ...prev, currentPage: page })),
+                    onPageSizeChange: (pageSize) => setPagination((prev) => ({ ...prev, pageSize })),
+                  }}
+                />
               )}
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      <UsersRegistrationModal
+      <LocationRegistrationModal
         show={show}
         onHide={handleClose}
         myUser={selectedUser}
         onSubmit={fetchData} // Reload users after adding or editing a user
       />
 
-       {popup.isVisible && (
-              <Popup
-                message={popup.message}
-                type={popup.type}
-                onClose={() => setPopup({ ...popup, isVisible: false })}
-                buttonLabel={popup.buttonLabel}
-                buttonRoute={popup.buttonRoute}
-              />
-            )}
-            
+      {popup.isVisible && (
+        <Popup
+          message={popup.message}
+          type={popup.type}
+          onClose={() => setPopup({ ...popup, isVisible: false })}
+          buttonLabel={popup.buttonLabel}
+          buttonRoute={popup.buttonRoute}
+        />
+      )}
+
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this application?"
+          message="Are you sure you want to delete this location?"
           type="confirm"
           onClose={() => setDeletePopup({ isVisible: false, myUserID: null })}
           buttonLabel="Yes"
@@ -274,4 +318,4 @@ const Personal = () => {
   );
 };
 
-export default Personal;
+export default MyLocations;

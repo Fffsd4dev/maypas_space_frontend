@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-import LocationRegistrationModal from "./LocationRegistrationForm";
+import FloorRegistrationModal from "./FloorRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 
-const MyLocations = () => {
+const Floors = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const { tenantSlug } = useParams();
@@ -29,7 +29,7 @@ const MyLocations = () => {
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myUserID: null,
+    myFloorID: null,
   });
 
   const [pagination, setPagination] = useState({
@@ -58,7 +58,7 @@ const MyLocations = () => {
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/list-locations?page=${page}&per_page=${pageSize}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/floor/list-floors?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
@@ -102,8 +102,8 @@ const MyLocations = () => {
     fetchData(pagination.currentPage, pagination.pageSize);
   }, [user, pagination.currentPage, pagination.pageSize]);
 
-  const handleEditClick = (myUser) => {
-    setSelectedUser(myUser);
+  const handleEditClick = (myFloor) => {
+    setSelectedUser(myFloor);
     setShow(true);
   };
 
@@ -113,20 +113,20 @@ const MyLocations = () => {
     fetchData(pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
   };
 
-  const handleDelete = async (myUserID) => {
+  const handleDelete = async (myFloorID) => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/delete`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/floor/delete`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myUserID }),
+          body: JSON.stringify({ id: myFloorID }),
         }
       );
 
@@ -135,10 +135,10 @@ const MyLocations = () => {
       }
 
       setData((prevData) =>
-        prevData.filter((myUser) => myUser.id !== myUserID)
+        prevData.filter((myFloor) => myFloor.id !== myFloorID)
       );
       setPopup({
-        message: "Location deleted successfully!",
+        message: "Floor deleted successfully!",
         type: "success",
         isVisible: true,
       });
@@ -154,17 +154,17 @@ const MyLocations = () => {
     }
   };
 
-  const handleDeleteButton = (myUserID) => {
+  const handleDeleteButton = (myFloorID) => {
     setDeletePopup({
       isVisible: true,
-      myUserID,
+      myFloorID,
     });
   };
 
   const confirmDelete = () => {
-    const { myUserID } = deletePopup;
-    handleDelete(myUserID);
-    setDeletePopup({ isVisible: false, myUserID: null });
+    const { myFloorID } = deletePopup;
+    handleDelete(myFloorID);
+    setDeletePopup({ isVisible: false, myFloorID: null });
   };
 
   const columns = [
@@ -230,9 +230,9 @@ const MyLocations = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "My Locations", path: "/account/admin", active: true },
+          { label: "My Floors/Sections", path: "/account/admin", active: true },
         ]}
-        title="My Locations"
+        title="My Floors"
       />
 
       <Row>
@@ -249,7 +249,7 @@ const MyLocations = () => {
                       setSelectedUser(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a Location
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a Floor
                   </Button>
                 </Col>
               </Row>
@@ -257,7 +257,7 @@ const MyLocations = () => {
               {error ? (
                 <p className="text-danger">Error: {error}</p>
               ) : loading ? (
-                <p>Loading locations...</p>
+                <p>Loading floors...</p>
               ) : isLoading ? (
                 <div className="text-center">
                   <Spinner animation="border" role="status">
@@ -288,10 +288,10 @@ const MyLocations = () => {
         </Col>
       </Row>
 
-      <LocationRegistrationModal
+      <FloorRegistrationModal
         show={show}
         onHide={handleClose}
-        myUser={selectedUser}
+        myFloor={selectedUser}
         onSubmit={fetchData} // Reload users after adding or editing a user
       />
 
@@ -307,9 +307,9 @@ const MyLocations = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this location?"
+          message="Are you sure you want to delete this floor?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myUserID: null })}
+          onClose={() => setDeletePopup({ isVisible: false, myFloorID: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />
@@ -318,4 +318,4 @@ const MyLocations = () => {
   );
 };
 
-export default MyLocations;
+export default Floors;

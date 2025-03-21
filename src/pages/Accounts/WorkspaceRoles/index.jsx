@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-import LocationRegistrationModal from "./LocationRegistrationForm";
+import MyRolesRegistrationForm from "./MyRolesRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 
-const MyLocations = () => {
+const WorkspaceRoles = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
-  const { tenantSlug } = useParams();
   const tenantSlugg = user?.tenant;
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedRole, setSelectedRole] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState({
     message: "",
@@ -29,36 +28,15 @@ const MyLocations = () => {
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myUserID: null,
+    roleID: null,
   });
 
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    nextPageUrl: null,
-    prevPageUrl: null,
-    pageSize: 10,
-  });
-
-  const formatDateTime = (isoString) => {
-    const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    };
-    return new Date(isoString).toLocaleDateString("en-US", options);
-  };
-
-  const fetchData = async (page = 1, pageSize = 10) => {
+  const fetchData = async () => {
     setLoading(true);
     setError(null);
-    console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/list-locations?page=${page}&per_page=${pageSize}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/usertype/list-user-types`,
         {
           method: "GET",
           headers: {
@@ -80,13 +58,6 @@ const MyLocations = () => {
             new Date(a.updated_at || a.created_at)
         );
         setData(data);
-        setPagination({
-          currentPage: result.data.current_page,
-          totalPages: result.data.last_page,
-          nextPageUrl: result.data.next_page_url,
-          prevPageUrl: result.data.prev_page_url,
-          pageSize: pageSize,
-        });
       } else {
         throw new Error("Invalid response format");
       }
@@ -99,34 +70,34 @@ const MyLocations = () => {
 
   useEffect(() => {
     if (!tenantToken) return;
-    fetchData(pagination.currentPage, pagination.pageSize);
-  }, [user, pagination.currentPage, pagination.pageSize]);
+    fetchData();
+  }, [user]);
 
-  const handleEditClick = (myUser) => {
-    setSelectedUser(myUser);
+  const handleEditClick = (role) => {
+    setSelectedRole(role);
     setShow(true);
   };
 
   const handleClose = () => {
     setShow(false);
-    setSelectedUser(null);
-    fetchData(pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
+    setSelectedRole(null);
+    fetchData(); // Reload roles after closing the modal
   };
 
-  const handleDelete = async (myUserID) => {
+  const handleDelete = async (roleID) => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/delete`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/usertype/delete`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${user?.token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myUserID }),
+          body: JSON.stringify({ id: roleID }),
         }
       );
 
@@ -135,17 +106,17 @@ const MyLocations = () => {
       }
 
       setData((prevData) =>
-        prevData.filter((myUser) => myUser.id !== myUserID)
+        prevData.filter((role) => role.id !== roleID)
       );
       setPopup({
-        message: "Location deleted successfully!",
+        message: "Role deleted successfully!",
         type: "success",
         isVisible: true,
       });
-      fetchData(pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
+      fetchData(); // Reload roles after deleting a role
     } catch (error) {
       setPopup({
-        message: "Failed to delete plan!",
+        message: "Failed to delete role!",
         type: "error",
         isVisible: true,
       });
@@ -154,17 +125,28 @@ const MyLocations = () => {
     }
   };
 
-  const handleDeleteButton = (myUserID) => {
+  const handleDeleteButton = (roleID) => {
     setDeletePopup({
       isVisible: true,
-      myUserID,
+      roleID,
     });
   };
 
   const confirmDelete = () => {
-    const { myUserID } = deletePopup;
-    handleDelete(myUserID);
-    setDeletePopup({ isVisible: false, myUserID: null });
+    const { roleID } = deletePopup;
+    handleDelete(roleID);
+    setDeletePopup({ isVisible: false, roleID: null });
+  };
+  const formatDateTime = (isoString) => {
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    };
+    return new Date(isoString).toLocaleDateString("en-US", options);
   };
 
   const columns = [
@@ -175,18 +157,8 @@ const MyLocations = () => {
       sort: false,
     },
     {
-      Header: "Name",
-      accessor: "name",
-      sort: true,
-    },
-    {
-      Header: "State",
-      accessor: "state",
-      sort: true,
-    },
-    {
-      Header: "Address",
-      accessor: "address",
+      Header: "Role Name",
+      accessor: "user_type",
       sort: true,
     },
     {
@@ -229,10 +201,8 @@ const MyLocations = () => {
   return (
     <>
       <PageTitle
-        breadCrumbItems={[
-          { label: "My Locations", path: "/account/admin", active: true },
-        ]}
-        title="My Locations"
+        breadCrumbItems={[{ label: "Roles", path: "/account/roles", active: true }]}
+        title="Roles"
       />
 
       <Row>
@@ -246,10 +216,10 @@ const MyLocations = () => {
                     className="waves-effect waves-light"
                     onClick={() => {
                       setShow(true);
-                      setSelectedUser(null);
+                      setSelectedRole(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a Location
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a Role
                   </Button>
                 </Col>
               </Row>
@@ -257,7 +227,7 @@ const MyLocations = () => {
               {error ? (
                 <p className="text-danger">Error: {error}</p>
               ) : loading ? (
-                <p>Loading locations...</p>
+                <p>Loading Roles...</p>
               ) : isLoading ? (
                 <div className="text-center">
                   <Spinner animation="border" role="status">
@@ -269,18 +239,12 @@ const MyLocations = () => {
                 <Table2
                   columns={columns}
                   data={data}
-                  pageSize={pagination.pageSize}
+                  pageSize={10}
                   isSortable
                   pagination
                   isSearchable
                   tableClass="table-striped dt-responsive nowrap w-100"
                   searchBoxClass="my-2"
-                  paginationProps={{
-                    currentPage: pagination.currentPage,
-                    totalPages: pagination.totalPages,
-                    onPageChange: (page) => setPagination((prev) => ({ ...prev, currentPage: page })),
-                    onPageSizeChange: (pageSize) => setPagination((prev) => ({ ...prev, pageSize })),
-                  }}
                 />
               )}
             </Card.Body>
@@ -288,11 +252,10 @@ const MyLocations = () => {
         </Col>
       </Row>
 
-      <LocationRegistrationModal
+      <MyRolesRegistrationForm
         show={show}
         onHide={handleClose}
-        myUser={selectedUser}
-        onSubmit={fetchData} // Reload users after adding or editing a user
+        selectedAdmin={selectedRole}
       />
 
       {popup.isVisible && (
@@ -307,9 +270,9 @@ const MyLocations = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this location?"
+          message="Are you sure you want to delete this role?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myUserID: null })}
+          onClose={() => setDeletePopup({ isVisible: false, roleID: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />
@@ -318,4 +281,4 @@ const MyLocations = () => {
   );
 };
 
-export default MyLocations;
+export default WorkspaceRoles;

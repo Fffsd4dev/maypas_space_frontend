@@ -128,7 +128,7 @@ const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
             if (!user?.token) throw new Error("Authorization token is missing.");
 
             const endpoint = selectedAdmin
-                ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/usertype/update/${selectedAdmin.id}`
+                ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}usertype/update/${selectedAdmin.id}`
                 : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/usertype/create`;
 
             const method = selectedAdmin ? "POST" : "POST";

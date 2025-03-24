@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
+import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-import FloorRegistrationModal from "./FloorRegistrationForm";
+import FloorRegistrationModal from "./RoomRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
@@ -10,7 +10,8 @@ import Table2 from "../../../components/Table2";
 const Floors = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
-  const tenantSlug = user?.tenant;
+  const { tenantSlug } = useParams();
+  const tenantSlugg = user?.tenant;
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -25,10 +26,6 @@ const Floors = () => {
     buttonLabel: "",
     buttonRoute: "",
   });
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isError, setIsError] = useState(false);
-  const [locations, setLocations] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
@@ -55,31 +52,13 @@ const Floors = () => {
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
 
-  const fetchLocations = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`, {
-        headers: { Authorization: `Bearer ${user.tenantToken}` },
-      });
-      const result = await response.json();
-      if (response.ok) {
-        console.log("Location:", result.data.data);
-        setLocations(result.data.data || []);
-      } else {
-        throw new Error(result.message || "Failed to fetch locations.");
-      }
-    } catch (error) {
-      setErrorMessage(error.message);
-      setIsError(true);
-    }
-  };
-
-  const fetchData = async (locationId, page = 1, pageSize = 10) => {
+  const fetchData = async (page = 1, pageSize = 10) => {
     setLoading(true);
     setError(null);
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}?page=${page}&per_page=${pageSize}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/floor/list-floors?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
@@ -119,16 +98,9 @@ const Floors = () => {
   };
 
   useEffect(() => {
-    if (user?.tenantToken) {
-      fetchLocations();
-    }
-  }, [user?.tenantToken]);
-
-  useEffect(() => {
-    if (selectedLocation) {
-      fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
-    }
-  }, [selectedLocation, pagination.currentPage, pagination.pageSize]);
+    if (!tenantToken) return;
+    fetchData(pagination.currentPage, pagination.pageSize);
+  }, [user, pagination.currentPage, pagination.pageSize]);
 
   const handleEditClick = (myFloor) => {
     setSelectedUser(myFloor);
@@ -138,9 +110,7 @@ const Floors = () => {
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
-    if (selectedLocation) {
-      fetchData(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
-    }
+    fetchData(pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
   };
 
   const handleDelete = async (myFloorID) => {
@@ -149,7 +119,7 @@ const Floors = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/delete`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/floor/delete`,
         {
           method: "POST",
           headers: {
@@ -172,9 +142,7 @@ const Floors = () => {
         type: "success",
         isVisible: true,
       });
-      if (selectedLocation) {
-        fetchData(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
-      }
+      fetchData(pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
     } catch (error) {
       setPopup({
         message: "Failed to delete plan!",
@@ -207,8 +175,18 @@ const Floors = () => {
       sort: false,
     },
     {
-      Header: "Floor Name",
+      Header: "Name",
       accessor: "name",
+      sort: true,
+    },
+    {
+      Header: "State",
+      accessor: "state",
+      sort: true,
+    },
+    {
+      Header: "Address",
+      accessor: "address",
       sort: true,
     },
     {
@@ -275,56 +253,35 @@ const Floors = () => {
                   </Button>
                 </Col>
               </Row>
-              <div>
-                Select one of your locations to View and/or Update the Floor
-                <Row className="mb-2">
-                  {locations.map((location) => (
-                    <Col key={location.id} sm={3}>
-                      <Button
-                        variant={selectedLocation === location.id ? "success" : "primary"}
-                        className="waves-effect waves-light"
-                        onClick={() => setSelectedLocation(location.id)}
-                      >
-                        {location.name} at {location.state}
-                      </Button>
-                    </Col>
-                  ))}
-                </Row>
-              </div>
 
-              {selectedLocation && (
-                <>
-                  {error ? (
-                    <p className="text-danger">Error: {error}</p>
-                  ) : loading ? (
-                    <p>Loading floors...</p>
-                  ) : isLoading ? (
-                    <div className="text-center">
-                      <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Deleting...</span>
-                      </Spinner>{" "}
-                      Deleting...
-                    </div>
-                  ) : (
-                    
-                    <Table2
-                      columns={columns}
-                      data={data}
-                      pageSize={pagination.pageSize}
-                      isSortable
-                      pagination
-                      isSearchable
-                      tableClass="table-striped dt-responsive nowrap w-100"
-                      searchBoxClass="my-2"
-                      paginationProps={{
-                        currentPage: pagination.currentPage,
-                        totalPages: pagination.totalPages,
-                        onPageChange: (page) => setPagination((prev) => ({ ...prev, currentPage: page })),
-                        onPageSizeChange: (pageSize) => setPagination((prev) => ({ ...prev, pageSize })),
-                      }}
-                    />
-                  )}
-                </>
+              {error ? (
+                <p className="text-danger">Error: {error}</p>
+              ) : loading ? (
+                <p>Loading floors...</p>
+              ) : isLoading ? (
+                <div className="text-center">
+                  <Spinner animation="border" role="status">
+                    <span className="visually-hidden">Deleting...</span>
+                  </Spinner>{" "}
+                  Deleting...
+                </div>
+              ) : (
+                <Table2
+                  columns={columns}
+                  data={data}
+                  pageSize={pagination.pageSize}
+                  isSortable
+                  pagination
+                  isSearchable
+                  tableClass="table-striped dt-responsive nowrap w-100"
+                  searchBoxClass="my-2"
+                  paginationProps={{
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    onPageChange: (page) => setPagination((prev) => ({ ...prev, currentPage: page })),
+                    onPageSizeChange: (pageSize) => setPagination((prev) => ({ ...prev, pageSize })),
+                  }}
+                />
               )}
             </Card.Body>
           </Card>
@@ -335,7 +292,7 @@ const Floors = () => {
         show={show}
         onHide={handleClose}
         myFloor={selectedUser}
-        onSubmit={() => fetchData(selectedLocation, pagination.currentPage, pagination.pageSize)} // Reload users after adding or editing a user
+        onSubmit={fetchData} // Reload users after adding or editing a user
       />
 
       {popup.isVisible && (

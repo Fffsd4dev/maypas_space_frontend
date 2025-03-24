@@ -237,11 +237,11 @@ const ThemeCustomizer = () => {
             {disableSidebarUser &&
                 <SidebarUserInfo toggleLeftSidebarUserInfo={toggleUserInfo} showSidebarUserInfo={showUserInfo}/>}
 
-            <div className="d-grid mt-4">
+            {/* <div className="d-grid mt-4">
                 <button className="btn btn-primary" id="resetBtn" onClick={resetSettings}>
                     Reset to Default
                 </button>
-            </div>
+            </div> */}
         </div>
     </React.Fragment>;
 };

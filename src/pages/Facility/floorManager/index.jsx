@@ -15,6 +15,7 @@ const Floors = () => {
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingLocations, setLoadingLocations] = useState(true);
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,10 +57,16 @@ const Floors = () => {
   };
 
   const fetchLocations = async () => {
+    setLoadingLocations(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`, {
-        headers: { Authorization: `Bearer ${user.tenantToken}` },
-      });
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/location/list-locations`,
+        {
+          headers: { Authorization: `Bearer ${user.tenantToken}` },
+        }
+      );
       const result = await response.json();
       if (response.ok) {
         console.log("Location:", result.data.data);
@@ -70,6 +77,8 @@ const Floors = () => {
     } catch (error) {
       setErrorMessage(error.message);
       setIsError(true);
+    } finally {
+      setLoadingLocations(false);
     }
   };
 
@@ -79,7 +88,9 @@ const Floors = () => {
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}?page=${page}&per_page=${pageSize}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/floor/list-floors/${locationId}?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
@@ -173,7 +184,11 @@ const Floors = () => {
         isVisible: true,
       });
       if (selectedLocation) {
-        fetchData(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
+        fetchData(
+          selectedLocation,
+          pagination.currentPage,
+          pagination.pageSize
+        ); // Reload users after deleting a user
       }
     } catch (error) {
       setPopup({
@@ -275,24 +290,41 @@ const Floors = () => {
                   </Button>
                 </Col>
               </Row>
-              <div>
-                Select one of your locations to View and/or Update the Floor
-                <Row className="mb-2">
-                  {locations.map((location) => (
-                    <Col key={location.id} sm={3}>
-                      <Button
-                        variant={selectedLocation === location.id ? "success" : "primary"}
-                        className="waves-effect waves-light"
-                        onClick={() => setSelectedLocation(location.id)}
-                      >
-                        {location.name} at {location.state}
-                      </Button>
-                    </Col>
-                  ))}
-                </Row>
-              </div>
 
-              {selectedLocation && (
+              <Card>
+                <Card.Body style={{ background: "linear-gradient(to left,rgb(245, 226, 221),rgb(239, 234, 230))", marginTop: "30px" }}>
+                  {loadingLocations ? (
+                    <div className="text-center">
+                      <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </Spinner>{" "}
+                      Loading your locations...
+                    </div>
+                  ) : (
+                    <div>
+<p style={{marginBottom: "10px", fontSize: "1rem" }}>                      Select a location to view or update the floor.{" "}
+</p>                      <Row className="mb-2">
+                        {locations.map((location) => (
+                          <Col key={location.id} sm={3}>
+                            <Button
+                            style={{marginBottom: "25px", fontSize: "1rem" }}
+                              variant={
+                                selectedLocation === location.id
+                                  ? "success"
+                                  : "primary"
+                              }
+                              className="waves-effect waves-light"
+                              onClick={() => setSelectedLocation(location.id)}
+                            >
+                              {location.name} at {location.state}
+                            </Button>
+                          </Col>
+                        ))}
+                      </Row>
+                    </div>
+                  )}
+                
+                 {selectedLocation && (
                 <>
                   {error ? (
                     <p className="text-danger">Error: {error}</p>
@@ -306,7 +338,6 @@ const Floors = () => {
                       Deleting...
                     </div>
                   ) : (
-                    
                     <Table2
                       columns={columns}
                       data={data}
@@ -319,13 +350,22 @@ const Floors = () => {
                       paginationProps={{
                         currentPage: pagination.currentPage,
                         totalPages: pagination.totalPages,
-                        onPageChange: (page) => setPagination((prev) => ({ ...prev, currentPage: page })),
-                        onPageSizeChange: (pageSize) => setPagination((prev) => ({ ...prev, pageSize })),
+                        onPageChange: (page) =>
+                          setPagination((prev) => ({
+                            ...prev,
+                            currentPage: page,
+                          })),
+                        onPageSizeChange: (pageSize) =>
+                          setPagination((prev) => ({ ...prev, pageSize })),
                       }}
                     />
                   )}
                 </>
               )}
+                </Card.Body>
+              </Card>
+
+             
             </Card.Body>
           </Card>
         </Col>
@@ -335,7 +375,13 @@ const Floors = () => {
         show={show}
         onHide={handleClose}
         myFloor={selectedUser}
-        onSubmit={() => fetchData(selectedLocation, pagination.currentPage, pagination.pageSize)} // Reload users after adding or editing a user
+        onSubmit={() =>
+          fetchData(
+            selectedLocation,
+            pagination.currentPage,
+            pagination.pageSize
+          )
+        } // Reload users after adding or editing a user
       />
 
       {popup.isVisible && (

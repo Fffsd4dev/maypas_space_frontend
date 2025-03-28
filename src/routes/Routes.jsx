@@ -21,7 +21,9 @@ import Error404Alt from "../pages/error/Error404Alt";
 const AllRoutes = props => {
   const { isAuthenticated } = useAuthContext();
   const { orientation } = useLayoutContext();
-  const { tenantSlug } = useParams();
+  const {user} = useAuthContext();
+
+  const  tenantSlug  = user?.tenant;
 
   const getLayout = (path) => {
     if (!path) return VerticalLayout;
@@ -33,7 +35,7 @@ const AllRoutes = props => {
       // Ensure owner's routes use VerticalLayout2
       return VerticalLayout2;
     }
-    if (path.includes("/dashboard-1") || path.includes("/workspaceAccount") || path.includes("/dashboard-4")|| path.includes("/facility")) {
+    if (path.includes("/dashboard-1") || path.includes("/workspaceAccount") || path.includes("/dashboard-4")|| path.includes("/facility") || path.includes("/location") ||  path.includes("/room")) {
       return VerticalLayout;
     }
     let layoutCls = TwoColumnLayout;

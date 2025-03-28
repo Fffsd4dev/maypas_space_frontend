@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-import FloorRegistrationModal from "./FloorRegistrationForm";
+import RoomRegistrationModal from "./RoomRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 
-const Floors = () => {
+const Rooms = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
@@ -16,7 +16,10 @@ const Floors = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingLocations, setLoadingLocations] = useState(true);
+  const [loadingFloor, setLoadingFloor] = useState(false);
   const [error, setError] = useState(null);
+  const [floorData, setFloorData] = useState([]);
+  
   const [selectedUser, setSelectedUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState({
@@ -33,7 +36,7 @@ const Floors = () => {
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myFloorID: null,
+    myRoomID: null,
   });
 
   const [pagination, setPagination] = useState({
@@ -55,6 +58,12 @@ const Floors = () => {
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
+
+  const [formData, setFormData] = useState({
+          name: "",
+          location_id: "",
+          floor_id: ""
+      });
 
   const fetchLocations = async () => {
     setLoadingLocations(true);
@@ -82,15 +91,25 @@ const Floors = () => {
     }
   };
 
-  const fetchData = async (locationId, page = 1, pageSize = 10) => {
-    setLoading(true);
+  const handleLocationChange = (e) => {
+    const locationId = e.target.value;
+    setSelectedLocation(locationId);
+    setFormData((prev) => ({
+      ...prev,
+      location_id: locationId, // Update formData with the selected location ID
+    }));
+  };
+
+  const fetchFloor = async (locationId) => {
+    setLoadingFloor(true);
+    console.log("loadingFloor...")
     setError(null);
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/floor/list-floors/${locationId}?page=${page}&per_page=${pageSize}`,
+        }/api/${tenantSlug}/floor/list-floors/${locationId}`,
         {
           method: "GET",
           headers: {
@@ -104,6 +123,50 @@ const Floors = () => {
       }
 
       const result = await response.json();
+      console.log(result);
+      if (result && Array.isArray(result.data.data)) {
+        setFloorData(result.data.data); // Store floors in state
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoadingFloor(false);
+    }
+  };
+  useEffect(() => {
+      if (selectedLocation) {
+        fetchFloor(selectedLocation); // Fetch floors based on the selected location ID
+      }
+    }, [selectedLocation]);
+
+
+
+  const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+    setLoading(true);
+    console.log("fetching rooms")
+    setError(null);
+    console.log("User Token:", user?.tenantToken);
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${user?.tenantToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("roooms:", result)
       if (result && Array.isArray(result.data.data)) {
         const data = result.data.data;
         data.sort(
@@ -129,20 +192,36 @@ const Floors = () => {
     }
   };
 
+  
+
   useEffect(() => {
     if (user?.tenantToken) {
       fetchLocations();
     }
   }, [user?.tenantToken]);
 
-  useEffect(() => {
-    if (selectedLocation) {
-      fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
-    }
-  }, [selectedLocation, pagination.currentPage, pagination.pageSize]);
+  const handleFloorChange = (e) => {
+    const floorId = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      floor_id: floorId, // Update formData with the selected floor ID
+      space_category_id: "", // Reset category when floor changes
+    }));
 
-  const handleEditClick = (myFloor) => {
-    setSelectedUser(myFloor);
+    if (floorId && selectedLocation) {
+      fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize); // Fetch rooms immediately after floor selection
+    }
+  };
+
+
+  useEffect(() => {
+    if (formData.floor_id && user?.tenantToken) {
+      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+    }
+  }, [user?.tenantToken, selectedLocation, pagination.currentPage, pagination.pageSize]);
+
+  const handleEditClick = (myRoom) => {
+    setSelectedUser(myRoom);
     setShow(true);
   };
 
@@ -150,25 +229,24 @@ const Floors = () => {
     setShow(false);
     setSelectedUser(null);
     if (selectedLocation) {
-      fetchData(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
+      fetchRoom(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
     }
-    setFormData({}); // Reset inputs after success
   };
 
-  const handleDelete = async (myFloorID) => {
+  const handleDelete = async (myRoomID) => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/delete`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myFloorID }),
+          body: JSON.stringify({ id: myRoomID }),
         }
       );
 
@@ -177,15 +255,15 @@ const Floors = () => {
       }
 
       setData((prevData) =>
-        prevData.filter((myFloor) => myFloor.id !== myFloorID)
+        prevData.filter((myRoom) => myRoom.id !== myRoomID)
       );
       setPopup({
-        message: "Floor deleted successfully!",
+        message: "Room deleted successfully!",
         type: "success",
         isVisible: true,
       });
       if (selectedLocation) {
-        fetchData(
+        fetchRoom(
           selectedLocation,
           pagination.currentPage,
           pagination.pageSize
@@ -202,26 +280,17 @@ const Floors = () => {
     }
   };
 
-  const handleDeleteButton = (myFloorID) => {
+  const handleDeleteButton = (myRoomID) => {
     setDeletePopup({
       isVisible: true,
-      myFloorID,
+      myRoomID,
     });
   };
 
   const confirmDelete = () => {
-    const { myFloorID } = deletePopup;
-    handleDelete(myFloorID);
-    setDeletePopup({ isVisible: false, myFloorID: null });
-  };
-
-  const handleLocationChange = (e) => {
-    const locationId = e.target.value;
-    setSelectedLocation(locationId);
-    setFormData((prev) => ({
-      ...prev,
-      location_id: locationId, // Update formData with the selected location ID
-    }));
+    const { myRoomID } = deletePopup;
+    handleDelete(myRoomID);
+    setDeletePopup({ isVisible: false, myRoomID: null });
   };
 
   const columns = [
@@ -232,8 +301,18 @@ const Floors = () => {
       sort: false,
     },
     {
-      Header: "Floor Name",
-      accessor: "name",
+      Header: "Room Name",
+      accessor: "space_name",
+      sort: true,
+    },
+    {
+      Header: "Space Number",
+      accessor: "space_number",
+      sort: true,
+    },
+    {
+      Header: "Space Fee",
+      accessor: "space_fee",
       sort: true,
     },
     {
@@ -277,9 +356,9 @@ const Floors = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "My Floors/Sections", path: "/location/floor", active: true },
+          { label: "My Rooms", path: "/room/my-rooms", active: true },
         ]}
-        title="My Floors"
+        title="My Rooms"
       />
 
       <Row>
@@ -296,7 +375,7 @@ const Floors = () => {
                       setSelectedUser(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a Floor
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a Room
                   </Button>
                 </Col>
               </Row>
@@ -312,12 +391,11 @@ const Floors = () => {
                     </div>
                   ) : (
                     <div>
-                      <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select a location to view or update the floor.</p>
+                      <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select a location to view or update the room.</p>
                       <Form.Select
                         style={{ marginBottom: "25px", fontSize: "1rem" }}
                         value={selectedLocation || ""}
-                        onChange={handleLocationChange} // Use the new handler
-                        required
+                        onChange={handleLocationChange}
                       >
                         <option value="" disabled>
                           Select a location
@@ -330,13 +408,43 @@ const Floors = () => {
                       </Form.Select>
                     </div>
                   )}
+
+                  {selectedLocation && (
+                    <Form.Group className="mb-3" controlId="location_id">
+                      {loadingFloor ? (
+                        <div className="text-center">
+                          <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Loading floors/sections...</span>
+                          </Spinner>
+                        </div>
+                      ) : (
+                        <>
+                          <Form.Label>Select the Floor of the room you want to view.</Form.Label>
+                          <Form.Select
+                            name="floor_id"
+                            value={formData.floor_id}
+                            onChange={handleFloorChange}
+                            required
+                          >
+                            <option value="">Select a Floor/Section</option>
+                            {Array.isArray(floorData) &&
+                              floorData.map((floor) => (
+                                <option key={floor.id} value={floor.id}>
+                                  {floor.name}
+                                </option>
+                              ))}
+                          </Form.Select>
+                        </>
+                      )}
+                    </Form.Group>
+                  )}
                 
-                 {selectedLocation && (
+                 {formData.floor_id && (
                 <>
                   {error ? (
                     <p className="text-danger">Error: {error}</p>
                   ) : loading ? (
-                    <p>Loading floors...</p>
+                    <p>Loading rooms...</p>
                   ) : isLoading ? (
                     <div className="text-center">
                       <Spinner animation="border" role="status">
@@ -378,12 +486,12 @@ const Floors = () => {
         </Col>
       </Row>
 
-      <FloorRegistrationModal
+      <RoomRegistrationModal
         show={show}
         onHide={handleClose}
-        myFloor={selectedUser}
+        myRoom={selectedUser}
         onSubmit={() =>
-          fetchData(
+          fetchRoom(
             selectedLocation,
             pagination.currentPage,
             pagination.pageSize
@@ -403,9 +511,9 @@ const Floors = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this floor?"
+          message="Are you sure you want to delete this room?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myFloorID: null })}
+          onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />
@@ -414,4 +522,4 @@ const Floors = () => {
   );
 };
 
-export default Floors;
+export default Rooms;

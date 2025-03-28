@@ -68,7 +68,7 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: name === "company_countries" ? value.split(",").map(c => c.trim()) : value,
+            [name]: value,
         }));
     };
 

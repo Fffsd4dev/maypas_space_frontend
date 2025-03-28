@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-import FloorRegistrationModal from "./FloorRegistrationForm";
+import CategoryRegistrationModal from "./CategoryRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 
-const Floors = () => {
+const Categories = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
@@ -33,7 +33,7 @@ const Floors = () => {
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myFloorID: null,
+    myCategoryID: null,
   });
 
   const [pagination, setPagination] = useState({
@@ -82,7 +82,7 @@ const Floors = () => {
     }
   };
 
-  const fetchData = async (locationId, page = 1, pageSize = 10) => {
+  const fetchData = async ( page = 1, pageSize = 10 ) => {
     setLoading(true);
     setError(null);
     console.log("User Token:", user?.tenantToken);
@@ -90,7 +90,7 @@ const Floors = () => {
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/floor/list-floors/${locationId}?page=${page}&per_page=${pageSize}`,
+        }/api/${tenantSlug}/category/list-categories?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
@@ -98,14 +98,16 @@ const Floors = () => {
           },
         }
       );
-
+      
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
-      if (result && Array.isArray(result.data.data)) {
-        const data = result.data.data;
+      console.log(result)
+
+      if (result && Array.isArray(result.data)) {
+        const data = result.data;
         data.sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
@@ -129,6 +131,8 @@ const Floors = () => {
     }
   };
 
+  
+
   useEffect(() => {
     if (user?.tenantToken) {
       fetchLocations();
@@ -136,39 +140,41 @@ const Floors = () => {
   }, [user?.tenantToken]);
 
   useEffect(() => {
-    if (selectedLocation) {
-      fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
+    if (user?.tenantToken) {
+      fetchData(pagination.currentPage, pagination.pageSize);
+    
     }
-  }, [selectedLocation, pagination.currentPage, pagination.pageSize]);
+    
+  }, [ user?.tenantToken, pagination.currentPage, pagination.pageSize]);
 
-  const handleEditClick = (myFloor) => {
-    setSelectedUser(myFloor);
+  const handleEditClick = (myCategory) => {
+    setSelectedUser(myCategory);
     setShow(true);
   };
 
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
-    if (selectedLocation) {
-      fetchData(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
+    if (user?.tenantToken) {
+     fetchData(pagination.currentPage, pagination.pageSize);
+      // Reload users after closing the modal
     }
-    setFormData({}); // Reset inputs after success
   };
 
-  const handleDelete = async (myFloorID) => {
+  const handleDelete = async (myCategoryID) => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/delete`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/category/delete`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myFloorID }),
+          body: JSON.stringify({ id: myCategoryID }),
         }
       );
 
@@ -177,19 +183,16 @@ const Floors = () => {
       }
 
       setData((prevData) =>
-        prevData.filter((myFloor) => myFloor.id !== myFloorID)
+        prevData.filter((myCategory) => myCategory.id !== myCategoryID)
       );
       setPopup({
-        message: "Floor deleted successfully!",
+        message: "Category deleted successfully!",
         type: "success",
         isVisible: true,
       });
-      if (selectedLocation) {
-        fetchData(
-          selectedLocation,
-          pagination.currentPage,
-          pagination.pageSize
-        ); // Reload users after deleting a user
+      if (user?.tenantToken) {
+        fetchData( pagination.currentPage, pagination.pageSize);
+        // Reload users after deleting a user
       }
     } catch (error) {
       setPopup({
@@ -202,26 +205,17 @@ const Floors = () => {
     }
   };
 
-  const handleDeleteButton = (myFloorID) => {
+  const handleDeleteButton = (myCategoryID) => {
     setDeletePopup({
       isVisible: true,
-      myFloorID,
+      myCategoryID,
     });
   };
 
   const confirmDelete = () => {
-    const { myFloorID } = deletePopup;
-    handleDelete(myFloorID);
-    setDeletePopup({ isVisible: false, myFloorID: null });
-  };
-
-  const handleLocationChange = (e) => {
-    const locationId = e.target.value;
-    setSelectedLocation(locationId);
-    setFormData((prev) => ({
-      ...prev,
-      location_id: locationId, // Update formData with the selected location ID
-    }));
+    const { myCategoryID } = deletePopup;
+    handleDelete(myCategoryID);
+    setDeletePopup({ isVisible: false, myCategoryID: null });
   };
 
   const columns = [
@@ -232,8 +226,8 @@ const Floors = () => {
       sort: false,
     },
     {
-      Header: "Floor Name",
-      accessor: "name",
+      Header: "Category Name",
+      accessor: "category",
       sort: true,
     },
     {
@@ -277,9 +271,9 @@ const Floors = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "My Floors/Sections", path: "/location/floor", active: true },
+          { label: "My Categories", path: "/room/my-categories", active: true },
         ]}
-        title="My Floors"
+        title="My Categories"
       />
 
       <Row>
@@ -296,14 +290,14 @@ const Floors = () => {
                       setSelectedUser(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a Floor
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a Category
                   </Button>
                 </Col>
               </Row>
 
               <Card>
                 <Card.Body style={{ background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", marginTop: "30px" }}>
-                  {loadingLocations ? (
+                  {/* {loadingLocations ? (
                     <div className="text-center">
                       <Spinner animation="border" role="status">
                         <span className="visually-hidden">Loading...</span>
@@ -312,12 +306,11 @@ const Floors = () => {
                     </div>
                   ) : (
                     <div>
-                      <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select a location to view or update the floor.</p>
+                      <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select a location to view or update the category.</p>
                       <Form.Select
                         style={{ marginBottom: "25px", fontSize: "1rem" }}
                         value={selectedLocation || ""}
-                        onChange={handleLocationChange} // Use the new handler
-                        required
+                        onChange={(e) => setSelectedLocation(e.target.value)}
                       >
                         <option value="" disabled>
                           Select a location
@@ -329,14 +322,14 @@ const Floors = () => {
                         ))}
                       </Form.Select>
                     </div>
-                  )}
+                  )} */}
                 
-                 {selectedLocation && (
+                 { (
                 <>
                   {error ? (
                     <p className="text-danger">Error: {error}</p>
                   ) : loading ? (
-                    <p>Loading floors...</p>
+                    <p>Loading categories...</p>
                   ) : isLoading ? (
                     <div className="text-center">
                       <Spinner animation="border" role="status">
@@ -350,7 +343,7 @@ const Floors = () => {
                       data={data}
                       pageSize={pagination.pageSize}
                       isSortable
-                      pagination
+                      // pagination
                       isSearchable
                       tableClass="table-striped dt-responsive nowrap w-100"
                       searchBoxClass="my-2"
@@ -378,13 +371,12 @@ const Floors = () => {
         </Col>
       </Row>
 
-      <FloorRegistrationModal
+      <CategoryRegistrationModal
         show={show}
         onHide={handleClose}
-        myFloor={selectedUser}
+        myCategory={selectedUser}
         onSubmit={() =>
           fetchData(
-            selectedLocation,
             pagination.currentPage,
             pagination.pageSize
           )
@@ -403,9 +395,9 @@ const Floors = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this floor?"
+          message="Are you sure you want to delete this room category?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myFloorID: null })}
+          onClose={() => setDeletePopup({ isVisible: false, myCategoryID: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />
@@ -414,4 +406,4 @@ const Floors = () => {
   );
 };
 
-export default Floors;
+export default Categories;

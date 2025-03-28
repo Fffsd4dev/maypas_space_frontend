@@ -66,41 +66,57 @@ const MENU_ITEMS = [
     ],
   },
   {
-    key: "facility-management",
-    label: "Facility Management",
+    key: "location-management",
+    label: "Location Management",
     isTitle: false,
     icon: FiAirplay,
     children: [
       {
         key: "locations",
-        label: "My Facility Locations",
-        url: "/facility/my-locations",
-        parentKey: "facility-management",
+        label: "My Locations",
+        url: "/location/my-locations",
+        parentKey: "location-management",
       },
       {
         key: "floor",
         label: "Floor/Section Manager",
-        url: "/facility/floor",
-        parentKey: "facility-management",
+        url: "/location/floor",
+        parentKey: "location-management",
+      },
+      
+    ],
+  },
+
+  {
+    key: "room-management",
+    label: "Space Management",
+    isTitle: false,
+    icon: FiAirplay,
+    children: [
+      {
+        key: "category-manager",
+        label: "Room/Space Categories",
+        url: "/room/room-categories",
+        parentKey: "room-management",
       },
       {
         key: "room-manager",
-        label: "Room Manager",
-        url: "/facility/room",
-        parentKey: "facility-management",
+        label: "My Rooms/Spaces",
+        url: "/room/my-rooms",
+        parentKey: "room-management",
       },
       {
         key: "dedicated-desk",
         label: "Dedicated Desk/Spot/Bed",
-        url: "/facility/spot",
-        parentKey: "facility-management",
+        url: "/room/spot",
+        parentKey: "room-management",
       },
     ],
   },
   {
     key: "booking-management",
     label: "Booking Management",
-    url: "/facility/mybookinngs",
+    url: "/location/mybookinngs",
     isTitle: false,
     icon: FiAirplay,
    }

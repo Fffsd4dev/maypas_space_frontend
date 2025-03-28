@@ -70,9 +70,11 @@ const Admin = React.lazy(() => import("../pages/Accounts/Admin"))
 // My workspace acct
 const Personal = React.lazy(() => import("../pages/MyWorkspaceAccount/Personal"))
 const WorkspaceRoles = React.lazy(() => import("../pages/MyWorkspaceAccount/WorkspaceRoles"))
-// facility mangement
-const MyLocations = React.lazy(() => import("../pages/facility/myLocations"))
-const Floors = React.lazy(() => import("../pages/facility/floorManager"))
+// location mangement
+const MyLocations = React.lazy(() => import("../pages/Facility/myLocations"))
+const Floors = React.lazy(() => import("../pages/Facility/floorManager"))
+const Category = React.lazy(() => import("../pages/Room/Category"))
+const Rooms = React.lazy(() => import("../pages/Room/roomManager"))
 // - email
 const Inbox = React.lazy(() => import("../pages/apps/Email/Inbox"));
 const EmailDetail = React.lazy(() => import("../pages/apps/Email/Detail"));
@@ -356,15 +358,27 @@ const workspacesRoutes = {
       route: PrivateRoute
     },
     {
-      path: "/facility/my-locations",
+      path: "/location/my-locations",
       name: "Locations",
       element: <MyLocations />,
       route: PrivateRoute
     },
     {
-      path: "/facility/floor",
+      path: "/location/floor",
       name: "Floors",
       element: <Floors />,
+      route: PrivateRoute
+    },
+    {
+      path: "/room/room-categories",
+      name: "Category",
+      element: <Category />,
+      route: PrivateRoute
+    },
+    {
+      path: "/room/my-rooms",
+      name: "Rooms",
+      element: <Rooms />,
       route: PrivateRoute
     },
     {

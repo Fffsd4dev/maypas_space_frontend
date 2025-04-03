@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-import RoomRegistrationModal from "./RoomRegistrationForm";
+import SpotRegistrationModal from "./SpotRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 
-const Rooms = () => {
+const Spots = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
@@ -36,7 +36,7 @@ const Rooms = () => {
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myRoomID: null,
+    mySpotID: null,
   });
 
   const [pagination, setPagination] = useState({
@@ -143,7 +143,7 @@ const Rooms = () => {
 
 
 
-  const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+  const fetchSpot = async (locationId, floorId, page = 1, pageSize = 10) => {
     setLoading(true);
     console.log("fetching rooms")
     setError(null);
@@ -209,19 +209,19 @@ const Rooms = () => {
     }));
 
     if (floorId && selectedLocation) {
-      fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize); // Fetch rooms immediately after floor selection
+      fetchSpot(selectedLocation, floorId, pagination.currentPage, pagination.pageSize); // Fetch rooms immediately after floor selection
     }
   };
 
 
   useEffect(() => {
     if (formData.floor_id && user?.tenantToken) {
-      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+      fetchSpot(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
     }
   }, [user?.tenantToken, selectedLocation, pagination.currentPage, pagination.pageSize]);
 
-  const handleEditClick = (myRoom) => {
-    setSelectedUser(myRoom);
+  const handleEditClick = (mySpot) => {
+    setSelectedUser(mySpot);
     setShow(true);
   };
 
@@ -229,11 +229,11 @@ const Rooms = () => {
     setShow(false);
     setSelectedUser(null);
     if (selectedLocation) {
-      fetchRoom(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
+      fetchSpot(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
     }
   };
 
-  const handleDelete = async (myRoomID) => {
+  const handleDelete = async (mySpotID) => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
@@ -246,7 +246,7 @@ const Rooms = () => {
             Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myRoomID }),
+          body: JSON.stringify({ id: mySpotID }),
         }
       );
 
@@ -255,15 +255,15 @@ const Rooms = () => {
       }
 
       setData((prevData) =>
-        prevData.filter((myRoom) => myRoom.id !== myRoomID)
+        prevData.filter((mySpot) => mySpot.id !== mySpotID)
       );
       setPopup({
-        message: "Room deleted successfully!",
+        message: "Spot deleted successfully!",
         type: "success",
         isVisible: true,
       });
       if (selectedLocation) {
-        fetchRoom(
+        fetchSpot(
           selectedLocation,
           pagination.currentPage,
           pagination.pageSize
@@ -280,17 +280,17 @@ const Rooms = () => {
     }
   };
 
-  const handleDeleteButton = (myRoomID) => {
+  const handleDeleteButton = (mySpotID) => {
     setDeletePopup({
       isVisible: true,
-      myRoomID,
+      mySpotID,
     });
   };
 
   const confirmDelete = () => {
-    const { myRoomID } = deletePopup;
-    handleDelete(myRoomID);
-    setDeletePopup({ isVisible: false, myRoomID: null });
+    const { mySpotID } = deletePopup;
+    handleDelete(mySpotID);
+    setDeletePopup({ isVisible: false, mySpotID: null });
   };
 
   const columns = [
@@ -301,7 +301,7 @@ const Rooms = () => {
       sort: false,
     },
     {
-      Header: "Room Name",
+      Header: "Spot Name",
       accessor: "space_name",
       sort: true,
     },
@@ -356,9 +356,9 @@ const Rooms = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "My Rooms", path: "/room/my-rooms", active: true },
+          { label: "My Spots", path: "/room/spot", active: true },
         ]}
-        title="My Rooms"
+        title="My Spots"
       />
 
       <Row>
@@ -375,7 +375,7 @@ const Rooms = () => {
                       setSelectedUser(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a Room
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a Spot
                   </Button>
                 </Col>
               </Row>
@@ -486,12 +486,12 @@ const Rooms = () => {
         </Col>
       </Row>
 
-      <RoomRegistrationModal
+      <SpotRegistrationModal
         show={show}
         onHide={handleClose}
-        myRoom={selectedUser}
+        mySpot={selectedUser}
         onSubmit={() =>
-          fetchRoom(
+          fetchSpot(
             selectedLocation,
             pagination.currentPage,
             pagination.pageSize
@@ -513,7 +513,7 @@ const Rooms = () => {
         <Popup
           message="Are you sure you want to delete this room?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+          onClose={() => setDeletePopup({ isVisible: false, mySpotID: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />
@@ -522,4 +522,4 @@ const Rooms = () => {
   );
 };
 
-export default Rooms;
+export default Spots;

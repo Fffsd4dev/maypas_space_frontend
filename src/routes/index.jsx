@@ -75,6 +75,7 @@ const MyLocations = React.lazy(() => import("../pages/Facility/myLocations"))
 const Floors = React.lazy(() => import("../pages/Facility/floorManager"))
 const Category = React.lazy(() => import("../pages/Room/Category"))
 const Rooms = React.lazy(() => import("../pages/Room/roomManager"))
+const Spot = React.lazy(() => import('../pages/Room/spot'))
 // - email
 const Inbox = React.lazy(() => import("../pages/apps/Email/Inbox"));
 const EmailDetail = React.lazy(() => import("../pages/apps/Email/Detail"));
@@ -379,6 +380,12 @@ const workspacesRoutes = {
       path: "/room/my-rooms",
       name: "Rooms",
       element: <Rooms />,
+      route: PrivateRoute
+    },
+    {
+      path: "/room/spot",
+      name: "Rooms",
+      element: <Spot />,
       route: PrivateRoute
     },
     {

@@ -12,7 +12,8 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
     const [error, setError] = useState(null);
     const [floorData, setFloorData] = useState([]);
     const [selectedLocation, setSelectedLocation] = useState(null);
-    
+    const [isLocationName, setIsLocationName] = useState("");
+
 
     // const [locations, setLocations] = useState([
     //     { id: 1, locations: "Owner" },
@@ -99,7 +100,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
     //       );
     
     //       if (!response.ok) {
-    //         throw new Error(`HTTP error! Status: ${response.status}`);
+    //         throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
     //       }
     
     //       const result = await response.json();
@@ -143,6 +144,14 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
         }));
       };
 
+      useEffect(() => {
+        locations.map((location) => {
+          if (location.id === myCategory?.location_id) {
+            setSelectedLocation(location.id); // Set the selected location ID
+            setIsLocationName(location.name); // Set the location name
+          }
+        });
+      }, [user?.tenantToken, locations]);
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -247,6 +256,28 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
                         />
                     </Form.Group> */}
                                          <div>
+                                            {myCategory ? (
+                                                          <>
+                                                            <Form.Label>
+                                                              Select the location you want to add the room/space.
+                                                            </Form.Label>
+                                                            <Form.Select
+                                                              style={{ marginBottom: "25px", fontSize: "1rem" }}
+                                                              value={selectedLocation || ""}
+                                                              onChange={handleLocationChange} // Use the updated handler
+                                                              required
+                                                            >
+                                                              {/* <option value="" disabled>
+                                                            Select a location
+                                                          </option> */}
+                                            
+                                                              <option disabled value={formData.location_id}>
+                                                                {isLocationName}
+                                                              </option>
+                                                            </Form.Select>
+                                                          </>
+                                                        ) : (
+                                                          <> 
                                          <Form.Label>Select the location you want to add the room/space.</Form.Label>
                                          <Form.Select
                                              style={{ marginBottom: "25px", fontSize: "1rem" }}
@@ -263,6 +294,8 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
                                                </option>
                                              ))}
                                            </Form.Select>
+                                           </>
+            )}
                                          </div>
                                     
 

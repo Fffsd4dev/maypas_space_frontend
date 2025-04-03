@@ -65,7 +65,7 @@ const WorkspaceRoles = () => {
           );
     
           if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
           }
     
           const result = await response.json();
@@ -103,7 +103,7 @@ const WorkspaceRoles = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
@@ -166,7 +166,7 @@ const WorkspaceRoles = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       setData((prevData) =>

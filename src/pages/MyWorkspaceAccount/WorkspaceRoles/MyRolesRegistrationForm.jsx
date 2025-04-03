@@ -150,9 +150,9 @@ const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
                 setIsError(false);
                 setTimeout(() => onHide(), 2000);
             } else {
-                let errorMsg = "An error Occured."; // Default message
+                let errorMsg = result.error || "An error Occured." ; // Default message
 
-                if (result?.errors) {
+                if (result?.errors ) {
                     console.log(result.errors)
                     // Extract all error messages and join them into a single string
                     errorMsg = Object.values(result.errors)

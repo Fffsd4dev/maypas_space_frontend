@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { useParams } from "react-router-dom";
-import { set } from "immutable";
 
-const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
+const SpotRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
 
@@ -18,7 +17,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   const [categoryData, setCategoryData] = useState([]); // State to store categories
 
   const [formData, setFormData] = useState({
-    space_name: "",
+    name: "",
     space_number: "",
     floor_id: "",
     location_id: "",
@@ -29,13 +28,11 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLocationName, setIsLocationName] = useState("");
-  const [isFloorName, setIsFloorName] = useState(""); // State to store the selected floor name
 
   useEffect(() => {
     if (myRoom) {
       setFormData({
-        space_name: myRoom.space_name || "",
+        name: myRoom.name || "",
         space_number: myRoom.space_number || "",
         floor_id: myRoom.space || "",
         location_id: myRoom.location_id || "",
@@ -44,7 +41,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       });
     } else {
       setFormData({
-        space_name: "",
+        name: "",
         space_number: "",
         floor_id: "",
         location_id: "",
@@ -105,9 +102,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
@@ -164,9 +159,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
@@ -197,28 +190,6 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       space_category_id: "", // Reset category when floor changes
     }));
   };
-
-  useEffect(() => {
-    locations.map((location) => {
-      if (location.id === myRoom?.location_id) {
-        setSelectedLocation(location.id); // Set the selected location ID
-        setIsLocationName(location.name); // Set the location name
-      }
-    });
-  }, [user?.tenantToken, locations]);
-
-  useEffect(() => {
-    floorData.map((floor) => {
-      if (floor.id === myRoom?.floor_id) {
-        // setSelectedLocation(location.id); // Set the selected location ID
-        setFormData((prev) => ({
-          ...prev,
-          floor_id: floor.id, // Update formData with the selected floor ID
-        }));
-        setIsFloorName(floor.name); // Set the location name
-      }
-    });
-  }, [user?.tenantToken, floorData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -268,7 +239,11 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
         setTimeout(() => {
           onSubmit(); // Call onSubmit to reload users
           onHide();
-          setErrorMessage(myRoom ? " " : " ");
+          setErrorMessage(
+            myRoom
+              ? " "
+              : " "
+          );
         }, 2000);
       } else {
         let errorMsg = "An error Occured."; // Default message
@@ -310,14 +285,14 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
             <Form.Label>Room/Space Name</Form.Label>
             <Form.Control
               type="text"
-              name="space_name"
-              value={formData.space_name}
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
               placeholder="Lavendier Room "
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="space_number">
-            <Form.Label>Number of Spots in this Room/Space</Form.Label>
+            <Form.Label>Room/Space Number</Form.Label>
             <Form.Control
               type="number"
               name="space_number"
@@ -327,7 +302,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="space_fee">
-            <Form.Label>Fee per Spot</Form.Label>
+            <Form.Label>Room/Space Fee</Form.Label>
             <Form.Control
               type="number"
               name="space_fee"
@@ -336,85 +311,29 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               placeholder="30000"
             />
           </Form.Group>
-
-          <Form.Group className="mb-3" controlId="space_fee">
-            <Form.Label>Total Fee</Form.Label>
-            <Form.Control
-              type="number"
-              name="space_fee"
-              value={formData.space_fee * formData.space_number || 0} // Multiply space_fee by space_number
-              placeholder="30000"
-              disabled // Disable the input
-            />
-          </Form.Group>
-
           <div>
-            {myRoom ? (
-              <>
-                <Form.Label>
-                  Select the location you want to add the room/space.
-                </Form.Label>
-                <Form.Select
-                  style={{ marginBottom: "25px", fontSize: "1rem" }}
-                  value={selectedLocation || ""}
-                  onChange={handleLocationChange} // Use the updated handler
-                  required
-                >
-                  {/* <option value="" disabled>
+            <Form.Label>
+              Select the location you want to add the room/space.
+            </Form.Label>
+            <Form.Select
+              style={{ marginBottom: "25px", fontSize: "1rem" }}
+              value={selectedLocation || ""}
+              onChange={handleLocationChange} // Use the updated handler
+              required
+            >
+              <option value="" disabled>
                 Select a location
-              </option> */}
-
-                  <option disabled value={formData.location_id}>
-                    {isLocationName}
-                  </option>
-                </Form.Select>
-              </>
-            ) : (
-              <>
-                <Form.Label>
-                  Select the location you want to add the room/space.
-                </Form.Label>
-                <Form.Select
-                  style={{ marginBottom: "25px", fontSize: "1rem" }}
-                  value={selectedLocation || ""}
-                  onChange={handleLocationChange} // Use the updated handler
-                  required
-                >
-                  <option value="" disabled>
-                    Select a location
-                  </option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.name} at {location.state}
-                    </option>
-                  ))}
-                </Form.Select>
-              </>
-            )}
+              </option>
+              {locations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.name} at {location.state}
+                </option>
+              ))}
+            </Form.Select>
           </div>
 
           {selectedLocation && (
             <Form.Group className="mb-3" controlId="location_id">
-              {myRoom ? (
-                <>
-                <Form.Label>
-                    Select the Floor you want to add the room/space.
-                  </Form.Label>
-                  <Form.Select
-                    name="floor_id"
-                    value={formData.floor_id}
-                    onChange={handleFloorChange}
-                    required
-                  >
-                    {/* <option value="">Select a Floor/Section</option> */}
-                    <option disabled value={formData.floor_id}>
-                    {isFloorName}
-                  </option>
-                  </Form.Select>
-                </>    
-                ): (
-                  <>
-
               {loadingFloor ? (
                 <div className="text-center">
                   <Spinner animation="border" role="status">
@@ -444,9 +363,6 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
                   </Form.Select>
                 </>
               )}
-              </>
-            )
-          }
             </Form.Group>
           )}
 
@@ -508,4 +424,4 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   );
 };
 
-export default RoomRegistrationModal;
+export default SpotRegistrationModal;

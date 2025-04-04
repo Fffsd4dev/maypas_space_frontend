@@ -102,9 +102,14 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
             if (response.ok) {
                 setErrorMessage(myFloor ? "Floor updated successfully!" : "Floor registered successfully!");
                 setIsError(false);
+                setFormData({
+                    name: "",
+                    location_id: "",
+                });
                 setTimeout(() => {
                     onSubmit(); // Call onSubmit to reload users
                     onHide();
+                    setErrorMessage(myFloor ? " " : " ");
                 }, 2000);
             } else {
                 let errorMsg = "An error Occured."; // Default message

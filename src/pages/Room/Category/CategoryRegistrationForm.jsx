@@ -186,6 +186,8 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
                 setTimeout(() => {
                     onSubmit(); // Call onSubmit to reload users
                     onHide();
+                    setErrorMessage(myCategory ? " " : " ");
+
                 }, 2000);
             } else {
                 let errorMsg = "An error Occured."; // Default message

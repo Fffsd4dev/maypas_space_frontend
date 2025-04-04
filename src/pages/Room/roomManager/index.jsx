@@ -228,9 +228,11 @@ const Rooms = () => {
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
-    if (selectedLocation) {
+    if (selectedLocation && formData.floor_id) {
       fetchRoom(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
     }
+    setFormData({}); // Reset inputs after success
+
   };
 
   const handleDelete = async (myRoomID) => {
@@ -262,7 +264,7 @@ const Rooms = () => {
         type: "success",
         isVisible: true,
       });
-      if (selectedLocation) {
+      if (formData.floor_id && selectedLocation) {
         fetchRoom(
           selectedLocation,
           pagination.currentPage,

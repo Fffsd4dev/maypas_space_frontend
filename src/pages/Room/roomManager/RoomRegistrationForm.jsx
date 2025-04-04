@@ -258,7 +258,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
         );
         setIsError(false);
         setFormData({
-          name: "",
+          space_name: "",
           location_id: "",
           floor_id: "",
           space_number: "",

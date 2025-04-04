@@ -122,8 +122,6 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
     }));
   };
 
-
-
   const handleLocationChange = (e) => {
     const locationId = e.target.value;
     setSelectedLocation(locationId);

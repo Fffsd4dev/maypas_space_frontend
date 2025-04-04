@@ -225,8 +225,6 @@ const Rooms = () => {
     if (selectedLocation && formData.floor_id) {
       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
     }
-
-    setFormData({}); // Reset inputs after success
   };
 
   const handleDelete = async (myRoomID) => {

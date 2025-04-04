@@ -51,7 +51,10 @@ const WorkspaceRoles = () => {
     };
       const [rowLoading, setRowLoading] = useState(null); // State for row loading
     
-      const handleRowClick = async (id) => {
+      const handleRowClick = async (id, event) => {
+        // Prevent row click if the event target is an action icon
+        if (event.target.closest(".action-icon")) return;
+
         setRowLoading(id); // Set the row loading state
         try {
           const response = await fetch(
@@ -235,14 +238,20 @@ const WorkspaceRoles = () => {
           <Link
             to="#"
             className="action-icon"
-            onClick={() => handleEditClick(row.original)}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent row click
+              handleEditClick(row.original);
+            }}
           >
             <i className="mdi mdi-square-edit-outline"></i>
           </Link>
           <Link
             to="#"
             className="action-icon"
-            onClick={() => handleDeleteButton(row.original.id)}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent row click
+              handleDeleteButton(row.original.id);
+            }}
           >
             <i className="mdi mdi-delete"></i>
           </Link>
@@ -300,7 +309,7 @@ const WorkspaceRoles = () => {
                   searchBoxClass="my-2"
                   getRowProps={(row) => ({
                     style: { cursor: "pointer" },
-                    onClick: () => handleRowClick(row.original.id),
+                    onClick: (event) => handleRowClick(row.original.id, event),
                   })}
                   rowLoading={rowLoading} // Pass the row loading state
                   paginationProps={{

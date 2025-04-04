@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
-import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     const { user } = useAuthContext();
@@ -9,13 +10,6 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
 
     const [roles, setRoles] = useState([]);
 
-    // const [roles, setRoles] = useState([
-    //     { id: 1, role: "Owner" },
-    //     { id: 2, role: "Admin" },
-    // ]);
-    
-    
-   
     const [formData, setFormData] = useState({
         first_name: "",
         last_name: "",
@@ -24,8 +18,6 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
         user_type_id: "",
     });
 
-    const [errorMessage, setErrorMessage] = useState("");
-    const [isError, setIsError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -62,8 +54,7 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                 throw new Error(result.message || "Failed to fetch roles.");
             }
         } catch (error) {
-            setErrorMessage(error.message);
-            setIsError(true);
+            toast.error(error.message);
         }
     };
 
@@ -84,9 +75,8 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setErrorMessage("");
-        console.log(formData)
-        console.log(user?.tenantToken)
+        console.log(formData);
+        console.log(user?.tenantToken);
 
         try {
             if (!user?.tenantToken) throw new Error("Authorization token is missing.");
@@ -94,7 +84,7 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             const url = myUser
                 ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/update-user/${myUser.id}`
                 : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/add-user`;
-            
+
             const method = myUser ? "POST" : "POST";
             const response = await fetch(url, {
                 method,
@@ -109,33 +99,28 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             console.log(result);
 
             if (response.ok) {
-                setErrorMessage(myUser ? "User updated successfully!" : "User registered successfully!");
-                setIsError(false);
+                toast.success(myUser ? "User updated successfully!" : "User registered successfully!");
                 setTimeout(() => {
-                    onSubmit(); // Call onSubmit to reload users
+                    onSubmit();
                     onHide();
                 }, 2000);
             } else {
-                let errorMsg = "An error Occured."; // Default message
+                let errorMsg = "An error occurred.";
 
                 if (result?.errors) {
-                    // Extract all error messages and join them into a single string
                     errorMsg = Object.values(result.errors)
-                        .flat() // Flatten array in case multiple errors per field
-                        .join("\n"); // Join errors with line breaks
+                        .flat()
+                        .join("\n");
                 } else if (result?.message) {
                     errorMsg = result.message;
                 }
-            
-                setErrorMessage(errorMsg);
-                
+
+                toast.error(errorMsg);
                 console.log(result);
-                setIsError(true);
             }
         } catch (error) {
-            setErrorMessage( "An error occurred. Contact Admin");
+            toast.error("An error occurred. Contact Admin");
             console.log(error);
-            setIsError(true);
         } finally {
             setIsLoading(false);
         }
@@ -147,9 +132,6 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                 <Modal.Title>{myUser ? "Edit User" : "Add a New User"}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-4">
-                {errorMessage && (
-                    <Alert variant={isError ? "danger" : "success"}>{errorMessage}</Alert>
-                )}
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3" controlId="first_name">
                         <Form.Label>First Name</Form.Label>

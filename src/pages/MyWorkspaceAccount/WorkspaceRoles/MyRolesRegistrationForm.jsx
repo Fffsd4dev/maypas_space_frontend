@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
-
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
     const { user } = useAuthContext();
@@ -34,11 +35,8 @@ const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
         update_booking: "no",
         delete_booking: "no",
         view_booking: "no",
-
     });
 
-    const [errorMessage, setErrorMessage] = useState("");
-    const [isError, setIsError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     // Pre-fill form if editing
@@ -70,7 +68,6 @@ const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
                 update_booking: selectedAdmin.update_booking || "no",
                 delete_booking: selectedAdmin.delete_booking || "no",
                 view_booking: selectedAdmin.view_booking || "no",
-
             });
         } else {
             setFormData({
@@ -81,25 +78,24 @@ const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
                 view_admin: "no",
                 create_user: "no",
                 update_user: "no",
-        delete_user: "no",
-        view_user: "no",
-        create_location: "no", 
-        update_location: "no",
-        delete_location: "no",
-        view_location: "no",
-        create_floor: "no",
-        update_floor: "no",
-        delete_floor: "no",
-        view_floor: "no",
-        create_space: "no",
-        update_space: "no",
-        delete_space: "no",
-        view_space: "no",
-        create_booking: "no",
-        update_booking: "no",
-        delete_booking: "no",
-        view_booking: "no",
-
+                delete_user: "no",
+                view_user: "no",
+                create_location: "no", 
+                update_location: "no",
+                delete_location: "no",
+                view_location: "no",
+                create_floor: "no",
+                update_floor: "no",
+                delete_floor: "no",
+                view_floor: "no",
+                create_space: "no",
+                update_space: "no",
+                delete_space: "no",
+                view_space: "no",
+                create_booking: "no",
+                update_booking: "no",
+                delete_booking: "no",
+                view_booking: "no",
             });
         }
     }, [selectedAdmin]);
@@ -120,9 +116,8 @@ const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setErrorMessage("");
-        console.log(formData)
-        console.log(JSON.stringify(formData))
+        console.log(formData);
+        console.log(JSON.stringify(formData));
 
         try {
             if (!user?.token) throw new Error("Authorization token is missing.");
@@ -143,34 +138,27 @@ const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
             });
 
             const result = await response.json();
-            
 
             if (response.ok) {
-                setErrorMessage(selectedAdmin ? "Role updated successfully!" : "Role created successfully!");
-                setIsError(false);
-                setTimeout(() => onHide(), 2000);
+                toast.success(selectedAdmin ? "Role updated successfully!" : "Role created successfully!");
+                setTimeout(() => onHide(), 1000);
             } else {
-                let errorMsg = result.error || "An error Occured." ; // Default message
+                let errorMsg = "An error occurred.";
 
-                if (result?.errors ) {
-                    console.log(result.errors)
-                    // Extract all error messages and join them into a single string
+                if (result?.errors) {
                     errorMsg = Object.values(result.errors)
-                        .flat() // Flatten array in case multiple errors per field
-                        .join("\n"); // Join errors with line breaks
+                        .flat()
+                        .join("\n");
                 } else if (result?.message) {
                     errorMsg = result.message;
                 }
-            
-                setErrorMessage(errorMsg);
-                
+
+                toast.error(errorMsg);
                 console.log(result);
-                setIsError(true);
             }
         } catch (error) {
-            setErrorMessage( "An error occurred. Contact Admin");
+            toast.error("An error occurred. Contact Admin");
             console.log(error);
-            setIsError(true);
         } finally {
             setIsLoading(false);
         }
@@ -182,9 +170,6 @@ const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
                 <Modal.Title>{selectedAdmin ? "Edit Role" : "Add New Role"}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-4">
-                {errorMessage && (
-                    <Alert variant={isError ? "danger" : "success"}>{errorMessage}</Alert>
-                )}
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3" controlId="user_type">
                         <Form.Label>Role Name</Form.Label>

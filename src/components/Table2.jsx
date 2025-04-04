@@ -175,25 +175,27 @@ const Table2 = props => {
                 <table {...dataTable.getTableProps()} className={classNames("table table-centered react-table", props["tableClass"])}>
                     <thead className={props["theadClass"]}>
                     {(dataTable.headerGroups || []).map((headerGroup, idx) => <tr {...headerGroup.getHeaderGroupProps()} key={idx}>
-                            {(headerGroup.headers || []).map((column, index) => <th key={index} {...column.getHeaderProps(column.sort && column.getSortByToggleProps())} className={classNames({
-              sorting_desc: column.isSortedDesc === true,
-              sorting_asc: column.isSortedDesc === false,
-              sortable: column.sort === true
-            })}>
-                                    {column.render("Header")}
-                                </th>)}
+                            {(headerGroup.headers || []).map((column, index) => {
+                              const { key, ...restProps } = column.props || {}; // Extract `key` from props
+                              return (
+                                <th key={key || index} {...restProps}>
+                                  {column.render("Header")}
+                                </th>
+                              );
+                            })}
                         </tr>)}
                     </thead>
                     <tbody {...dataTable.getTableBodyProps()}>
                     {(rows || []).map((row, i) => {
             dataTable.prepareRow(row);
-            return <tr {...row.getRowProps(props.getRowProps ? props.getRowProps(row) : {})} key={i}>
+            return <tr {...row.getRowProps(props.getRowProps ? props.getRowProps(row) : {})} key={row.key || i}>
                                 {(row.cells || []).map((cell, idx) => {
-                return <td key={idx} {...cell.getCellProps([{
-                  className: cell.column.className
-                }])}>
-                                            {cell.render("Cell")}
-                                        </td>;
+                const { key, ...restProps } = cell.props || {}; // Extract `key` from props
+                return (
+                  <td key={key || idx} {...restProps}>
+                    {cell.render("Cell")}
+                  </td>
+                );
               })}
                             </tr>;
           })}

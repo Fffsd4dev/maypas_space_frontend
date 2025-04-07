@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
-import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
     const { user } = useAuthContext();
@@ -9,20 +10,11 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
 
     const [locations, setLocations] = useState([]);
 
-    // const [locations, setLocations] = useState([
-    //     { id: 1, locations: "Owner" },
-    //     { id: 2, locations: "Admin" },
-    // ]);
-    
-    
-   
     const [formData, setFormData] = useState({
         name: "",
         location_id: "",
     });
 
-    const [errorMessage, setErrorMessage] = useState("");
-    const [isError, setIsError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -53,8 +45,7 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
                 throw new Error(result.message || "Failed to fetch locations.");
             }
         } catch (error) {
-            setErrorMessage(error.message);
-            setIsError(true);
+            toast.error(error.message);
         }
     };
 
@@ -75,9 +66,8 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setErrorMessage("");
-        console.log(formData)
-        console.log(user?.tenantToken)
+        console.log(formData);
+        console.log(user?.tenantToken);
 
         try {
             if (!user?.tenantToken) throw new Error("Authorization token is missing.");
@@ -85,7 +75,7 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
             const url = myFloor
                 ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/update/${myFloor.id}`
                 : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/create`;
-            
+
             const method = myFloor ? "POST" : "POST";
             const response = await fetch(url, {
                 method,
@@ -100,38 +90,32 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
             console.log(result);
 
             if (response.ok) {
-                setErrorMessage(myFloor ? "Floor updated successfully!" : "Floor registered successfully!");
-                setIsError(false);
+                toast.success(myFloor ? "Floor updated successfully!" : "Floor registered successfully!");
                 setFormData({
                     name: "",
                     location_id: "",
                 });
                 setTimeout(() => {
-                    onSubmit(); // Call onSubmit to reload users
+                    onSubmit();
                     onHide();
-                    setErrorMessage(myFloor ? " " : " ");
-                }, 2000);
+                }, 1000);
             } else {
-                let errorMsg = "An error Occured."; // Default message
+                let errorMsg = "An error occurred.";
 
                 if (result?.errors) {
-                    // Extract all error messages and join them into a single string
                     errorMsg = Object.values(result.errors)
-                        .flat() // Flatten array in case multiple errors per field
-                        .join("\n"); // Join errors with line breaks
+                        .flat()
+                        .join("\n");
                 } else if (result?.message) {
                     errorMsg = result.message;
                 }
-            
-                setErrorMessage(errorMsg);
-                
+
+                toast.error(errorMsg);
                 console.log(result);
-                setIsError(true);
             }
         } catch (error) {
-            setErrorMessage( "An error occurred. Contact Admin");
+            toast.error("An error occurred. Contact Admin");
             console.log(error);
-            setIsError(true);
         } finally {
             setIsLoading(false);
         }
@@ -143,9 +127,6 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
                 <Modal.Title>{myFloor ? "Floor" : "Add a New Floor/Section"}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-4">
-                {errorMessage && (
-                    <Alert variant={isError ? "danger" : "success"}>{errorMessage}</Alert>
-                )}
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3" controlId="name">
                         <Form.Label>Floor Name</Form.Label>
@@ -158,36 +139,15 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
                         />
                     </Form.Group>
 
-                    {/* <Form.Group className="mb-3" controlId="id">
-                        <Form.Label>State</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="id"
-                            value={formData.id}
-                            onChange={handleInputChange}
-                        />
+                    <Form.Group className="mb-3" controlId="location_id">
+                        <Form.Label>Location</Form.Label>
+                        <Form.Select name="location_id" value={formData.location_id} onChange={handleInputChange} required>
+                            <option value="">Select a location</option>
+                            {Array.isArray(locations) && locations.map((location) => (
+                                <option key={location.id} value={location.id}>{location.name} at {location.state} state</option>
+                            ))}
+                        </Form.Select>
                     </Form.Group>
-
-                    <Form.Group className="mb-3" controlId="address">
-                        <Form.Label>Address</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="address"
-                            value={formData.address}
-                            onChange={handleInputChange}
-                        />
-                    </Form.Group> */}
-                     <Form.Group className="mb-3" controlId="location_id">
-                                            <Form.Label>Location</Form.Label>
-                                            <Form.Select name="location_id" value={formData.location_id} onChange={handleInputChange} required>
-                                                <option value="">Select a location</option>
-                                                {Array.isArray(locations) && locations.map((location) => (
-                                                    <option key={location.id} value={location.id}>{location.name} at {location.state} state</option>
-                                                ))}
-                                            </Form.Select>
-                                        </Form.Group>
-
-                   
 
                     <Button variant="primary" type="submit" className="w-100" disabled={isLoading}>
                         {isLoading ? <Spinner as="span" animation="border" size="sm" locations="status" aria-hidden="true" /> : myFloor ? "Update" : "Create"} Floor

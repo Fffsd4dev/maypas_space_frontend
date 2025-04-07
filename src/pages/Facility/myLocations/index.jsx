@@ -6,6 +6,7 @@ import LocationRegistrationModal from "./LocationRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
+import { toast } from "react-toastify";
 
 const MyLocations = () => {
   const { user } = useAuthContext();
@@ -91,7 +92,7 @@ const MyLocations = () => {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      setError(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -144,11 +145,7 @@ const MyLocations = () => {
       });
       fetchData(pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
     } catch (error) {
-      setPopup({
-        message: "Failed to delete plan!",
-        type: "error",
-        isVisible: true,
-      });
+      toast.error("Failed to delete plan!");
     } finally {
       setIsLoading(false);
     }

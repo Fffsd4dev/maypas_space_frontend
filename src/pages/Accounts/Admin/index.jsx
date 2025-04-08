@@ -37,10 +37,10 @@ const Admin = () => {
         }
 
         const result = await response.json();
-        console.log("Parsed response data:", result.data);
+        console.log("Parsed response data:", result.data.data);
 
-        if (result && Array.isArray(result.data)) {
-          setData(result.data);
+        if (result && Array.isArray(result.data.data)) {
+          setData(result.data.data);
         } else {
           throw new Error("Invalid response format");
         }

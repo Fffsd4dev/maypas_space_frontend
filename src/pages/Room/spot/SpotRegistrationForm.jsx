@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Spinner } from "react-bootstrap";
+import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
-import { toast } from "react-toastify";
+import { useParams } from "react-router-dom";
 
-const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
+const SpotRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
 
@@ -11,12 +11,13 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [loadingCategory, setLoadingCategory] = useState(true);
   const [loadingFloor, setLoadingFloor] = useState(true);
+  const [error, setError] = useState(null);
   const [floorData, setFloorData] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [categoryData, setCategoryData] = useState([]);
+  const [categoryData, setCategoryData] = useState([]); // State to store categories
 
   const [formData, setFormData] = useState({
-    space_name: "",
+    name: "",
     space_number: "",
     floor_id: "",
     location_id: "",
@@ -24,14 +25,14 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
     space_category_id: "",
   });
 
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLocationName, setIsLocationName] = useState("");
-  const [isFloorName, setIsFloorName] = useState("");
 
   useEffect(() => {
     if (myRoom) {
       setFormData({
-        space_name: myRoom.space_name || "",
+        name: myRoom.name || "",
         space_number: myRoom.space_number || "",
         floor_id: myRoom.space || "",
         location_id: myRoom.location_id || "",
@@ -40,7 +41,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       });
     } else {
       setFormData({
-        space_name: "",
+        name: "",
         space_number: "",
         floor_id: "",
         location_id: "",
@@ -50,23 +51,28 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
     }
   }, [myRoom]);
 
+  // Fetch locations when modal opens
   const fetchLocations = async () => {
     setLoadingLocations(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/location/list-locations`,
         {
           headers: { Authorization: `Bearer ${user.tenantToken}` },
         }
       );
       const result = await response.json();
       if (response.ok) {
+        console.log("Locations:", result.data.data);
         setLocations(result.data.data || []);
       } else {
         throw new Error(result.message || "Failed to fetch locations.");
       }
     } catch (error) {
-      toast.error(error.message);
+      setErrorMessage(error.message);
+      setIsError(true);
     } finally {
       setLoadingLocations(false);
     }
@@ -80,9 +86,13 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
 
   const fetchFloor = async (locationId) => {
     setLoadingFloor(true);
+    setError(null);
+    console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/floor/list-floors/${locationId}`,
         {
           method: "GET",
           headers: {
@@ -97,12 +107,12 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
 
       const result = await response.json();
       if (result && Array.isArray(result.data.data)) {
-        setFloorData(result.data.data);
+        setFloorData(result.data.data); // Store floors in state
       } else {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message);
+      setError(error.message);
     } finally {
       setLoadingFloor(false);
     }
@@ -110,10 +120,9 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
 
   useEffect(() => {
     if (selectedLocation) {
-      fetchFloor(selectedLocation);
+      fetchFloor(selectedLocation); // Fetch floors based on the selected location ID
     }
   }, [selectedLocation]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -135,6 +144,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
 
   const fetchCategory = async () => {
     setLoadingCategory(true);
+    setError(null);
     try {
       const response = await fetch(
         `${
@@ -149,9 +159,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
@@ -183,41 +191,26 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
     }));
   };
 
-  useEffect(() => {
-    locations.map((location) => {
-      if (location.id === myRoom?.location_id) {
-        setSelectedLocation(location.id); // Set the selected location ID
-        setIsLocationName(location.name); // Set the location name
-      }
-    });
-  }, [user?.tenantToken, locations]);
-
-  useEffect(() => {
-    floorData.map((floor) => {
-      if (floor.id === myRoom?.floor_id) {
-        // setSelectedLocation(location.id); // Set the selected location ID
-        setFormData((prev) => ({
-          ...prev,
-          floor_id: floor.id, // Update formData with the selected floor ID
-        }));
-        setIsFloorName(floor.name); // Set the location name
-      }
-    });
-  }, [user?.tenantToken, floorData]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage("");
+    console.log(formData);
+    console.log(user?.tenantToken);
 
     try {
-      if (!user?.tenantToken) throw new Error("Authorization token is missing.");
+      if (!user?.tenantToken)
+        throw new Error("Authorization token is missing.");
 
       const url = myRoom
-        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/update/${myRoom.id}`
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/update/${
+            myRoom.id
+          }`
         : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/create`;
 
+      const method = myRoom ? "POST" : "POST";
       const response = await fetch(url, {
-        method: "POST",
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user?.tenantToken}`,
@@ -226,18 +219,53 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       });
 
       const result = await response.json();
+      console.log(result);
 
       if (response.ok) {
-        toast.success(myRoom ? "Room updated successfully!" : "Room registered successfully!");
+        setErrorMessage(
+          myRoom
+            ? "Room updated successfully!"
+            : "Room registered successfully!"
+        );
+        setIsError(false);
+        setFormData({
+          name: "",
+          location_id: "",
+          floor_id: "",
+          space_number: "",
+          space_fee: "",
+          space_category_id: "",
+        }); // Reset inputs after success
         setTimeout(() => {
-          onSubmit(); // Trigger fetchRoom after success
+          onSubmit(); // Call onSubmit to reload users
           onHide();
-        }, 1000);
+          setErrorMessage(
+            myRoom
+              ? " "
+              : " "
+          );
+        }, 2000);
       } else {
-        toast.error(result?.message || "An error occurred.");
+        let errorMsg = "An error Occured."; // Default message
+
+        if (result?.errors) {
+          // Extract all error messages and join them into a single string
+          errorMsg = Object.values(result.errors)
+            .flat() // Flatten array in case multiple errors per field
+            .join("\n"); // Join errors with line breaks
+        } else if (result?.message) {
+          errorMsg = result.message;
+        }
+
+        setErrorMessage(errorMsg);
+
+        console.log(result);
+        setIsError(true);
       }
     } catch (error) {
-      toast.error(error.message || "An error occurred.");
+      setErrorMessage("An error occurred. Contact Admin");
+      console.log(error);
+      setIsError(true);
     } finally {
       setIsLoading(false);
     }
@@ -249,22 +277,22 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
         <Modal.Title>{myRoom ? "Room" : "Add a New Room"}</Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
-        {/* {errorMessage && (
+        {errorMessage && (
           <Alert variant={isError ? "danger" : "success"}>{errorMessage}</Alert>
-        )} */}
+        )}
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="name">
             <Form.Label>Room/Space Name</Form.Label>
             <Form.Control
               type="text"
-              name="space_name"
-              value={formData.space_name}
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
               placeholder="Lavendier Room "
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="space_number">
-            <Form.Label>Number of Spots in this Room/Space</Form.Label>
+            <Form.Label>Room/Space Number</Form.Label>
             <Form.Control
               type="number"
               name="space_number"
@@ -274,7 +302,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="space_fee">
-            <Form.Label>Fee per Spot</Form.Label>
+            <Form.Label>Room/Space Fee</Form.Label>
             <Form.Control
               type="number"
               name="space_fee"
@@ -283,85 +311,29 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               placeholder="30000"
             />
           </Form.Group>
-
-          <Form.Group className="mb-3" controlId="space_fee">
-            <Form.Label>Total Fee</Form.Label>
-            <Form.Control
-              type="number"
-              name="space_fee"
-              value={formData.space_fee * formData.space_number || 0} // Multiply space_fee by space_number
-              placeholder="30000"
-              disabled // Disable the input
-            />
-          </Form.Group>
-
           <div>
-            {myRoom ? (
-              <>
-                <Form.Label>
-                  Select the location you want to add the room/space.
-                </Form.Label>
-                <Form.Select
-                  style={{ marginBottom: "25px", fontSize: "1rem" }}
-                  value={selectedLocation || ""}
-                  onChange={handleLocationChange} // Use the updated handler
-                  required
-                >
-                  {/* <option value="" disabled>
+            <Form.Label>
+              Select the location you want to add the room/space.
+            </Form.Label>
+            <Form.Select
+              style={{ marginBottom: "25px", fontSize: "1rem" }}
+              value={selectedLocation || ""}
+              onChange={handleLocationChange} // Use the updated handler
+              required
+            >
+              <option value="" disabled>
                 Select a location
-              </option> */}
-
-                  <option disabled value={formData.location_id}>
-                    {isLocationName}
-                  </option>
-                </Form.Select>
-              </>
-            ) : (
-              <>
-                <Form.Label>
-                  Select the location you want to add the room/space.
-                </Form.Label>
-                <Form.Select
-                  style={{ marginBottom: "25px", fontSize: "1rem" }}
-                  value={selectedLocation || ""}
-                  onChange={handleLocationChange} // Use the updated handler
-                  required
-                >
-                  <option value="" disabled>
-                    Select a location
-                  </option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.name} at {location.state}
-                    </option>
-                  ))}
-                </Form.Select>
-              </>
-            )}
+              </option>
+              {locations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.name} at {location.state}
+                </option>
+              ))}
+            </Form.Select>
           </div>
 
           {selectedLocation && (
             <Form.Group className="mb-3" controlId="location_id">
-              {myRoom ? (
-                <>
-                <Form.Label>
-                    Select the Floor you want to add the room/space.
-                  </Form.Label>
-                  <Form.Select
-                    name="floor_id"
-                    value={formData.floor_id}
-                    onChange={handleFloorChange}
-                    required
-                  >
-                    {/* <option value="">Select a Floor/Section</option> */}
-                    <option disabled value={formData.floor_id}>
-                    {isFloorName}
-                  </option>
-                  </Form.Select>
-                </>    
-                ): (
-                  <>
-
               {loadingFloor ? (
                 <div className="text-center">
                   <Spinner animation="border" role="status">
@@ -391,9 +363,6 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
                   </Form.Select>
                 </>
               )}
-              </>
-            )
-          }
             </Form.Group>
           )}
 
@@ -455,4 +424,4 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   );
 };
 
-export default RoomRegistrationModal;
+export default SpotRegistrationModal;

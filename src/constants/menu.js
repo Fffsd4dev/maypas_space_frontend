@@ -105,12 +105,12 @@ const MENU_ITEMS = [
         url: "/room/my-rooms",
         parentKey: "room-management",
       },
-      {
-        key: "dedicated-desk",
-        label: "Dedicated Desk/Spot/Bed",
-        url: "/room/spot",
-        parentKey: "room-management",
-      },
+      // {
+      //   key: "dedicated-desk",
+      //   label: "Dedicated Desk/Spot/Bed",
+      //   url: "/room/spot",
+      //   parentKey: "room-management",
+      // },
     ],
   },
   {

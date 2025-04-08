@@ -3,20 +3,17 @@ import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useParams } from "react-router-dom";
 
 const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     const { user } = useAuthContext();
     const tenantSlug = user?.tenant;
 
     const [roles, setRoles] = useState([]);
-
+    const [loadingRoles, setLoadingRoles] = useState(true);
     const [formData, setFormData] = useState({
-        first_name: "",
-        last_name: "",
+        name: "",
         email: "",
-        phone: "",
-        user_type_id: "",
+        role_id: "",
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -24,25 +21,21 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     useEffect(() => {
         if (myUser) {
             setFormData({
-                first_name: myUser.first_name || "",
-                last_name: myUser.last_name || "",
+                name: myUser.name || "",
                 email: myUser.email || "",
-                phone: myUser.phone || "",
-                user_type_id: myUser.user_type_id || "",
+                role_id: myUser.role_id || "",
             });
         } else {
             setFormData({
-                first_name: "",
-                last_name: "",
+                name: "",
                 email: "",
-                phone: "",
-                user_type_id: "",
+                role_id: "",
             });
         }
     }, [myUser]);
 
-    // Fetch roles when modal opens
     const fetchRoles = async () => {
+        setLoadingRoles(true);
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/usertype/list-user-types`, {
                 headers: { Authorization: `Bearer ${user.tenantToken}` },
@@ -56,6 +49,8 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             }
         } catch (error) {
             toast.error(error.message);
+        } finally {
+            setLoadingRoles(false);
         }
     };
 
@@ -69,7 +64,15 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: name === "company_countries" ? value.split(",").map(c => c.trim()) : value,
+            [name]: value,
+        }));
+    };
+
+    const handleRoleChange = (e) => {
+        const roleId = e.target.value;
+        setFormData((prev) => ({
+            ...prev,
+            role_id: roleId,
         }));
     };
 
@@ -134,26 +137,17 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             </Modal.Header>
             <Modal.Body className="p-4">
                 <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-3" controlId="first_name">
-                        <Form.Label>First Name</Form.Label>
+                    <Form.Group className="mb-3" controlId="name">
+                        <Form.Label>Name</Form.Label>
                         <Form.Control
                             type="text"
-                            name="first_name"
-                            value={formData.first_name}
+                            name="name"
+                            value={formData.name}
                             onChange={handleInputChange}
+                            placeholder="Enter name"
+                            required
                         />
                     </Form.Group>
-
-                    <Form.Group className="mb-3" controlId="last_name">
-                        <Form.Label>Last Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="last_name"
-                            value={formData.last_name}
-                            onChange={handleInputChange}
-                        />
-                    </Form.Group>
-
                     <Form.Group className="mb-3" controlId="email">
                         <Form.Label>Email</Form.Label>
                         <Form.Control
@@ -161,31 +155,29 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                             name="email"
                             value={formData.email}
                             onChange={handleInputChange}
+                            placeholder="Enter email"
+                            required
                         />
                     </Form.Group>
-
-                    <Form.Group className="mb-3" controlId="phone">
-                        <Form.Label>Phone</Form.Label>
-                        <Form.Control
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                        />
-                    </Form.Group>
-
-                    <Form.Group className="mb-3" controlId="user_type_id">
-                        <Form.Label>Role</Form.Label>
-                        <Form.Select name="user_type_id" value={formData.user_type_id} onChange={handleInputChange} required>
-                            <option value="">Select a role</option>
-                            {Array.isArray(roles) && roles.map((role) => (
-                                <option key={role.id} value={role.id}>{role.user_type}</option>
+                    <Form.Group className="mb-3" controlId="role">
+                        <Form.Label>Select Role</Form.Label>
+                        <Form.Select
+                            value={formData.role_id || ""}
+                            onChange={handleRoleChange}
+                            required
+                        >
+                            <option value="" disabled>
+                                Select a role
+                            </option>
+                            {roles.map((role) => (
+                                <option key={role.id} value={role.id}>
+                                    {role.name}
+                                </option>
                             ))}
                         </Form.Select>
                     </Form.Group>
-
                     <Button variant="primary" type="submit" className="w-100" disabled={isLoading}>
-                        {isLoading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : myUser ? "Update" : "Create"} User
+                        {isLoading ? <Spinner as="span" animation="border" size="sm" locations="status" aria-hidden="true" /> : myUser ? "Update" : "Create"} User
                     </Button>
                 </Form>
             </Modal.Body>

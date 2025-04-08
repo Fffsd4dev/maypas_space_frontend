@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     const { user } = useAuthContext();
@@ -9,22 +10,12 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
 
     const [roles, setRoles] = useState([]);
 
-    // const [roles, setRoles] = useState([
-    //     { id: 1, role: "Owner" },
-    //     { id: 2, role: "Admin" },
-    // ]);
-    
-    
-   
     const [formData, setFormData] = useState({
         name: "",
         state: "",
         address: "",
-        // phone: "",
-        // user_type_id: "",
     });
 
-    const [errorMessage, setErrorMessage] = useState("");
     const [isError, setIsError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -34,16 +25,12 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                 name: myUser.name || "",
                 state: myUser.state || "",
                 address: myUser.address || "",
-                // phone: myUser.phone || "",
-                // user_type_id: myUser.user_type_id || "",
             });
         } else {
             setFormData({
                 name: "",
                 state: "",
                 address: "",
-                // phone: "",
-                // user_type_id: "",
             });
         }
     }, [myUser]);
@@ -62,7 +49,7 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                 throw new Error(result.message || "Failed to fetch roles.");
             }
         } catch (error) {
-            setErrorMessage(error.message);
+            toast.error(error.message);
             setIsError(true);
         }
     };
@@ -84,7 +71,6 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setErrorMessage("");
         console.log(formData)
         console.log(user?.tenantToken)
 
@@ -109,14 +95,14 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             console.log(result);
 
             if (response.ok) {
-                setErrorMessage(myUser ? "Location updated successfully!" : "Location registered successfully!");
+                toast.success(myUser ? "Location updated successfully!" : "Location registered successfully!");
                 setIsError(false);
                 setTimeout(() => {
                     onSubmit(); // Call onSubmit to reload users
                     onHide();
                 }, 2000);
             } else {
-                let errorMsg = "An error Occured."; // Default message
+                let errorMsg = "An error Occurred."; // Default message
 
                 if (result?.errors) {
                     // Extract all error messages and join them into a single string
@@ -127,13 +113,12 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                     errorMsg = result.message;
                 }
             
-                setErrorMessage(errorMsg);
-                
+                toast.error(errorMsg);
                 console.log(result);
                 setIsError(true);
             }
         } catch (error) {
-            setErrorMessage( "An error occurred. Contact Admin");
+            toast.error("An error occurred. Contact Admin");
             console.log(error);
             setIsError(true);
         } finally {
@@ -147,9 +132,6 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                 <Modal.Title>{myUser ? "Location User" : "Add a New Location"}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-4">
-                {errorMessage && (
-                    <Alert variant={isError ? "danger" : "success"}>{errorMessage}</Alert>
-                )}
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3" controlId="name">
                         <Form.Label>Location Name</Form.Label>
@@ -180,8 +162,6 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                             onChange={handleInputChange}
                         />
                     </Form.Group>
-
-                   
 
                     <Button variant="primary" type="submit" className="w-100" disabled={isLoading}>
                         {isLoading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : myUser ? "Update" : "Create"} Location

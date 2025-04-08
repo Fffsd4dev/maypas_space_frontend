@@ -100,7 +100,7 @@ const Floors = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
@@ -136,10 +136,10 @@ const Floors = () => {
   }, [user?.tenantToken]);
 
   useEffect(() => {
-    if (selectedLocation) {
+    if (user?.tenantToken && selectedLocation) {
       fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
     }
-  }, [selectedLocation, pagination.currentPage, pagination.pageSize]);
+  }, [user?.tenantToken, selectedLocation, pagination.currentPage, pagination.pageSize]);
 
   const handleEditClick = (myFloor) => {
     setSelectedUser(myFloor);
@@ -149,7 +149,7 @@ const Floors = () => {
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
-    if (selectedLocation) {
+    if (user?.tenantToken && selectedLocation) {
       fetchData(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
     }
     setFormData({}); // Reset inputs after success
@@ -173,7 +173,7 @@ const Floors = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       setData((prevData) =>
@@ -184,7 +184,7 @@ const Floors = () => {
         type: "success",
         isVisible: true,
       });
-      if (selectedLocation) {
+      if (user?.tenantToken && selectedLocation) {
         fetchData(
           selectedLocation,
           pagination.currentPage,

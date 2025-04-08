@@ -4,6 +4,7 @@ import { Card, Row, Col, Spinner, Form } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
 import axios from "axios";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
+import { toast } from "react-toastify";
 
 const RoleDetails = () => {
   const location = useLocation();
@@ -11,7 +12,6 @@ const RoleDetails = () => {
   const { user } = useAuthContext();
   const [role, setRole] = useState(location.state?.role);
   const [loading, setLoading] = useState(!role);
-  const [error, setError] = useState(null);
   const tenantSlugg = user?.tenant;
 
   useEffect(() => {
@@ -26,10 +26,10 @@ const RoleDetails = () => {
           if (response.data.data) {
             setRole(response.data.data);
           } else {
-            setError("No role details found.");
+            toast.error("No role details found.");
           }
         } catch (error) {
-          setError("Failed to fetch role details.");
+          toast.error("Failed to fetch role details.");
         } finally {
           setLoading(false);
         }
@@ -46,10 +46,6 @@ const RoleDetails = () => {
         </Spinner>
       </div>
     );
-  }
-
-  if (error) {
-    return <p className="text-danger">{error}</p>;
   }
 
   if (!role) {

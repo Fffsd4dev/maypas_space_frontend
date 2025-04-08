@@ -2,13 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-import RoomRegistrationModal from "./RoomRegistrationForm";
+import SpotRegistrationModal from "./SpotRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
-import { toast } from "react-toastify";
 
-const Rooms = () => {
+const Spots = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
@@ -18,8 +17,9 @@ const Rooms = () => {
   const [loading, setLoading] = useState(true);
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [loadingFloor, setLoadingFloor] = useState(false);
+  const [error, setError] = useState(null);
   const [floorData, setFloorData] = useState([]);
-
+  
   const [selectedUser, setSelectedUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState({
@@ -29,13 +29,14 @@ const Rooms = () => {
     buttonLabel: "",
     buttonRoute: "",
   });
+  const [errorMessage, setErrorMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myRoomID: null,
+    mySpotID: null,
   });
 
   const [pagination, setPagination] = useState({
@@ -59,10 +60,10 @@ const Rooms = () => {
   };
 
   const [formData, setFormData] = useState({
-    name: "",
-    location_id: "",
-    floor_id: "",
-  });
+          name: "",
+          location_id: "",
+          floor_id: ""
+      });
 
   const fetchLocations = async () => {
     setLoadingLocations(true);
@@ -83,7 +84,8 @@ const Rooms = () => {
         throw new Error(result.message || "Failed to fetch locations.");
       }
     } catch (error) {
-      toast.error(error.message);
+      setErrorMessage(error.message);
+      setIsError(true);
     } finally {
       setLoadingLocations(false);
     }
@@ -100,7 +102,8 @@ const Rooms = () => {
 
   const fetchFloor = async (locationId) => {
     setLoadingFloor(true);
-    console.log("loadingFloor...");
+    console.log("loadingFloor...")
+    setError(null);
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
@@ -127,21 +130,23 @@ const Rooms = () => {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message); // Replaced setErrorMessage with toast.error
+      setError(error.message);
     } finally {
       setLoadingFloor(false);
     }
   };
-
   useEffect(() => {
-    if (selectedLocation) {
-      fetchFloor(selectedLocation); // Fetch floors based on the selected location ID
-    }
-  }, [selectedLocation]);
+      if (selectedLocation) {
+        fetchFloor(selectedLocation); // Fetch floors based on the selected location ID
+      }
+    }, [selectedLocation]);
 
-  const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+
+
+  const fetchSpot = async (locationId, floorId, page = 1, pageSize = 10) => {
     setLoading(true);
-    console.log("fetching rooms");
+    console.log("fetching rooms")
+    setError(null);
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
@@ -161,7 +166,7 @@ const Rooms = () => {
       }
 
       const result = await response.json();
-      console.log("rooms:", result);
+      console.log("roooms:", result)
       if (result && Array.isArray(result.data.data)) {
         const data = result.data.data;
         data.sort(
@@ -181,11 +186,13 @@ const Rooms = () => {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message); // Replaced setErrorMessage with toast.error
+      setError(error.message);
     } finally {
       setLoading(false);
     }
   };
+
+  
 
   useEffect(() => {
     if (user?.tenantToken) {
@@ -202,32 +209,31 @@ const Rooms = () => {
     }));
 
     if (floorId && selectedLocation) {
-      fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize); // Fetch rooms immediately after floor selection
+      fetchSpot(selectedLocation, floorId, pagination.currentPage, pagination.pageSize); // Fetch rooms immediately after floor selection
     }
   };
 
+
   useEffect(() => {
     if (formData.floor_id && user?.tenantToken) {
-      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+      fetchSpot(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
     }
   }, [user?.tenantToken, selectedLocation, pagination.currentPage, pagination.pageSize]);
 
-  const handleEditClick = (myRoom) => {
-    setSelectedUser(myRoom);
+  const handleEditClick = (mySpot) => {
+    setSelectedUser(mySpot);
     setShow(true);
   };
 
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
-
-    // Fetch rooms after closing the modal
-    if (selectedLocation && formData.floor_id) {
-      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+    if (selectedLocation) {
+      fetchSpot(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
     }
   };
 
-  const handleDelete = async (myRoomID) => {
+  const handleDelete = async (mySpotID) => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
@@ -240,7 +246,7 @@ const Rooms = () => {
             Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myRoomID }),
+          body: JSON.stringify({ id: mySpotID }),
         }
       );
 
@@ -249,38 +255,42 @@ const Rooms = () => {
       }
 
       setData((prevData) =>
-        prevData.filter((myRoom) => myRoom.id !== myRoomID)
+        prevData.filter((mySpot) => mySpot.id !== mySpotID)
       );
       setPopup({
-        message: "Room deleted successfully!",
+        message: "Spot deleted successfully!",
         type: "success",
         isVisible: true,
       });
-      if (formData.floor_id && selectedLocation) {
-        fetchRoom(
+      if (selectedLocation) {
+        fetchSpot(
           selectedLocation,
           pagination.currentPage,
           pagination.pageSize
         ); // Reload users after deleting a user
       }
     } catch (error) {
-      toast.error("Failed to delete room!");
+      setPopup({
+        message: "Failed to delete plan!",
+        type: "error",
+        isVisible: true,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDeleteButton = (myRoomID) => {
+  const handleDeleteButton = (mySpotID) => {
     setDeletePopup({
       isVisible: true,
-      myRoomID,
+      mySpotID,
     });
   };
 
   const confirmDelete = () => {
-    const { myRoomID } = deletePopup;
-    handleDelete(myRoomID);
-    setDeletePopup({ isVisible: false, myRoomID: null });
+    const { mySpotID } = deletePopup;
+    handleDelete(mySpotID);
+    setDeletePopup({ isVisible: false, mySpotID: null });
   };
 
   const columns = [
@@ -291,7 +301,7 @@ const Rooms = () => {
       sort: false,
     },
     {
-      Header: "Room Name",
+      Header: "Spot Name",
       accessor: "space_name",
       sort: true,
     },
@@ -346,9 +356,9 @@ const Rooms = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "My Rooms", path: "/room/my-rooms", active: true },
+          { label: "My Spots", path: "/room/spot", active: true },
         ]}
-        title="My Rooms"
+        title="My Spots"
       />
 
       <Row>
@@ -365,7 +375,7 @@ const Rooms = () => {
                       setSelectedUser(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a Room
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a Spot
                   </Button>
                 </Col>
               </Row>
@@ -381,9 +391,7 @@ const Rooms = () => {
                     </div>
                   ) : (
                     <div>
-                      <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
-                        Select a location to view or update the room.
-                      </p>
+                      <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select a location to view or update the room.</p>
                       <Form.Select
                         style={{ marginBottom: "25px", fontSize: "1rem" }}
                         value={selectedLocation || ""}
@@ -411,9 +419,7 @@ const Rooms = () => {
                         </div>
                       ) : (
                         <>
-                          <Form.Label>
-                            Select the Floor of the room you want to view.
-                          </Form.Label>
+                          <Form.Label>Select the Floor of the room you want to view.</Form.Label>
                           <Form.Select
                             name="floor_id"
                             value={formData.floor_id}
@@ -432,59 +438,65 @@ const Rooms = () => {
                       )}
                     </Form.Group>
                   )}
-
-                  {formData.floor_id && (
-                    <>
-                      {loading ? (
-                        <p>Loading rooms...</p>
-                      ) : isLoading ? (
-                        <div className="text-center">
-                          <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Deleting...</span>
-                          </Spinner>{" "}
-                          Deleting...
-                        </div>
-                      ) : (
-                        <Table2
-                          columns={columns}
-                          data={data}
-                          pageSize={pagination.pageSize}
-                          isSortable
-                          pagination
-                          isSearchable
-                          tableClass="table-striped dt-responsive nowrap w-100"
-                          searchBoxClass="my-2"
-                          paginationProps={{
-                            currentPage: pagination.currentPage,
-                            totalPages: pagination.totalPages,
-                            onPageChange: (page) =>
-                              setPagination((prev) => ({
-                                ...prev,
-                                currentPage: page,
-                              })),
-                            onPageSizeChange: (pageSize) =>
-                              setPagination((prev) => ({ ...prev, pageSize })),
-                          }}
-                        />
-                      )}
-                    </>
+                
+                 {formData.floor_id && (
+                <>
+                  {error ? (
+                    <p className="text-danger">Error: {error}</p>
+                  ) : loading ? (
+                    <p>Loading rooms...</p>
+                  ) : isLoading ? (
+                    <div className="text-center">
+                      <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Deleting...</span>
+                      </Spinner>{" "}
+                      Deleting...
+                    </div>
+                  ) : (
+                    <Table2
+                      columns={columns}
+                      data={data}
+                      pageSize={pagination.pageSize}
+                      isSortable
+                      pagination
+                      isSearchable
+                      tableClass="table-striped dt-responsive nowrap w-100"
+                      searchBoxClass="my-2"
+                      paginationProps={{
+                        currentPage: pagination.currentPage,
+                        totalPages: pagination.totalPages,
+                        onPageChange: (page) =>
+                          setPagination((prev) => ({
+                            ...prev,
+                            currentPage: page,
+                          })),
+                        onPageSizeChange: (pageSize) =>
+                          setPagination((prev) => ({ ...prev, pageSize })),
+                      }}
+                    />
                   )}
+                </>
+              )}
                 </Card.Body>
               </Card>
+
+             
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      <RoomRegistrationModal
+      <SpotRegistrationModal
         show={show}
         onHide={handleClose}
-        myRoom={selectedUser}
-        onSubmit={() => {
-          if (selectedLocation && formData.floor_id) {
-            fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
-          }
-        }}
+        mySpot={selectedUser}
+        onSubmit={() =>
+          fetchSpot(
+            selectedLocation,
+            pagination.currentPage,
+            pagination.pageSize
+          )
+        } // Reload users after adding or editing a user
       />
 
       {popup.isVisible && (
@@ -501,7 +513,7 @@ const Rooms = () => {
         <Popup
           message="Are you sure you want to delete this room?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+          onClose={() => setDeletePopup({ isVisible: false, mySpotID: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />
@@ -510,4 +522,4 @@ const Rooms = () => {
   );
 };
 
-export default Rooms;
+export default Spots;

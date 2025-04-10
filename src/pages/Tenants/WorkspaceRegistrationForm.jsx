@@ -27,7 +27,10 @@ const WorkspaceRegistrationModal = ({ show, onHide, workspace, onSubmit }) => {
                 email: workspace.email || "",
                 phone: workspace.phone || "",
                 company_no_location: workspace.company_no_location || "",
-                company_countries: workspace.company_countries || [],
+                company_countries: (() => {
+                    const countries = JSON.parse(workspace.company_countries);
+                    return Array.isArray(countries) ? countries : [];
+                })(),
             });
         } else {
             setFormData({
@@ -82,7 +85,20 @@ const WorkspaceRegistrationModal = ({ show, onHide, workspace, onSubmit }) => {
                     onHide();
                 }, 2000);
             } else {
-                toast.error(result?.message || "Operation failed.");
+                let errorMsg = "Operation failed.";
+
+                if (result?.errors) {
+                    errorMsg = Object.values(result.errors)
+                        .flat()
+                        .join("\n");
+                } else if (result?.message) {
+                    errorMsg = result.message;
+                }
+
+                toast.error(errorMsg);
+                console.log(result);
+
+                
             }
         } catch (error) {
             toast.error(error.message || "An error occurred.");
@@ -138,7 +154,7 @@ const WorkspaceRegistrationModal = ({ show, onHide, workspace, onSubmit }) => {
                             name="first_name"
                             value={formData.first_name}
                             onChange={handleInputChange}
-                            disabled={!!workspace}
+                            disabled={workspace}
                         />
                     </Form.Group>
 

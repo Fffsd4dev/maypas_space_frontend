@@ -129,6 +129,9 @@ const CreateSubscription = () => {
     errorMessage: "", // To display error message if required field is empty
   });
 
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const formatDateTime = (isoString) => {
     const options = {
       year: "numeric",
@@ -225,6 +228,7 @@ const sizePerPageList = [
     });
   };
   const handleDelete = async (id) => {
+    setDeleteLoading(true);
     try {
       await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/delete-plan`,
@@ -248,10 +252,13 @@ const sizePerPageList = [
         type: "error",
         isVisible: true,
       });
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
   const handleUpdateSubmit = async () => {
+    setUpdateLoading(true);
     const { id, name, price, duration } = queryPopup;
 
     // Validation check
@@ -266,6 +273,7 @@ const sizePerPageList = [
         ...prev,
         errorMessage: "All fields must be valid and non-empty.",
       }));
+      setUpdateLoading(false);
       return;
     }
 
@@ -309,6 +317,8 @@ const sizePerPageList = [
         type: "error",
         isVisible: true,
       });
+    } finally {
+      setUpdateLoading(false);
     }
   };
 
@@ -586,7 +596,11 @@ const sizePerPageList = [
           onClose={() => setDeletePopup({ isVisible: false, id: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
-        />
+        >
+          <button onClick={confirmDelete} className="btn btn-danger mt-2" disabled={deleteLoading}>
+            {deleteLoading ? "Deleting..." : "Yes"}
+          </button>
+        </Popup>
       )}
 
       {queryPopup.isVisible && (
@@ -651,8 +665,8 @@ const sizePerPageList = [
           )}
 
           <div>
-            <button onClick={handleUpdateSubmit} className="btn btn-primary mt-2">
-              Update Subscription
+            <button onClick={handleUpdateSubmit} className="btn btn-primary mt-2" disabled={updateLoading}>
+              {updateLoading ? "Updating..." : "Update Subscription"}
             </button>
           </div>
         </Popup>

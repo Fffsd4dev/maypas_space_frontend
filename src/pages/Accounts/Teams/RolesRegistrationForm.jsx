@@ -171,6 +171,7 @@ const RolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
         delete_tenant: "no",
         view_tenant: "no",
         view_tenant_income: "no",
+        create_plan: "no",
     });
 
     const [errorMessage, setErrorMessage] = useState("");
@@ -187,6 +188,7 @@ const RolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
                 delete_tenant: selectedAdmin.delete_tenant || "no",
                 view_tenant: selectedAdmin.view_tenant || "no",
                 view_tenant_income: selectedAdmin.view_tenant_income || "no",
+                create_plan: selectedAdmin.create_plan || "no",
             });
         } else {
             setFormData({
@@ -196,6 +198,7 @@ const RolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
                 delete_tenant: "no",
                 view_tenant: "no",
                 view_tenant_income: "no",
+                create_plan: "no",
             });
         }
     }, [selectedAdmin]);
@@ -312,6 +315,13 @@ const RolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
                                 label="View Tenant Income" 
                                 name="view_tenant_income" 
                                 checked={formData.view_tenant_income === "yes"} 
+                                onChange={handleCheckboxChange} 
+                            />
+                            <Form.Check 
+                                type="checkbox" 
+                                label="Create Plan" 
+                                name="create_plan" 
+                                checked={formData.create_plan === "yes"} 
                                 onChange={handleCheckboxChange} 
                             />
                         </div>

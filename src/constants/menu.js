@@ -141,13 +141,13 @@ const MENU_ITEMS = [
 
   {
     key: "team-management",
-    label: "Manage Teams",
+    label: "Team Management",
     isTitle: false,
     icon: FiAirplay,
     children: [
       {
         key: "team-manager",
-        label: "Team Management",
+        label: "Manage Teams",
         url: "/settings/manage-teams",
         parentKey: "team-management",
       },

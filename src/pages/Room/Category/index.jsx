@@ -100,7 +100,9 @@ const Categories = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       const result = await response.json();
@@ -142,7 +144,12 @@ const Categories = () => {
     if (user?.tenantToken && selectedLocation) {
       fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
     }
-  }, [user?.tenantToken, selectedLocation,  pagination.currentPage, pagination.pageSize]);
+  }, [
+    user?.tenantToken,
+    selectedLocation,
+    pagination.currentPage,
+    pagination.pageSize,
+  ]);
 
   const handleEditClick = (myCategory) => {
     setSelectedUser(myCategory);
@@ -156,10 +163,8 @@ const Categories = () => {
       fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
       // Reload users after closing the modal
     }
-    setFormData({}); // Reset inputs after success
-
+    // setFormData({}); // Reset inputs after success
   };
-
 
   const handleDelete = async (myCategoryID) => {
     if (!user?.tenantToken) return;
@@ -179,7 +184,9 @@ const Categories = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       setData((prevData) =>
@@ -191,7 +198,11 @@ const Categories = () => {
         isVisible: true,
       });
       if (user?.tenantToken && selectedLocation) {
-        fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
+        fetchData(
+          selectedLocation,
+          pagination.currentPage,
+          pagination.pageSize
+        );
         // Reload users after deleting a user
       }
     } catch (error) {
@@ -205,8 +216,6 @@ const Categories = () => {
       setIsLoading(false);
     }
   };
-
-
 
   const handleDeleteButton = (myCategoryID) => {
     setDeletePopup({
@@ -314,72 +323,72 @@ const Categories = () => {
                     marginTop: "30px",
                   }}
                 >
-                   {loadingLocations ? (
-                                      <div className="text-center">
-                                        <Spinner animation="border" role="status">
-                                          <span className="visually-hidden">Loading...</span>
-                                        </Spinner>{" "}
-                                        Loading your locations...
-                                      </div>
-                                    ) : (
-                                      <div>
-                                        <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select a location to view or update the floor.</p>
-                                        <Form.Select
-                                          style={{ marginBottom: "25px", fontSize: "1rem" }}
-                                          value={selectedLocation || ""}
-                                          onChange={handleLocationChange} // Use the new handler
-                                          required
-                                        >
-                                          <option value="" disabled>
-                                            Select a location
-                                          </option>
-                                          {locations.map((location) => (
-                                            <option key={location.id} value={location.id}>
-                                              {location.name} at {location.state}
-                                            </option>
-                                          ))}
-                                        </Form.Select>
-                                      </div>
-                                    )}
-{selectedLocation && (
-                <>
-
-                  {error ? (
-                    <p className="text-danger">Error: {error}</p>
-                  ) : loading ? (
-                    <p>Loading categories...</p>
-                  ) : isLoading ? (
+                  {loadingLocations ? (
                     <div className="text-center">
                       <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Deleting...</span>
+                        <span className="visually-hidden">Loading...</span>
                       </Spinner>{" "}
-                      Deleting...
+                      Loading your locations...
                     </div>
                   ) : (
-                    <Table2
-                      columns={columns}
-                      data={data}
-                      pageSize={pagination.pageSize}
-                      isSortable
-                      isSearchable
-                      tableClass="table-striped dt-responsive nowrap w-100"
-                      searchBoxClass="my-2"
-                      paginationProps={{
-                        currentPage: pagination.currentPage,
-                        totalPages: pagination.totalPages,
-                        onPageChange: (page) =>
-                          setPagination((prev) => ({
-                            ...prev,
-                            currentPage: page,
-                          })),
-                        onPageSizeChange: (pageSize) =>
-                          setPagination((prev) => ({ ...prev, pageSize })),
-                      }}
-                    />
+                    <div>
+                      <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+                        Select a location to view or update the floor.
+                      </p>
+                      <Form.Select
+                        style={{ marginBottom: "25px", fontSize: "1rem" }}
+                        value={selectedLocation || ""}
+                        onChange={handleLocationChange} // Use the new handler
+                        required
+                      >
+                        <option value="" disabled>
+                          Select a location
+                        </option>
+                        {locations.map((location) => (
+                          <option key={location.id} value={location.id}>
+                            {location.name} at {location.state}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </div>
                   )}
-                  </>
-              )}
-
+                  {selectedLocation && (
+                    <>
+                      {error ? (
+                        <p className="text-danger">Error: {error}</p>
+                      ) : loading ? (
+                        <p>Loading categories...</p>
+                      ) : isLoading ? (
+                        <div className="text-center">
+                          <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Deleting...</span>
+                          </Spinner>{" "}
+                          Deleting...
+                        </div>
+                      ) : (
+                        <Table2
+                          columns={columns}
+                          data={data}
+                          pageSize={pagination.pageSize}
+                          isSortable
+                          isSearchable
+                          tableClass="table-striped dt-responsive nowrap w-100"
+                          searchBoxClass="my-2"
+                          paginationProps={{
+                            currentPage: pagination.currentPage,
+                            totalPages: pagination.totalPages,
+                            onPageChange: (page) =>
+                              setPagination((prev) => ({
+                                ...prev,
+                                currentPage: page,
+                              })),
+                            onPageSizeChange: (pageSize) =>
+                              setPagination((prev) => ({ ...prev, pageSize })),
+                          }}
+                        />
+                      )}
+                    </>
+                  )}
                 </Card.Body>
               </Card>
             </Card.Body>
@@ -392,7 +401,11 @@ const Categories = () => {
         onHide={handleClose}
         myCategory={selectedUser}
         onSubmit={() =>
-          fetchData(selectedLocation, pagination.currentPage, pagination.pageSize)
+          fetchData(
+            selectedLocation,
+            pagination.currentPage,
+            pagination.pageSize
+          )
         } // Reload users after adding or editing a user
       />
 

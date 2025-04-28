@@ -120,7 +120,7 @@ const Rooms = () => {
       }
 
       const result = await response.json();
-      console.log(result);
+      console.log("result", result);
       if (result && Array.isArray(result.data.data)) {
         setFloorData(result.data.data); // Store floors in state
       } else {
@@ -141,7 +141,6 @@ const Rooms = () => {
 
   const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
     setLoading(true);
-    console.log("fetching rooms");
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
@@ -162,8 +161,11 @@ const Rooms = () => {
 
       const result = await response.json();
       console.log("rooms:", result);
-      if (result && Array.isArray(result.data.data)) {
-        const data = result.data.data;
+      if (result && Array.isArray(result)) {
+
+        console.log("fff", result);
+
+        const data = result;
         data.sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
@@ -171,10 +173,10 @@ const Rooms = () => {
         );
         setData(data);
         setPagination({
-          currentPage: result.data.current_page,
-          totalPages: result.data.last_page,
-          nextPageUrl: result.data.next_page_url,
-          prevPageUrl: result.data.prev_page_url,
+          currentPage: result.current_page,
+          totalPages: result.last_page,
+          nextPageUrl: result.next_page_url,
+          prevPageUrl: result.prev_page_url,
           pageSize: pageSize,
         });
       } else {
@@ -182,6 +184,7 @@ const Rooms = () => {
       }
     } catch (error) {
       toast.error(error.message); // Replaced setErrorMessage with toast.error
+      console.error(error)
     } finally {
       setLoading(false);
     }

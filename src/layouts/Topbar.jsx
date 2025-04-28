@@ -22,6 +22,8 @@ import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { toggleDocumentAttribute } from "@/utils";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 
+
+
 // get the notifications
 const Notifications = [{
   id: 1,
@@ -128,21 +130,23 @@ const Topbar = ({
 
   const {user} = useAuthContext();
   const  tenantSlug  = user?.tenant;
+  const tenantFirstName = user?.tenantFirstName;
   const navbarCssClasses = navCssClasses || "";
   const containerCssClasses = !hideLogo ? "container-fluid" : "";
 
-  const ProfileMenus = [{
-    label: "My Account",
-    icon: "fe-user",
-    redirectTo: "#"
-  }, {
+  const ProfileMenus = [
+  //   {
+  //   label: "My Account",
+  //   icon: "fe-user",
+  //   redirectTo: "#"
+  // }, 
+  {
     label: "Settings",
     icon: "fe-settings",
-    redirectTo: "#"
-  }, {
-    label: "Lock Screen",
-    icon: "fe-lock",
-    redirectTo: `/${tenantSlug}/auth/lock-screen`
+    onClick: () => {
+      console.log("Settings clicked");
+      themeCustomizer.toggle();
+    },
   }, {
     label: "Logout",
     icon: "fe-log-out",
@@ -225,19 +229,19 @@ const Topbar = ({
                             <i className="mdi mdi-menu" />
                         </button>
 
-                        <div className="dropdown d-none d-xl-block">
+                        {/* <div className="dropdown d-none d-xl-block">
                             <CreateNew otherOptions={otherOptions} />
                         </div>
 
                         <div className="dropdown dropdown-mega d-none d-xl-block">
                             <MegaMenu subMenus={MegaMenuOptions} />
-                        </div>
+                        </div> */}
                     </div>
 
                     <ul className="topbar-menu d-flex align-items-center">
-                        <li className="app-search dropdown d-none d-lg-block">
+                        {/* <li className="app-search dropdown d-none d-lg-block">
                             <TopbarSearch items={SearchResults} />
-                        </li>
+                        </li> */}
                         {/* <li className="dropdown d-inline-block d-lg-none">
                          <SearchDropdown />
                          </li> */}
@@ -247,19 +251,19 @@ const Topbar = ({
                         <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
                             <AppsDropdown />
                         </li>
-                        <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
+                        {/* <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
                             <LanguageDropdown />
-                        </li>
+                        </li> */}
                         <li className="dropdown notification-list">
                             <NotificationDropdown notifications={Notifications} />
                         </li>
                         <li className="dropdown">
-                            <ProfileDropdown profilePic={profilePic} menuItems={ProfileMenus} username={tenantSlug} userTitle={"Founder"} />
+                            <ProfileDropdown profilePic={profilePic} menuItems={ProfileMenus} username={tenantFirstName}  />
                         </li>
                         <li>
-                            <button className="nav-link dropdown-toggle right-bar-toggle waves-effect waves-light btn btn-link shadow-none" onClick={themeCustomizer.toggle}>
+                            {/* <button className="nav-link dropdown-toggle right-bar-toggle waves-effect waves-light btn btn-link shadow-none" onClick={themeCustomizer.toggle}>
                                 <i className="fe-settings noti-icon font-22"></i>
-                            </button>
+                            </button> */}
                         </li>
                     </ul>
                 </div>

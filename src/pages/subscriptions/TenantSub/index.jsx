@@ -12,7 +12,7 @@ import { useAuthContext } from '@/context/useAuthContext.jsx';
 import Popup from "../../../components/Popup/Popup";
 
 // Fetch data function
-export const fetchData = async (token, setData, setLoading, setError, page, setPagination) => {
+const fetchData = async (token, setData, setLoading, setError, page, setPagination) => {
   setLoading(true);
   setError(null);
 
@@ -181,6 +181,11 @@ const TenantSub = () => {
     });
   };
 
+  const handleClose = () => {
+    setShow(false);
+    fetchData(user.token, setData, setLoading, setError, pagination.currentPage, setPagination); // Trigger fetchData on modal close
+  };
+
   const handleDelete = async (id) => {
     try {
       await axios.post(
@@ -247,6 +252,11 @@ const TenantSub = () => {
       accessor: (row, i) => i + 1,
       id: "serialNo",
       sort: false,
+    },
+    {
+      Header: "Workspace",
+      accessor: "tenant.company_name",
+      sort: true,
     },
     { Header: "Subscribed Plan", accessor: "plan.name", sort: true },
     { Header: "Price", accessor: "plan.price", sort: true },
@@ -324,7 +334,7 @@ const TenantSub = () => {
         </Col>
       </Row>
 
-      <SubscribeTenantForm show={show} onHide={() => setShow(false)} onSubmit={() => setShow(false)} />
+      <SubscribeTenantForm show={show} onHide={handleClose} onSubmit={handleClose} />
       {popup.isVisible && (
         <Popup
           message={popup.message}

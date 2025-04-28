@@ -29,7 +29,7 @@ const ProfileDropdown = props => {
           {(props.menuItems || []).map((item, i) => {
           return <React.Fragment key={i}>
                 {i === props["menuItems"].length - 1 && <div className="dropdown-divider"></div>}
-                <Link to={item.redirectTo} className="dropdown-item notify-item" key={i + "-profile-menu"}>
+                <Link to={item.redirectTo}  onClick={item.onClick} className="dropdown-item notify-item" key={i + "-profile-menu"}>
                   <i className={`${item.icon} me-1`}></i>
                   <span>{item.label}</span>
                 </Link>

@@ -14,6 +14,8 @@ import logoLight from "@/assets/images/logo-light.png";
 import logoLight2 from "@/assets/images/logo-light-2.png";
 import { FiUser, FiSettings, FiLock, FiLogOut } from "react-icons/fi";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
+import { useAuthContext } from "@/context/useAuthContext.jsx";
+
 
 /* user box */
 const UserBox = () => {
@@ -36,7 +38,9 @@ const UserBox = () => {
     redirectTo: "/auth/logout"
   }];
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
+  const {user} = useAuthContext();
+  const  ownerFirstName  = user?.ownerFirstName;
+  const ownerLastName  = user?.ownerLastName;
   /*
    * toggle dropdown
    */
@@ -47,7 +51,7 @@ const UserBox = () => {
             <img src={profileImg} alt="" title="Mat Helme" className="rounded-circle avatar-md" />
             <Dropdown show={dropdownOpen} onToggle={toggleDropdown}>
                 <Dropdown.Toggle id="dropdown-notification" as="a" onClick={toggleDropdown} className="cursor-pointer text-dark h5 mt-2 mb-1 d-block">
-                    Geneva Kennedy
+                    {ownerFirstName} {ownerLastName}
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="user-pro-dropdown">
                     <div onClick={toggleDropdown}>
@@ -60,7 +64,7 @@ const UserBox = () => {
                     </div>
                 </Dropdown.Menu>
             </Dropdown>
-            <p className="text-muted">Admin Head</p>
+            {/* <p className="text-muted">Admin Head</p> */}
         </div>;
 };
 

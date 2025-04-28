@@ -28,7 +28,7 @@ const LayoutProvider = ({children}) => {
             iconMenuTheme: "light"
         },
         showTwoToneIcons: false,
-        showUserInfo: false
+        showUserInfo: true
     };
     const [settings, setSettings] = useLocalStorage('__UBOLD_CONFIG__', INIT_STATE);
     const [offcanvasStates, setOffcanvasStates] = useState({

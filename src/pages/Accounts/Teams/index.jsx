@@ -1,57 +1,51 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Row, Col, Card, Button, Table } from "react-bootstrap";
-import classNames from "classnames";
+import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
+import Table2 from "../../../components/Table2";
 import RolesRegistrationForm from "./RolesRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 
 const Admin = () => {
   const { user } = useAuthContext();
-  console.log("Auth Token:", user?.token);
   const [show, setShow] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("https://trial.maypasworkspace.com/api/system-admin/view-roles", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result && Array.isArray(result.data)) {
+        setData(result.data);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      console.error("Error fetching admins:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user?.token) return;
-
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch("https://trial.maypasworkspace.com/api/system-admin/view-roles", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${user?.token}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log("Parsed response data:", result.data);
-
-        if (result && Array.isArray(result.data)) {
-          setData(result.data);
-        } else {
-          throw new Error("Invalid response format");
-        }
-      } catch (error) {
-        console.error("Error fetching admins:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [user]);
 
@@ -63,6 +57,7 @@ const Admin = () => {
   const handleClose = () => {
     setShow(false);
     setSelectedAdmin(null);
+    fetchData();
   };
 
   const handleDelete = async (adminId) => {
@@ -76,7 +71,7 @@ const Admin = () => {
       const response = await fetch("https://trial.maypasworkspace.com/api/system-admin/delete-role", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${user.token}`,
+          Authorization: `Bearer ${user.token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ id: adminId }),
@@ -93,6 +88,31 @@ const Admin = () => {
       alert("Failed to delete admin.");
     }
   };
+
+  const columns = [
+    {
+      Header: "S/N",
+      accessor: (row, i) => i + 1,
+      id: "serialNo",
+      sort: false,
+    },
+    { Header: "Role", accessor: "role", sort: true },
+    {
+      Header: "Action",
+      accessor: "action",
+      sort: false,
+      Cell: ({ row }) => (
+        <>
+          <Link to="#" className="action-icon" onClick={() => handleEdit(row.original)}>
+            <i className="mdi mdi-square-edit-outline"></i>
+          </Link>
+          <Link to="#" className="action-icon" onClick={() => handleDelete(row.original.id)}>
+            <i className="mdi mdi-delete"></i>
+          </Link>
+        </>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -113,35 +133,18 @@ const Admin = () => {
               {error ? (
                 <p className="text-danger">Error: {error}</p>
               ) : loading ? (
-                <p>Loading Admins...</p>
+                <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
               ) : (
-                <>
-                  <Table striped bordered hover responsive>
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Role</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.map((admin) => (
-                        <tr key={admin.id}>
-                          <td>{admin.id}</td>
-                          <td>{admin.role}</td>
-                          <td>
-                            <Link to="#" className="action-icon" onClick={() => handleEdit(admin)}>
-                              <i className="mdi mdi-square-edit-outline"></i>
-                            </Link>
-                            <Link to="#" className="action-icon" onClick={() => handleDelete(admin.id)}>
-                              <i className="mdi mdi-delete"></i>
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                </>
+                <Table2
+                  columns={columns}
+                  data={data}
+                  pageSize={5}
+                  isSortable
+                  pagination
+                  isSearchable
+                  tableClass="table-wrap table-striped"
+                  searchBoxClass="my-2"
+                />
               )}
             </Card.Body>
           </Card>

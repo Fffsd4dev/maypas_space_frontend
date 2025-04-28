@@ -61,7 +61,7 @@ const useLogin2 = () => {
       if (result.token && res.ok ) {
         console.log(res.ok);
 
-        saveSession({ ...(result ?? {}), token: result.token });
+        saveSession({ ...(result ?? {}), token: result.token, ownerFirstName: result?.admin?.first_name, ownerLastName:result?.admin?.last_name ,  ownerUserTypeId: result?.admin?.user_type_id, });
 
         // saveSession({
         //   ...(res.data ?? {}),

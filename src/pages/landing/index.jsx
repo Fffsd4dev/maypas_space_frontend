@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 // components
 import Clients from "./Clients";
@@ -7,18 +8,15 @@ import ContactUs from "./ContactUs";
 import FAQ from "./FAQ";
 import Features from "./Features";
 import Footer from "./Footer";
-import Hero from "./Hero";
 import OwnersLanding from "./OwnerHero";
-import Layouts from "./Layouts";
 import NavBar from "./NavBar";
 import Pricing from "./Pricing";
 import Services from "./Services";
 import Testimonial from "./Testimonial";
 
 // dummy data
-import { features, layouts,
-// plans,
-rawFaqs, services, testimonial } from "./data";
+import { features, rawFaqs, services, testimonial } from "./data";
+
 const Landing = () => {
   useEffect(() => {
     if (document.body) document.body.classList.remove("authentication-bg", "authentication-bg-pattern");
@@ -34,51 +32,61 @@ const Landing = () => {
     });
   }, []);
 
-  /**
-   * reach to top of web page
-   */
   const topFunction = () => {
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
   };
-  return <div id="landing">
-      {/* navbar */}
+
+  return (
+    <motion.div
+      id="landing"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1 }}
+      className="bg-gray-50"
+    >
+      {/* Navbar */}
       <NavBar />
 
-      {/* hero */}
-      {/* <Hero /> */}
+      {/* Hero Section */}
       <OwnersLanding />
 
       {/* Clients */}
       <Clients />
 
-      {/* services */}
+      {/* Services */}
       <Services services={services} />
 
-      {/* layout demos */}
-      {/* <Layouts layouts={layouts} /> */}
-
-      {/* features */}
+      {/* Features */}
       <Features features={features} />
 
-      {/* pricing */}
+      {/* Pricing */}
       <Pricing />
 
-      {/* faqs */}
+      {/* FAQs */}
       <FAQ rawFaqs={rawFaqs} />
 
-      {/* testimonial */}
+      {/* Testimonials */}
       <Testimonial testimonial={testimonial} />
 
-      {/* contact */}
+      {/* Contact */}
       <ContactUs />
 
-      {/* footer */}
+      {/* Footer */}
       <Footer />
 
-      <Link to="#" onClick={() => topFunction()} className="back-to-top-btn btn btn-primary" id="back-to-top-btn">
-        <i className="mdi mdi-chevron-up"></i>
+      {/* Back to Top Button */}
+      <Link
+        to="#"
+        onClick={() => topFunction()}
+        className="back-to-top-btn btn btn-primary fixed bottom-5 right-5 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700"
+        id="back-to-top-btn"
+        style={{ display: "none" }}
+      >
+        <i className="mdi mdi-chevron-up text-2xl"></i>
       </Link>
-    </div>;
+    </motion.div>
+  );
 };
+
 export default Landing;

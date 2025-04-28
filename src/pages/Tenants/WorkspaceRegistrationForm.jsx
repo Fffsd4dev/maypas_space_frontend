@@ -83,7 +83,7 @@ const WorkspaceRegistrationModal = ({ show, onHide, workspace, onSubmit }) => {
                 setTimeout(() => {
                     onSubmit();
                     onHide();
-                }, 2000);
+                }, 1000);
             } else {
                 let errorMsg = "Operation failed.";
 
@@ -137,7 +137,7 @@ const WorkspaceRegistrationModal = ({ show, onHide, workspace, onSubmit }) => {
                     </Form.Group>
 
                     <Form.Group className="mb-3" controlId="company_countries">
-                        <Form.Label>Company Countries</Form.Label>
+                        <Form.Label>Company Countries (separate each country with a comma)</Form.Label>
                         <Form.Control
                             type="text"
                             name="company_countries"
@@ -147,49 +147,49 @@ const WorkspaceRegistrationModal = ({ show, onHide, workspace, onSubmit }) => {
                         />
                     </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="first_name">
-                        <Form.Label>First Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="first_name"
-                            value={formData.first_name}
-                            onChange={handleInputChange}
-                            disabled={workspace}
-                        />
-                    </Form.Group>
+                    {!workspace && (
+                        <>
+                            <Form.Group className="mb-3" controlId="first_name">
+                                <Form.Label>First Name</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="first_name"
+                                    value={formData.first_name}
+                                    onChange={handleInputChange}
+                                />
+                            </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="last_name">
-                        <Form.Label>Last Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="last_name"
-                            value={formData.last_name}
-                            onChange={handleInputChange}
-                            disabled={!!workspace}
-                        />
-                    </Form.Group>
+                            <Form.Group className="mb-3" controlId="last_name">
+                                <Form.Label>Last Name</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="last_name"
+                                    value={formData.last_name}
+                                    onChange={handleInputChange}
+                                />
+                            </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="email">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            disabled={!!workspace}
-                        />
-                    </Form.Group>
+                            <Form.Group className="mb-3" controlId="email">
+                                <Form.Label>Email</Form.Label>
+                                <Form.Control
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                />
+                            </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="phone">
-                        <Form.Label>Phone</Form.Label>
-                        <Form.Control
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            disabled={!!workspace}
-                        />
-                    </Form.Group>
+                            <Form.Group className="mb-3" controlId="phone">
+                                <Form.Label>Phone</Form.Label>
+                                <Form.Control
+                                    type="tel"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleInputChange}
+                                />
+                            </Form.Group>
+                        </>
+                    )}
 
                     <Button variant="primary" type="submit" className="w-100" disabled={isLoading}>
                         {isLoading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : workspace ? "Update" : "Create"} Workspace

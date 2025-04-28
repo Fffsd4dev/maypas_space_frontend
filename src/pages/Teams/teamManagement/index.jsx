@@ -4,12 +4,12 @@ import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import classNames from "classnames";
 import { useAuthContext } from "@/context/useAuthContext";
 import { useSearchParams } from "react-router-dom";
-import Popup from "../../../components/Popup/Popup";
+import Popup from "../../components/Popup/Popup";
 import axios from "axios";
 
 // components
-import PageTitle from "../../../components/PageTitle";
-import Table2 from "../../../components/Table2";
+import PageTitle from "../../components/PageTitle";
+import Table2 from "../../components/Table2";
 import AddSubscription from "./AddSubscription";
 
 // dummy data

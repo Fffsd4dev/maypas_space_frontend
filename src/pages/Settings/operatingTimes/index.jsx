@@ -31,6 +31,20 @@ const OperatingTimes = () => {
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
+  const [formData, setFormData] = useState({
+      location_id: "",
+      hours: [
+        { day: "monday", open_time: "09:00", close_time: "17:00" },
+        { day: "tuesday", open_time: "09:00", close_time: "17:00" },
+        { day: "wednesday", open_time: "09:00", close_time: "17:00" },
+        { day: "thursday", open_time: "09:00", close_time: "17:00" },
+        { day: "friday", open_time: "09:00", close_time: "17:00" },
+        { day: "saturday", open_time: "14:00", close_time: "18:00" },
+        { day: "sunday", open_time: "14:00", close_time: "18:00" },
+      ],
+    });
+
+    
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
     myOperatingTimeID: null,

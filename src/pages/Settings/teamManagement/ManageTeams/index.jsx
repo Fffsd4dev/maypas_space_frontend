@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
-import PageTitle from "../../../components/PageTitle";
-import CategoryRegistrationModal from "./CategoryRegistrationForm";
+import PageTitle from "../../../../components/PageTitle";
+import TeamsRegistrationModal from "./TeamRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
-import Popup from "../../../components/Popup/Popup";
-import Table2 from "../../../components/Table2";
+import Popup from "../../../../components/Popup/Popup";
+import Table2 from "../../../../components/Table2";
 import { toast } from "react-toastify";
 
 const TeamManagement = () => {
@@ -29,11 +29,10 @@ const TeamManagement = () => {
   });
   const [isError, setIsError] = useState(false);
   const [locations, setLocations] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myCategoryID: null,
+    myTeamsID: null,
   });
 
   const [pagination, setPagination] = useState({
@@ -82,7 +81,7 @@ const TeamManagement = () => {
     }
   };
 
-  const fetchData = async (locationId, page = 1, pageSize = 10) => {
+  const fetchData = async ( page = 1, pageSize = 10) => {
     setLoading(true);
     setError(null);
     console.log("User Token:", user?.tenantToken);
@@ -90,7 +89,7 @@ const TeamManagement = () => {
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/category/list-category-by-location/${locationId}?page=${page}&per_page=${pageSize}`,
+        }/api/${tenantSlug}/teams/?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
@@ -139,21 +138,21 @@ const TeamManagement = () => {
   }, [user?.tenantToken]);
 
   useEffect(() => {
-    if (user?.tenantToken && selectedLocation) {
-      fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
+    if (user?.tenantToken) {
+      fetchData( pagination.currentPage, pagination.pageSize);
     }
-  }, [user?.tenantToken, selectedLocation,  pagination.currentPage, pagination.pageSize]);
+  }, [user?.tenantToken,  pagination.currentPage, pagination.pageSize]);
 
-  const handleEditClick = (myCategory) => {
-    setSelectedUser(myCategory);
+  const handleEditClick = (myTeams) => {
+    setSelectedUser(myTeams);
     setShow(true);
   };
 
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
-    if (user?.tenantToken && selectedLocation) {
-      fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
+    if (user?.tenantToken ) {
+      fetchData( pagination.currentPage, pagination.pageSize);
       // Reload users after closing the modal
     }
     setFormData({}); // Reset inputs after success
@@ -161,20 +160,20 @@ const TeamManagement = () => {
   };
 
 
-  const handleDelete = async (myCategoryID) => {
+  const handleDelete = async (myTeamsID) => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/category/delete`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/team/delete`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myCategoryID }),
+          body: JSON.stringify({ id: myTeamsID }),
         }
       );
 
@@ -183,15 +182,15 @@ const TeamManagement = () => {
       }
 
       setData((prevData) =>
-        prevData.filter((myCategory) => myCategory.id !== myCategoryID)
+        prevData.filter((myTeams) => myTeams.id !== myTeamsID)
       );
       setPopup({
-        message: "Category deleted successfully!",
+        message: "Team deleted successfully!",
         type: "success",
         isVisible: true,
       });
-      if (user?.tenantToken && selectedLocation) {
-        fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
+      if (user?.tenantToken ) {
+        fetchData( pagination.currentPage, pagination.pageSize);
         // Reload users after deleting a user
       }
     } catch (error) {
@@ -208,27 +207,27 @@ const TeamManagement = () => {
 
 
 
-  const handleDeleteButton = (myCategoryID) => {
+  const handleDeleteButton = (myTeamsID) => {
     setDeletePopup({
       isVisible: true,
-      myCategoryID,
+      myTeamsID,
     });
   };
 
   const confirmDelete = () => {
-    const { myCategoryID } = deletePopup;
-    handleDelete(myCategoryID);
-    setDeletePopup({ isVisible: false, myCategoryID: null });
+    const { myTeamsID } = deletePopup;
+    handleDelete(myTeamsID);
+    setDeletePopup({ isVisible: false, myTeamsID: null });
   };
 
-  const handleLocationChange = (e) => {
-    const locationId = e.target.value;
-    setSelectedLocation(locationId);
-    setFormData((prev) => ({
-      ...prev,
-      location_id: locationId, // Update formData with the selected location ID
-    }));
-  };
+  // const handleLocationChange = (e) => {
+  //   const locationId = e.target.value;
+  //   setSelectedLocation(locationId);
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     location_id: locationId, // Update formData with the selected location ID
+  //   }));
+  // };
   const columns = [
     {
       Header: "S/N",
@@ -237,8 +236,8 @@ const TeamManagement = () => {
       sort: false,
     },
     {
-      Header: "Category Name",
-      accessor: "category",
+      Header: "Team Name",
+      accessor: "team",
       sort: true,
     },
     {
@@ -301,7 +300,7 @@ const TeamManagement = () => {
                       setSelectedUser(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a Category
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a Team
                   </Button>
                 </Col>
               </Row>
@@ -314,7 +313,7 @@ const TeamManagement = () => {
                     marginTop: "30px",
                   }}
                 >
-                   {loadingLocations ? (
+                   {/* {loadingLocations ? (
                                       <div className="text-center">
                                         <Spinner animation="border" role="status">
                                           <span className="visually-hidden">Loading...</span>
@@ -340,8 +339,8 @@ const TeamManagement = () => {
                                           ))}
                                         </Form.Select>
                                       </div>
-                                    )}
-{selectedLocation && (
+                                    )} */}
+
                 <>
 
                   {error ? (
@@ -378,7 +377,7 @@ const TeamManagement = () => {
                     />
                   )}
                   </>
-              )}
+              
 
                 </Card.Body>
               </Card>
@@ -387,12 +386,12 @@ const TeamManagement = () => {
         </Col>
       </Row>
 
-      <CategoryRegistrationModal
+      <TeamsRegistrationModal
         show={show}
         onHide={handleClose}
-        myCategory={selectedUser}
+        myTeams={selectedUser}
         onSubmit={() =>
-          fetchData(selectedLocation, pagination.currentPage, pagination.pageSize)
+          fetchData( pagination.currentPage, pagination.pageSize)
         } // Reload users after adding or editing a user
       />
 
@@ -408,10 +407,10 @@ const TeamManagement = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this room category?"
+          message="Are you sure you want to delete this room team?"
           type="confirm"
           onClose={() =>
-            setDeletePopup({ isVisible: false, myCategoryID: null })
+            setDeletePopup({ isVisible: false, myTeamsID: null })
           }
           buttonLabel="Yes"
           onAction={confirmDelete}

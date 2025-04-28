@@ -135,7 +135,7 @@ const MENU_ITEMS = [
     children: [
       {
         key: "space-operating-time",
-        label: "Spaces Operating Time",
+        label: "Spaces Operating Hours",
         url: "/settings/operating-time",
         parentKey: "operating-time",
       },
@@ -144,14 +144,14 @@ const MENU_ITEMS = [
 
   {
     key: "team-management",
-    label: "Team Management",
+    label: "Manage Teams",
     isTitle: false,
     icon: FiAirplay,
     children: [
       {
         key: "team-manager",
         label: "Team Management",
-        url: "/settings/team-management",
+        url: "/settings/manage-teams",
         parentKey: "team-management",
       },
     ],

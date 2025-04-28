@@ -92,7 +92,7 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
     if (!show) {
       setFormData({
         location_id: "",
-        hours: defaultHours, // define this array outside if reused
+        hours: defaultHours, 
       });
     }
   }, [show]);
@@ -120,7 +120,7 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
     setIsLoading(true);
 
     const isValidTimeRange = formData.hours.every(
-      ({ open_time, close_time }) => open_time < close_time 
+      ({ open_time, close_time }) => open_time <= close_time 
     );
 
     if (!isValidTimeRange) {
@@ -157,19 +157,13 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
             ? "Working Hours updated successfully!"
             : "Working Hours added successfully!"
         );
-        setFormData({
-          location_id: myOperatingTime.location_id || "",
-          hours: Array.isArray(myOperatingTime.hours)
-            ? formData.hours.map((hour) => {
-                const matchingHour = myOperatingTime.hours.find(
-                  (item) => item.day === hour.day
-                );
-                return matchingHour
-                  ? { ...hour, open_time: matchingHour.open_time, close_time: matchingHour.close_time }
-                  : hour;
-              })
-            : formData.hours,
-        });
+        if (!myOperatingTime) {
+          // Only reset form if creating new
+          setFormData({
+            location_id: "",
+            hours: defaultHours,
+          });
+        }
         
         setTimeout(() => {
           onSubmit();
@@ -186,6 +180,7 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
       }
     } catch (error) {
       toast.error("An error occurred. Contact Admin");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

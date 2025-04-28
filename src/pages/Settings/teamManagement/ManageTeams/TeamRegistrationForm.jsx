@@ -4,7 +4,7 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
+const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
 
@@ -22,10 +22,10 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (myCategory) {
+    if (myTeams) {
       setFormData({
-        category: myCategory.category || "",
-        location_id: myCategory.location_id || "",
+        category: myTeams.category || "",
+        location_id: myTeams.location_id || "",
       });
     } else {
       setFormData({
@@ -33,7 +33,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
         location_id: "",
       });
     }
-  }, [myCategory]);
+  }, [myTeams]);
 
   const fetchLocations = async () => {
     setLoadingLocations(true);
@@ -85,7 +85,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
 
   useEffect(() => {
     locations.map((location) => {
-      if (location.id === myCategory?.location_id) {
+      if (location.id === myTeams?.location_id) {
         setSelectedLocation(location.id);
         setIsLocationName(location.name);
       }
@@ -102,15 +102,15 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
       if (!user?.tenantToken)
         throw new Error("Authorization token is missing.");
 
-      const url = myCategory
+      const url = myTeams
         ? `${
             import.meta.env.VITE_BACKEND_URL
-          }/api/${tenantSlug}/category/update/${myCategory.id}/`
+          }/api/${tenantSlug}/category/update/${myTeams.id}/`
         : `${
             import.meta.env.VITE_BACKEND_URL
           }/api/${tenantSlug}/category/create`;
 
-      const method = myCategory ? "POST" : "POST";
+      const method = myTeams ? "POST" : "POST";
 
       const response = await fetch(url, {
         method,
@@ -126,7 +126,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
 
       if (response.ok) {
         toast.success(
-          myCategory
+          myTeams
             ? "Category updated successfully!"
             : "Category registered successfully!"
         );
@@ -159,7 +159,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
     <Modal show={show} onHide={onHide} centered>
       <Modal.Header className="bg-light" closeButton>
         <Modal.Title>
-          {myCategory ? "Category" : "Add a New Category"}
+          {myTeams ? "Category" : "Add a New Team"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
@@ -194,7 +194,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
               </Form.Select>
             </Form.Group>
 
-            {/* {myCategory ? (
+            {/* {myTeams ? (
                             <>
                                 <Form.Label>
                                     Select the location you want to add the Room/Space Category.
@@ -245,7 +245,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
                 locations="status"
                 aria-hidden="true"
               />
-            ) : myCategory ? (
+            ) : myTeams ? (
               "Update"
             ) : (
               "Create"
@@ -258,4 +258,4 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
   );
 };
 
-export default CategoryRegistrationModal;
+export default TeamsRegistrationModal;

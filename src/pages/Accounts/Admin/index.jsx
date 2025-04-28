@@ -5,6 +5,7 @@ import classNames from "classnames";
 import PageTitle from "../../../components/PageTitle";
 import AdminRegistrationForm from "./AdminRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
+import Table2 from "../../../components/Table2";
 
 const Admin = () => {
   const { user } = useAuthContext();
@@ -17,40 +18,123 @@ const Admin = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const formatDateTime = (isoString) => {
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    };
+    return new Date(isoString).toLocaleDateString("en-US", options);
+  };
+
+  const columns = [
+    {
+      Header: "S/N",
+      accessor: (row, i) => i + 1,
+      id: "serialNo",
+      sort: false,
+    },
+    {
+      Header: "First Name",
+      accessor: "first_name",
+      sort: true,
+    },
+    {
+      Header: "Last Name",
+      accessor: "last_name",
+      sort: true,
+    },
+    {
+      Header: "Email",
+      accessor: "email",
+      sort: true,
+    },
+    {
+      Header: "Role",
+      accessor: "role.role",
+      sort: true,
+    },
+    {
+      Header: "Created On",
+      accessor: "created_at",
+      sort: true,
+      Cell: ({ row }) => formatDateTime(row.original.created_at),
+    },
+    {
+      Header: "Updated On",
+      accessor: "updated_at",
+      sort: true,
+      Cell: ({ row }) => formatDateTime(row.original.updated_at),
+    },
+    {
+      Header: "Action",
+      accessor: "action",
+      sort: false,
+      Cell: ({ row }) => (
+        <>
+          <Link
+            to="#"
+            className="action-icon"
+            onClick={() => handleEdit(row.original)}
+          >
+            <i className="mdi mdi-square-edit-outline"></i>
+          </Link>
+          <Link
+            to="#"
+            className="action-icon"
+            onClick={() => handleDelete(row.original.id)}
+          >
+            <i className="mdi mdi-delete"></i>
+          </Link>
+        </>
+      ),
+    },
+  ];
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("https://trial.maypasworkspace.com/api/system-admin/view-all", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${user?.token}`
+        }
+      });
+
+
+      if (!response.ok) {
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Parsed response data:", result.data);
+
+      if (result && Array.isArray(result.data.data)) {
+        const data = result?.data?.data;
+        data.sort(
+          (a, b) =>
+            new Date(b.updated_at || b.created_at) -
+            new Date(a.updated_at || a.created_at)
+        );
+        setData(data);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      console.error("Error fetching admins:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!user?.token) return;
-
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch("https://trial.maypasworkspace.com/api/system-admin/view-all", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${user?.token}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log("Parsed response data:", result.data.data);
-
-        if (result && Array.isArray(result.data.data)) {
-          setData(result.data.data);
-        } else {
-          throw new Error("Invalid response format");
-        }
-      } catch (error) {
-        console.error("Error fetching admins:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
 
     fetchData();
   }, [user]);
@@ -63,6 +147,7 @@ const Admin = () => {
   const handleClose = () => {
     setShow(false);
     setSelectedAdmin(null);
+    fetchData();
   };
 
   const handleDelete = async (adminId) => {
@@ -115,37 +200,20 @@ const Admin = () => {
               ) : loading ? (
                 <p>Loading Admins...</p>
               ) : (
-                <Table striped bordered hover responsive>
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>First Name</th>
-                      <th>Last Name</th>
-                      <th>Email</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.isArray(data) && data.map((admin) => (
-                      <tr key={admin.id}>
-                        <td>{admin.id}</td>
-                        <td>{admin.first_name}</td>
-                        <td>{admin.last_name}</td>
-                        <td>{admin.email}</td>
-                        <td>{admin.role.role}</td>
-                        <td>
-                          <Link to="#" className="action-icon" onClick={() => handleEdit(admin)}>
-                            <i className="mdi mdi-square-edit-outline"></i>
-                          </Link>
-                          <Link to="#" className="action-icon" onClick={() => handleDelete(admin.id)}>
-                            <i className="mdi mdi-delete"></i>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
+                <Table2
+                  columns={columns}
+                  data={data}
+                  pageSize={itemsPerPage}
+                  isSortable
+                  isSearchable
+                  tableClass="table-striped dt-responsive nowrap w-100"
+                  searchBoxClass="my-2"
+                  paginationProps={{
+                    currentPage,
+                    totalPages: Math.ceil(data.length / itemsPerPage),
+                    onPageChange: (page) => setCurrentPage(page),
+                  }}
+                />
               )}
             </Card.Body>
           </Card>

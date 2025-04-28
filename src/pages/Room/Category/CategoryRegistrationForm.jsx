@@ -17,6 +17,8 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
   const [formData, setFormData] = useState({
     category: "",
     location_id: "",
+    booking_type: "",
+    min_duration: ""
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -26,11 +28,15 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
       setFormData({
         category: myCategory.category || "",
         location_id: myCategory.location_id || "",
+        booking_type: myCategory.booking_type || "",
+        min_duration: myCategory.min_duration || "",
       });
     } else {
       setFormData({
         category: "",
         location_id: "",
+        booking_type: "",
+        min_duration: "",
       });
     }
   }, [myCategory]);
@@ -105,7 +111,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
       const url = myCategory
         ? `${
             import.meta.env.VITE_BACKEND_URL
-          }/api/${tenantSlug}/category/update/${myCategory.id}/`
+          }/api/${tenantSlug}/category/update/${myCategory.id}`
         : `${
             import.meta.env.VITE_BACKEND_URL
           }/api/${tenantSlug}/category/create`;
@@ -130,7 +136,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
             ? "Category updated successfully!"
             : "Category registered successfully!"
         );
-        setFormData({ category: "", location_id: "" });
+        setFormData({ category: "", location_id: "", booking_type: "", min_duration: "" });
         setTimeout(() => {
           onSubmit();
           onHide();
@@ -192,6 +198,34 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
                     </option>
                   ))}
               </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="booking_type">
+              <Form.Label>Booking Type</Form.Label>
+              <Form.Select
+                name="booking_type"
+                value={formData.booking_type}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select a location</option>
+                <option value="hourly">hourly</option>
+                <option value="daily">daily</option>
+                <option value="weekly">weekly</option>
+                <option value="monthly">monthly</option>
+              </Form.Select>
+            </Form.Group>
+            
+            <Form.Group className="mb-3" controlId="min_duration">
+              <Form.Label>Minimum duration for the booking type</Form.Label>
+              <Form.Control
+                type="number"
+                name="min_duration"
+                value={formData.min_duration}
+                onChange={handleInputChange}
+                placeholder="1"
+              >
+              </Form.Control>
             </Form.Group>
 
             {/* {myCategory ? (

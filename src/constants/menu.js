@@ -107,20 +107,17 @@ const MENU_ITEMS = [
         url: "/room/my-rooms",
         parentKey: "room-management",
       },
-      // {
-      //   key: "dedicated-desk",
-      //   label: "Dedicated Desk/Spot/Bed",
-      //   url: "/room/spot",
-      //   parentKey: "room-management",
-      // },
+      
     ],
   },
-  {
+
+   {
     key: "booking-management",
     label: "Booking Management",
-    url: "/location/mybookinngs",
+    url: "/room/spot",
     isTitle: false,
     icon: FiAirplay,
+
    },
    {
     key: "settings",

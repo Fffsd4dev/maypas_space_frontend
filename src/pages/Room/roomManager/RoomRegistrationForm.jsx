@@ -16,12 +16,14 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   const [categoryData, setCategoryData] = useState([]);
 
   const [formData, setFormData] = useState({
-    space_name: "",
+    name: "",
     space_number: "",
     floor_id: "",
     location_id: "",
     space_fee: "",
     space_category_id: "",
+    space_discount: "",
+    min_space_discount_time: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -31,21 +33,25 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   useEffect(() => {
     if (myRoom) {
       setFormData({
-        space_name: myRoom.space_name || "",
+        name: myRoom.name || "",
         space_number: myRoom.space_number || "",
         floor_id: myRoom.space || "",
         location_id: myRoom.location_id || "",
         space_fee: myRoom.space_fee || "",
         space_category_id: myRoom.space_category_id || "",
+        space_discount: myRoom.space_discount || "",
+        min_space_discount_time: myRoom.min_space_discount_time || "",
       });
     } else {
       setFormData({
-        space_name: "",
+        name: "",
         space_number: "",
         floor_id: "",
         location_id: "",
         space_fee: "",
         space_category_id: "",
+        space_discount: "",
+        min_space_discount_time: "",
       });
     }
   }, [myRoom]);
@@ -226,6 +232,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       });
 
       const result = await response.json();
+      console.log("result", result)
 
       if (response.ok) {
         toast.success(myRoom ? "Room updated successfully!" : "Room registered successfully!");
@@ -257,8 +264,8 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
             <Form.Label>Room/Space Name</Form.Label>
             <Form.Control
               type="text"
-              name="space_name"
-              value={formData.space_name}
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
               placeholder="Lavendier Room "
             />
@@ -271,6 +278,26 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               value={formData.space_number}
               onChange={handleInputChange}
               placeholder="3"
+            />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="space_discount">
+            <Form.Label>Space Discount</Form.Label>
+            <Form.Control
+              type="number"
+              name="space_discount"
+              value={formData.space_discount}
+              onChange={handleInputChange}
+              placeholder="10"
+            />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="min_space_discount_time">
+            <Form.Label>Minimum Space Discount(%)</Form.Label>
+            <Form.Control
+              type="number"
+              name="min_space_discount_time"
+              value={formData.min_space_discount_time}
+              onChange={handleInputChange}
+              placeholder="1"
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="space_fee">

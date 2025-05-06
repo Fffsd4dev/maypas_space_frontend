@@ -20,6 +20,7 @@ import {
   FiMessageSquare,
   FiPackage,
   FiPocket,
+  FiRepeat,
   FiRss,
   FiShare2,
   FiShoppingCart,
@@ -39,7 +40,7 @@ const MENU_ITEMS = [
     icon: FiAirplay,
     badge: {
       variant: "success",
-      text: "4",
+      text: "",
     },
     // children: [
     //   {
@@ -54,7 +55,7 @@ const MENU_ITEMS = [
     key: "accounts",
     label: "Account",
     isTitle: false,
-    icon: FiAirplay,
+    icon: FiUsers,
     children: [
       {
         key: "administrators",
@@ -87,7 +88,7 @@ const MENU_ITEMS = [
     key: "subscription",
     label: "Manage Subscription",
     isTitle: false,
-    icon: FiAirplay,
+    icon: FiRepeat,
     children: [
       {
         key: "create-subscription",

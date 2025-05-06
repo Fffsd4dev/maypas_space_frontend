@@ -1,4 +1,4 @@
-import { Button, FormGroup, FormLabel, FormControl } from "react-bootstrap";
+import { Button, FormGroup, FormLabel, FormControl, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import classNames from "classnames";
@@ -74,7 +74,7 @@ const SocialLinks = () => {
 };
 const Login2 = () => {
   const { t } = useTranslation();
-  const { login, control, popup, setPopup } = useLogin2();
+  const { login, control, popup, setPopup, loading } = useLogin2();
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -153,9 +153,19 @@ const Login2 = () => {
           </div>
 
           <div className="text-center d-grid">
-            <Button variant="primary" type="submit">
-              {t("Log In")}
-            </Button>
+          <Button variant="primary" type="submit" disabled={loading}>
+  {loading ? (
+    <Spinner
+      as="span"
+      animation="border"
+      size="sm"
+      role="status"
+      aria-hidden="true"
+    />
+  ) : (
+    t("Log In")
+  )}
+</Button>
           </div>
         </form>
       </AuthLayout>

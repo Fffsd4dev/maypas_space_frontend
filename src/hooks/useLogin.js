@@ -32,6 +32,7 @@ const useLogin = () => {
   const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
 
   const login = handleSubmit(async (data) => {
+    setLoading(true);
     console.log('submitting');
     console.log({ tenantSlug });
     console.log(data);
@@ -52,7 +53,6 @@ const useLogin = () => {
         console.log(res.ok);
         console.log(result.user.tenant_id);
         saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id, tenantFirstName: result?.user?.first_name, tenantLastName: result?.user?.last_name, tenantEmail: result?.user?.email, tenantPhone: result?.user?.phone });
-        console.log(user.tenant_id);
         console.log(result)
         setPopup({
           message: "Login successful!",

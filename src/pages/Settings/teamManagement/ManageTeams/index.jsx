@@ -27,6 +27,13 @@ const TeamManagement = () => {
     buttonLabel: "",
     buttonRoute: "",
   });
+  const [formData, setFormData] = useState({
+      company: "",
+      department: "",
+      description: "",
+      manager: "",
+    });
+  
   const [isError, setIsError] = useState(false);
   const [locations, setLocations] = useState([]);
 
@@ -89,7 +96,8 @@ const TeamManagement = () => {
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/teams/?page=${page}&per_page=${pageSize}`,
+        }/api/${tenantSlug}/teams`,
+        // ?page=${page}&per_page=${pageSize}
         {
           method: "GET",
           headers: {
@@ -105,21 +113,21 @@ const TeamManagement = () => {
       const result = await response.json();
       console.log(result);
 
-      if (result && Array.isArray(result.data)) {
-        const data = result.data;
+      if (result && Array.isArray(result[1])) {
+        const data = result[1];
         data.sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
         setData(data);
-        setPagination({
-          currentPage: result.data.current_page,
-          totalPages: result.data.last_page,
-          nextPageUrl: result.data.next_page_url,
-          prevPageUrl: result.data.prev_page_url,
-          pageSize: pageSize,
-        });
+        // setPagination({
+        //   currentPage: result.data.current_page,
+        //   totalPages: result.data.last_page,
+        //   nextPageUrl: result.data.next_page_url,
+        //   prevPageUrl: result.data.prev_page_url,
+        //   pageSize: pageSize,
+        // });
       } else {
         throw new Error("Invalid response format");
       }
@@ -173,7 +181,7 @@ const TeamManagement = () => {
             Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myTeamsID }),
+          body: JSON.stringify({ team_id: myTeamsID }),
         }
       );
 
@@ -236,15 +244,21 @@ const TeamManagement = () => {
       sort: false,
     },
     {
-      Header: "Team Name",
-      accessor: "team",
+      Header: "Company",
+      accessor: "company",
       sort: true,
     },
     {
-      Header: "Created On",
-      accessor: "created_at",
+      Header: "Department",
+      accessor: "department",
       sort: true,
-      Cell: ({ row }) => formatDateTime(row.original.created_at),
+      // Cell: ({ row }) => formatDateTime(row.original.created_at),
+    },
+    {
+      Header: "Description",
+      accessor: "description",
+      sort: true,
+      // Cell: ({ row }) => formatDateTime(row.original.updated_at),
     },
     {
       Header: "Updated On",
@@ -281,9 +295,9 @@ const TeamManagement = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "My Team Management", path: "/Settings/team-management", active: true },
+          { label: "My Teams", path: "/settings/manage-teams", active: true },
         ]}
-        title="My Team Management"
+        title="My Teams"
       />
 
       <Row>
@@ -363,17 +377,17 @@ const TeamManagement = () => {
                       isSearchable
                       tableClass="table-striped dt-responsive nowrap w-100"
                       searchBoxClass="my-2"
-                      paginationProps={{
-                        currentPage: pagination.currentPage,
-                        totalPages: pagination.totalPages,
-                        onPageChange: (page) =>
-                          setPagination((prev) => ({
-                            ...prev,
-                            currentPage: page,
-                          })),
-                        onPageSizeChange: (pageSize) =>
-                          setPagination((prev) => ({ ...prev, pageSize })),
-                      }}
+                      // paginationProps={{
+                      //   currentPage: pagination.currentPage,
+                      //   totalPages: pagination.totalPages,
+                      //   onPageChange: (page) =>
+                      //     setPagination((prev) => ({
+                      //       ...prev,
+                      //       currentPage: page,
+                      //     })),
+                      //   onPageSizeChange: (pageSize) =>
+                      //     setPagination((prev) => ({ ...prev, pageSize })),
+                      // }}
                     />
                   )}
                   </>
@@ -407,7 +421,7 @@ const TeamManagement = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this room team?"
+          message="Are you sure you want to delete this team?"
           type="confirm"
           onClose={() =>
             setDeletePopup({ isVisible: false, myTeamsID: null })

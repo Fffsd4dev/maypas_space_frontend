@@ -44,7 +44,7 @@ const OperatingTimes = () => {
       ],
     });
 
-    
+
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
     myOperatingTimeID: null,
@@ -128,6 +128,7 @@ const OperatingTimes = () => {
             new Date(a.updated_at || a.created_at)
         );
         setData(sortedData);
+        console.log("Sorted Data:", sortedData);
   
         // Update pagination state (if needed)
         setPagination((prev) => ({
@@ -162,13 +163,31 @@ const OperatingTimes = () => {
     const operatingTimesForLocation = data.filter(
       (item) => item.location_id === parseInt(locationId)
     );
+  
+    // Define the order of days
+    const dayOrder = [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday",
+    ];
+  
+    // Sort the data by the day field
+    const sortedOperatingTimes = operatingTimesForLocation.sort(
+      (a, b) => dayOrder.indexOf(a.day.toLowerCase()) - dayOrder.indexOf(b.day.toLowerCase())
+    );
+  
     setSelectedUser({
       location_id: locationId,
-      hours: operatingTimesForLocation,
+      hours: sortedOperatingTimes,
     });
+  
     setShow(true);
   };
-
+  
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
@@ -234,7 +253,13 @@ const OperatingTimes = () => {
     setDeletePopup({ isVisible: false, myOperatingTimeID: null });
   };
   
-
+  const formatTime = (time) => {
+    if (!time) return ""; // Handle empty or undefined time
+    const [hour, minute] = time.split(":").map(Number);
+    const period = hour >= 12 ? "PM" : "AM";
+    const formattedHour = hour % 12 || 12; // Convert 24-hour to 12-hour format
+    return `${formattedHour}:${minute.toString().padStart(2, "0")} ${period}`;
+  };
  
 
   const handleLocationChange = (e) => {
@@ -256,16 +281,19 @@ const OperatingTimes = () => {
       Header: "Day",
       accessor: "day",
       sort: true,
+      Cell: ({ value }) => value.charAt(0).toUpperCase() + value.slice(1), 
     },
     {
       Header: "Open Time",
       accessor: "open_time",
       sort: true,
+      Cell: ({ value }) => formatTime(value),
     },
     {
       Header: "Close Time",
       accessor: "close_time",
       sort: true,
+      Cell: ({ value }) => formatTime(value), 
     },
     // {
     //   Header: "Action",

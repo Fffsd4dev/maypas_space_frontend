@@ -78,6 +78,7 @@ const Rooms = React.lazy(() => import("../pages/Room/roomManager"))
 const Spot = React.lazy(() => import('../pages/Room/spot'))
 const OperatingTimes = React.lazy(() => import('../pages/Settings/operatingTimes'))
 const ManageTeams = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeams'))
+const ManageTeamMembers = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeamMembers'))
 // - email
 const Inbox = React.lazy(() => import("../pages/apps/Email/Inbox"));
 const EmailDetail = React.lazy(() => import("../pages/apps/Email/Detail"));
@@ -400,6 +401,12 @@ const workspacesRoutes = {
       path: "/settings/manage-teams",
       name: "Manage Teams",
       element: <ManageTeams />,
+      route: PrivateRoute
+    },
+    {
+      path: "/settings/team-members",
+      name: "Manage Team Members",
+      element: <ManageTeamMembers />,
       route: PrivateRoute
     },
     {

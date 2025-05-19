@@ -38,6 +38,9 @@ const Dashboard4 = React.lazy(() => import("../pages/dashboard/Dashboard4/"));
 // Tenants
 const Tenants = React.lazy(() => import("../pages/tenants"));
 
+// Visitor
+const Visitor = React.lazy(() => import("../pages/Visitor"));
+
 const CreateSubscription = React.lazy(() => import("../pages/subscriptions/CreateSubscription"));
 const TenantSub = React.lazy(() => import("../pages/subscriptions/TenantSub"));
 
@@ -1058,6 +1061,15 @@ const authRoutes = [
     element: <SignInSignUp />,
     route: Route
   },
+ {
+  path: "/:tenantSlug",
+  name: "Visitor",
+  route: Route,
+  roles: ["Admin"],
+  icon: "airplay",
+  element: <Visitor />,
+  header: "Apps"
+},
   {
     path: "/:tenantSlug/auth/lock-screen",
     name: "Tenants Lock Screen",

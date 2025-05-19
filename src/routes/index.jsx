@@ -4,6 +4,7 @@ import { Route, Navigate, useParams } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
 import React from "react";
 import Root from './Root';
+import CreateNotificationModal from "../pages/Settings/notifications/CreateNotificationForm";
 
 // lazy load all the views
 
@@ -77,6 +78,7 @@ const Category = React.lazy(() => import("../pages/Room/Category"))
 const Rooms = React.lazy(() => import("../pages/Room/roomManager"))
 const Spot = React.lazy(() => import('../pages/Room/spot'))
 const OperatingTimes = React.lazy(() => import('../pages/Settings/operatingTimes'))
+const CreateNotification = React.lazy(() => import('../pages/Settings/notifications'))
 const ManageTeams = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeams'))
 const ManageTeamMembers = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeamMembers'))
 // - email
@@ -395,6 +397,12 @@ const workspacesRoutes = {
       path: "/settings/operating-time",
       name: "Operating Time",
       element: <OperatingTimes />,
+      route: PrivateRoute
+    },
+    {
+      path: "/settings/create-notifications",
+      name: "Create Notifications",
+      element: <CreateNotification />,
       route: PrivateRoute
     },
     {

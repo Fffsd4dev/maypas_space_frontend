@@ -42,7 +42,7 @@ const CampaignChart = () => {
     stroke: {
       dashArray: 4
     },
-    colors: ["#f1556c"],
+    colors: ["#fe0002"],
     labels: ["Campaigns Ratio"],
     responsive: [{
       breakpoint: 380,

@@ -10,6 +10,7 @@ import {
   FiClipboard,
   FiClock,
   FiCpu,
+  FiCreditCard,
   FiFileText,
   FiFolderPlus,
   FiGift,
@@ -134,18 +135,20 @@ const MENU_ITEMS = [
   },
   {
     key: "operating-time",
-    label: "Operating Time",
+    label: "Set Operating Time",
     isTitle: false,
     icon: FiClock,
-    children: [
-      {
-        key: "space-operating-time",
-        label: "Spaces Operating Hours",
-        url: "/settings/operating-time",
-        parentKey: "operating-time",
-      },
-    ],
+    url: "/settings/operating-time",
   },
+    
+  {
+    key: "create-notifications",
+    label: "Create Notifications",
+    isTitle: false,
+    icon: FiFolderPlus,
+    url: "/settings/create-notifications",
+  },
+
 
   {
     key: "team-management",
@@ -167,6 +170,9 @@ const MENU_ITEMS = [
       },
     ],
   },
+
+  
+
   ];
 
 const HORIZONTAL_MENU_ITEMS = [

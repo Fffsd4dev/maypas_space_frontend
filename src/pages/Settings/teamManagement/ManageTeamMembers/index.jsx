@@ -6,6 +6,7 @@ import MemberRegistrationModal from "./MemberRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../../components/Popup/Popup";
 import Table2 from "../../../../components/Table2";
+import { color } from "framer-motion";
 
 const Members = () => {
   const { user } = useAuthContext();
@@ -324,7 +325,7 @@ const Members = () => {
       sort: true,
     },
     {
-      Header: "Manager",
+      Header: "Is the Manager?",
       accessor: "manager",
       sort: true,
     },
@@ -435,14 +436,20 @@ const Members = () => {
                     </div>
                   ) : (
                     <Table2
-                      columns={columns}
-                      data={data}
-                      pageSize={pagination.pageSize}
-                      isSortable
-                      pagination
-                      isSearchable
-                      tableClass="table-striped dt-responsive nowrap w-100"
-                      searchBoxClass="my-2"
+                    columns={columns}
+                    data={data}
+                    pageSize={pagination.pageSize}
+                    isSortable
+                    pagination
+                    isSearchable
+                    tableClass="table-striped dt-responsive nowrap w-100"
+                    searchBoxClass="my-2"
+                    getRowProps={(row) => ({
+                      style: {
+                        backgroundColor:
+                          row.original.manager?.toString().toLowerCase() === "yes" ? "#E8F5E9" : "inherit",
+                      },
+                    })}
                       // paginationProps={{
                       //   currentPage: pagination.currentPage,
                       //   totalPages: pagination.totalPages,

@@ -19,29 +19,45 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 
 /* user box */
 const UserBox = () => {
-  // get the profilemenu
-  const ProfileMenus = [{
-    label: "My Account",
-    icon: FiUser,
-    redirectTo: "#"
-  }, {
-    label: "Settings",
-    icon: FiSettings,
-    redirectTo: "#"
-  }, {
-    label: "Lock Screen",
-    icon: FiLock,
-    redirectTo: "/auth/lock-screen"
-  }, {
-    label: "Logout",
-    icon: FiLogOut,
-    redirectTo: "/auth/logout"
-  }];
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const {user} = useAuthContext();
   const  tenantSlug  = user?.tenant;
   const tenantFirstName = user?.tenantFirstName;
   const tenantLastName  = user?.tenantLastName;
+
+    const {
+      menu,
+      orientation,
+      changeMenuSize,
+      themeCustomizer
+    } = useLayoutContext();
+    
+  // get the profilemenu
+  const ProfileMenus = [
+  //   {
+  //   label: "My Account",
+  //   icon: FiUser,
+  //   redirectTo: "#"
+  // },
+   {
+    label: "Settings",
+    icon: FiSettings,
+    onClick: () => {
+      console.log("Settings clicked");
+      themeCustomizer.toggle();
+    },
+  },
+  //  {
+  //   label: "Lock Screen",
+  //   icon: FiLock,
+  //   redirectTo: "/auth/lock-screen"
+  // },
+  {
+    label: "Logout",
+    icon: FiLogOut,
+    redirectTo: `/${tenantSlug}/auth/logout`
+  }];
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+ 
   
 
   /*

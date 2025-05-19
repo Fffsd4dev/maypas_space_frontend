@@ -19,23 +19,36 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 
 /* user box */
 const UserBox = () => {
+  const {
+      menu,
+      orientation,
+      changeMenuSize,
+      themeCustomizer
+    } = useLayoutContext();
   // get the profilemenu
-  const ProfileMenus = [{
-    label: "My Account",
-    icon: FiUser,
-    redirectTo: "#"
-  }, {
+  const ProfileMenus = [
+  //   {
+  //   label: "My Account",
+  //   icon: FiUser,
+  //   redirectTo: "#"
+  // },
+   {
     label: "Settings",
     icon: FiSettings,
-    redirectTo: "#"
-  }, {
-    label: "Lock Screen",
-    icon: FiLock,
-    redirectTo: "/auth/lock-screen"
-  }, {
+    onClick: () => {
+      console.log("Settings clicked");
+      themeCustomizer.toggle();
+    },
+  },
+  //  {
+  //   label: "Lock Screen",
+  //   icon: FiLock,
+  //   redirectTo: "/auth/lock-screen"
+  // }, 
+  {
     label: "Logout",
     icon: FiLogOut,
-    redirectTo: "/auth/logout"
+    redirectTo: "/auth/logout2"
   }];
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const {user} = useAuthContext();

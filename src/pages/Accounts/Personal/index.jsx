@@ -195,7 +195,7 @@ const Personal = () => {
                   <thead>
                     <tr>
                       <th>S/N</th>
-                      <th>ID</th>
+                      {/* <th>ID</th> */}
                       <th>First Name</th>
                       <th>Last Name</th>
                       <th>Email</th>
@@ -210,7 +210,7 @@ const Personal = () => {
                     {data.map((myUser, index) => (
                       <tr key={myUser.id}>
                         <td>{index + 1}</td> {/* Fix S/N column */}
-                        <td>{myUser.id}</td>
+                        {/* <td>{myUser.id}</td> */}
                         <td>{myUser.first_name}</td>
                         <td>{myUser.last_name}</td>
                         <td>{myUser.email}</td>

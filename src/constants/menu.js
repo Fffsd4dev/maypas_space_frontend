@@ -8,7 +8,9 @@ import {
   FiBriefcase,
   FiCalendar,
   FiClipboard,
+  FiClock,
   FiCpu,
+  FiCreditCard,
   FiFileText,
   FiFolderPlus,
   FiGift,
@@ -17,13 +19,20 @@ import {
   FiLayers,
   FiMail,
   FiMap,
+  FiMapPin,
   FiMessageSquare,
   FiPackage,
+  FiPlay,
   FiPocket,
   FiRss,
   FiShare2,
   FiShoppingCart,
+  FiSquare,
+  FiTarget,
+  FiTriangle,
+  FiUserPlus,
   FiUsers,
+  FiWatch,
 } from "react-icons/fi";
 
 const MENU_ITEMS = [
@@ -48,7 +57,7 @@ const MENU_ITEMS = [
     key: "workspaces-accounts",
     label: "My Workspace Account",
     isTitle: false,
-    icon: FiAirplay,
+    icon: FiUsers,
     children: [
       {
         key: "workspace-user",
@@ -70,7 +79,7 @@ const MENU_ITEMS = [
     key: "location-management",
     label: "Location Management",
     isTitle: false,
-    icon: FiAirplay,
+    icon: FiMapPin,
     children: [
       {
         key: "locations",
@@ -93,7 +102,7 @@ const MENU_ITEMS = [
     key: "room-management",
     label: "Space Management",
     isTitle: false,
-    icon: FiAirplay,
+    icon: FiSquare,
     children: [
       {
         key: "category-manager",
@@ -116,7 +125,7 @@ const MENU_ITEMS = [
     label: "Booking Management",
     url: "/room/spot",
     isTitle: false,
-    icon: FiAirplay,
+    icon: FiTarget,
 
    },
    {
@@ -126,33 +135,44 @@ const MENU_ITEMS = [
   },
   {
     key: "operating-time",
-    label: "Operating Time",
+    label: "Set Operating Time",
     isTitle: false,
-    icon: FiAirplay,
-    children: [
-      {
-        key: "space-operating-time",
-        label: "Spaces Operating Hours",
-        url: "/settings/operating-time",
-        parentKey: "operating-time",
-      },
-    ],
+    icon: FiClock,
+    url: "/settings/operating-time",
   },
+    
+  {
+    key: "create-notifications",
+    label: "Create Notifications",
+    isTitle: false,
+    icon: FiFolderPlus,
+    url: "/settings/create-notifications",
+  },
+
 
   {
     key: "team-management",
-    label: "Manage Teams",
+    label: "Team Management",
     isTitle: false,
-    icon: FiAirplay,
+    icon: FiUserPlus,
     children: [
       {
         key: "team-manager",
-        label: "Team Management",
+        label: "Manage Teams",
         url: "/settings/manage-teams",
+        parentKey: "team-management",
+      },
+      {
+        key: "team-members",
+        label: "Manage Team Members",
+        url: "/settings/team-members",
         parentKey: "team-management",
       },
     ],
   },
+
+  
+
   ];
 
 const HORIZONTAL_MENU_ITEMS = [

@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-import UsersRegistrationModal from "./UsersRegistrationForm";
+import CreateNotificationModal from "./CreateNotificationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 
-const Personal = () => {
+const Notification = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlugg = user?.tenant;
@@ -16,7 +16,7 @@ const Personal = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedNotification, setSelectedNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState({
     message: "",
@@ -26,10 +26,16 @@ const Personal = () => {
     buttonRoute: "",
   });
 
+
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myUserID: null,
+    myNotificationID: null,
   });
+
+   const [publishPopup, setPublishPopup] = useState({
+      isVisible: false,
+      myNotifcationID: null,
+    });
 
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -54,10 +60,10 @@ const Personal = () => {
   const fetchData = async (page = 1, pageSize = 10) => {
     setLoading(true);
     setError(null);
-    console.log("User Token:", user?.tenantToken);
+    console.log("Notification Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/view-users?page=${page}&per_page=${pageSize}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/notification/list-notifications`,
         {
           method: "GET",
           headers: {
@@ -66,13 +72,15 @@ const Personal = () => {
         }
       );
 
+      console.log("Notification Response:", response);
       if (!response.ok) {
         throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
-      if (result && Array.isArray(result.data.data)) {
-        const data = result.data.data;
+      console.log("Notification Result:", result);
+      if (result && Array.isArray(result.data)) {
+        const data = result.data;
         data.sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
@@ -101,18 +109,69 @@ const Personal = () => {
     fetchData(pagination.currentPage, pagination.pageSize);
   }, [user, pagination.currentPage, pagination.pageSize]);
 
-  const handleEditClick = (myUser) => {
-    setSelectedUser(myUser);
+  const handleEditClick = (myNotification) => {
+    setSelectedNotification(myNotification);
     setShow(true);
   };
 
   const handleClose = () => {
     setShow(false);
-    setSelectedUser(null);
+    setSelectedNotification(null);
     fetchData(); // Reload users after closing the modal
   };
 
-  const handleDelete = async (myUserID) => {
+  const handlePublish = async (myNotifcationID) => {
+    if (!user?.tenantToken) return;
+    console.log(myNotifcationID);
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/notification/toggle-publish/${myNotifcationID}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${user?.tenantToken}`,
+            "Content-Type": "application/json",
+          },
+          // body: JSON.stringify({ id: myNotifcationID}),
+        }
+      );
+      console.log("body", { id: myNotifcationID});
+
+      console.log("Promote Response:", response);
+    
+      if (!response.ok) {
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+      }
+
+      setData((prevData) =>
+        prevData.filter((myNotifcation) => myNotifcation.id !== myNotifcationID)
+      );
+      setPopup({
+        message: "This notification has been published!",
+        type: "success",
+        isVisible: true,
+      });
+      if (user?.tenantToken) {
+        fetchData(
+          pagination.currentPage,
+          pagination.pageSize
+        ); // Reload users after deleting a user
+      }
+    } catch (error) {
+      console.error("Error promoting member:", error);
+      setPopup({
+        message: "Failed to publish this notification!",
+        type: "error",
+        isVisible: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (myNotificationID) => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
@@ -125,7 +184,7 @@ const Personal = () => {
             Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myUserID }),
+          body: JSON.stringify({ id: myNotificationID }),
         }
       );
 
@@ -134,7 +193,7 @@ const Personal = () => {
       }
 
       setData((prevData) =>
-        prevData.filter((myUser) => myUser.id !== myUserID)
+        prevData.filter((myNotification) => myNotification.id !== myNotificationID)
       );
       setPopup({
         message: "Plan deleted successfully!",
@@ -152,18 +211,30 @@ const Personal = () => {
       setIsLoading(false);
     }
   };
+  const handlePublishButton = ( myNotifcationID) => {
+    setPublishPopup({
+      isVisible: true,
+      myNotifcationID,
+    });
+  };
 
-  const handleDeleteButton = (myUserID) => {
+  const confirmPublish = () => {
+    const { myNotifcationID } = publishPopup;
+    handlePublish(myNotifcationID);
+    setPublishPopup({ isVisible: false, myNotifcationID: null });
+  };
+
+  const handleDeleteButton = (myNotificationID) => {
     setDeletePopup({
       isVisible: true,
-      myUserID,
+      myNotificationID,
     });
   };
 
   const confirmDelete = () => {
-    const { myUserID } = deletePopup;
-    handleDelete(myUserID);
-    setDeletePopup({ isVisible: false, myUserID: null });
+    const { myNotificationID } = deletePopup;
+    handleDelete(myNotificationID);
+    setDeletePopup({ isVisible: false, myNotificationID: null });
   };
 
   const columns = [
@@ -173,42 +244,30 @@ const Personal = () => {
       id: "serialNo",
       sort: false,
     },
+  
+    {
+      Header: "Name",
+      accessor: "name",
+      sort: true,
+    },
+    {
+      Header: "Description",
+      accessor: "description",
+      sort: true,
+    },
+    {
+      Header: "Has Been Published?",
+      accessor: "publish",
+      sort: true,
+    },
+  ,
+    
     // {
-    //   Header: "ID",
-    //   accessor: "id",
+    //   Header: "Created On",
+    //   accessor: "created_at",
     //   sort: true,
+    //   Cell: ({ row }) => formatDateTime(row.original.created_at),
     // },
-    {
-      Header: "First Name",
-      accessor: "first_name",
-      sort: true,
-    },
-    {
-      Header: "Last Name",
-      accessor: "last_name",
-      sort: true,
-    },
-    {
-      Header: "Email",
-      accessor: "email",
-      sort: true,
-    },
-    {
-      Header: "Phone",
-      accessor: "phone",
-      sort: true,
-    },
-    {
-      Header: "User type",
-      accessor: "user_type.user_type",
-      sort: true,
-    },
-    {
-      Header: "Created On",
-      accessor: "created_at",
-      sort: true,
-      Cell: ({ row }) => formatDateTime(row.original.created_at),
-    },
     {
       Header: "Updated On",
       accessor: "updated_at",
@@ -222,6 +281,19 @@ const Personal = () => {
       sort: false,
       Cell: ({ row }) => (
         <>
+            
+              {row.original.publish === "no" && ( // Only show the button if Manager is "no"
+                <Button
+                  variant="danger"
+                  className="waves-effect waves-light"
+                  onClick={() => handlePublishButton(row.original.id)}
+                >
+                  Publish Notification
+                </Button>
+              )}
+
+            
+        
           <Link
             to="#"
             className="action-icon"
@@ -229,6 +301,8 @@ const Personal = () => {
           >
             <i className="mdi mdi-square-edit-outline"></i>
           </Link>
+
+
           <Link
             to="#"
             className="action-icon"
@@ -245,9 +319,9 @@ const Personal = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Users", path: "/account/admin", active: true },
+          { label: "Notifications", path: "/settings/create-notifications", active: true },
         ]}
-        title="Users"
+        title="Create Notifications"
       />
 
       <Row>
@@ -261,10 +335,10 @@ const Personal = () => {
                     className="waves-effect waves-light"
                     onClick={() => {
                       setShow(true);
-                      setSelectedUser(null);
+                      setSelectedNotification(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a User
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a New Notification
                   </Button>
                 </Col>
               </Row>
@@ -272,13 +346,13 @@ const Personal = () => {
               {error ? (
                 <p className="text-danger">Error: {error}</p>
               ) : loading ? (
-                <p>Loading Users...</p>
+                <p>Loading Notifications...</p>
               ) : isLoading ? (
                 <div className="text-center">
                   <Spinner animation="border" role="status">
-                    <span className="visually-hidden">Deleting...</span>
+                    <span className="visually-hidden">loading...</span>
                   </Spinner>{" "}
-                  Deleting...
+                  Please wait...
                 </div>
               ) : (
                 <Table2
@@ -290,6 +364,13 @@ const Personal = () => {
                   isSearchable
                   tableClass="table-striped dt-responsive nowrap w-100"
                   searchBoxClass="my-2"
+                  getRowProps={(row) => ({
+                    style: {
+                      backgroundColor:
+                        row.original.publish?.toString().toLowerCase() === "yes" ? "#E8F5E9" : "inherit",
+
+                    },
+                  })}
                   paginationProps={{
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
@@ -303,10 +384,10 @@ const Personal = () => {
         </Col>
       </Row>
 
-      <UsersRegistrationModal
+      <CreateNotificationModal
         show={show}
         onHide={handleClose}
-        myUser={selectedUser}
+        myNotification={selectedNotification}
         onSubmit={fetchData} // Reload users after adding or editing a user
       />
 
@@ -324,13 +405,23 @@ const Personal = () => {
         <Popup
           message="Are you sure you want to delete this application?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myUserID: null })}
+          onClose={() => setDeletePopup({ isVisible: false, myNotificationID: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />
       )}
+
+      {publishPopup.isVisible && (
+              <Popup
+                message="Are you sure you want to send this notification?"
+                type="confirm"
+                onClose={() => setPublishPopup({ isVisible: false, myNotifcationID: null })}
+                buttonLabel="Yes"
+                onAction={confirmPublish}
+              />
+            )}
     </>
   );
 };
 
-export default Personal;
+export default Notification;

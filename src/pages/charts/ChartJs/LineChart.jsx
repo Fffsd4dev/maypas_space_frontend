@@ -23,7 +23,7 @@ const LineChart = () => {
       label: "Previous Week",
       fill: true,
       backgroundColor: "transparent",
-      borderColor: "#f1556c",
+      borderColor: "#fe0002",
       borderDash: [5, 5],
       data: [42, 58, 66, 93, 82, 105, 92],
       tension: 0.4

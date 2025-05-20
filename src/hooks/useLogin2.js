@@ -40,6 +40,7 @@ const useLogin2 = () => {
   const { tenantSlug } = useParams();
 
   const login = handleSubmit( async (data) => {
+    setLoading(true);
     console.log(data);
     console.log('submitting');
   

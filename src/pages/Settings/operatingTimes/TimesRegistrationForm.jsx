@@ -45,12 +45,13 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
         return match
           ? {
               day: hour.day,
-              open_time: match.open_time,
-              close_time: match.close_time,
+              open_time: match.open_time.slice(0, 5), // Ensure format is HH:mm
+              close_time: match.close_time.slice(0, 5), // Ensure format is HH:mm
             }
-          : hour;
+          : hour; // Retain default values if no match is found
       });
   
+      console.log("Updated Hours:", updatedHours); // Debugging
       setFormData({
         location_id: myOperatingTime.location_id || "",
         hours: updatedHours,
@@ -223,8 +224,8 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
                   readOnly
                   className="me-2"
                 />
-         <Form.Select
-  value={hour.open_time}
+  <Form.Select
+  value={hour.open_time} // Ensure this matches the generated options
   onChange={(e) => handleHoursChange(index, "open_time", e.target.value)}
   className="me-2"
   required
@@ -245,7 +246,7 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
 </Form.Select>
 
 <Form.Select
-  value={hour.close_time}
+  value={hour.close_time} // Ensure this matches the generated options
   onChange={(e) => handleHoursChange(index, "close_time", e.target.value)}
   required
 >

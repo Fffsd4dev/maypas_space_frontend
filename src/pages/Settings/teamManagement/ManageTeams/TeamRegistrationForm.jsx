@@ -8,15 +8,17 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
 
-  const [locations, setLocations] = useState([]);
-  const [loadingLocations, setLoadingLocations] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [floorData, setFloorData] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [isLocationName, setIsLocationName] = useState("");
+  const [selectedLocation, setSelectedUser] = useState(null);
+  const [isLocationName, setIsUserName] = useState("");
 
   const [formData, setFormData] = useState({
-    category: "",
-    location_id: "",
+    company: "",
+    department: "",
+    description: "",
+    manager: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -24,45 +26,49 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
   useEffect(() => {
     if (myTeams) {
       setFormData({
-        category: myTeams.category || "",
-        location_id: myTeams.location_id || "",
+        company: myTeams.company || "",
+        department: myTeams.department || "",
+        description: myTeams.description || "",
+        manager: myTeams.manager || "",
       });
     } else {
       setFormData({
-        category: "",
-        location_id: "",
+        company: "",
+        department: "",
+        description: "",
+        manager: "",
       });
     }
   }, [myTeams]);
 
-  const fetchLocations = async () => {
-    setLoadingLocations(true);
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
     try {
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/location/list-locations`,
+        }/api/${tenantSlug}/view-users`,
         {
           headers: { Authorization: `Bearer ${user.tenantToken}` },
         }
       );
       const result = await response.json();
       if (response.ok) {
-        console.log("Locations:", result.data.data);
-        setLocations(result.data.data || []);
+        console.log("Users:", result.data.data);
+        setUsers(result.data.data || []);
       } else {
-        throw new Error(result.message || "Failed to fetch locations.");
+        throw new Error(result.message || "Failed to fetch users.");
       }
     } catch (error) {
       toast.error(error.message);
     } finally {
-      setLoadingLocations(false);
+      setLoadingUsers(false);
     }
   };
 
   useEffect(() => {
     if (show && user?.tenantToken) {
-      fetchLocations();
+      fetchUsers();
     }
   }, [show, user?.tenantToken]);
 
@@ -75,22 +81,22 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
   };
 
   const handleLocationChange = (e) => {
-    const locationId = e.target.value;
-    setSelectedLocation(locationId);
+    const managerId = e.target.value;
+    setSelectedUser(managerId);
     setFormData((prev) => ({
       ...prev,
-      location_id: locationId,
+      manager: managerId,
     }));
   };
 
   useEffect(() => {
-    locations.map((location) => {
-      if (location.id === myTeams?.location_id) {
-        setSelectedLocation(location.id);
-        setIsLocationName(location.name);
+    users.map((user) => {
+      if (user.id === myTeams?.manager) {
+        setSelectedUser(user.id);
+        setIsUserName(user.name);
       }
     });
-  }, [user?.tenantToken, locations]);
+  }, [user?.tenantToken, users]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -105,10 +111,10 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
       const url = myTeams
         ? `${
             import.meta.env.VITE_BACKEND_URL
-          }/api/${tenantSlug}/category/update/${myTeams.id}/`
+          }/api/${tenantSlug}/team/update/${myTeams.id}`
         : `${
             import.meta.env.VITE_BACKEND_URL
-          }/api/${tenantSlug}/category/create`;
+          }/api/${tenantSlug}/team/create`;
 
       const method = myTeams ? "POST" : "POST";
 
@@ -127,10 +133,13 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
       if (response.ok) {
         toast.success(
           myTeams
-            ? "Category updated successfully!"
-            : "Category registered successfully!"
+            ? "Team updated successfully!"
+            : "Team registered successfully!"
         );
-        setFormData({ category: "", location_id: "" });
+        setFormData({ company: "",
+          department: "",
+          description: "",
+          manager: "",});
         setTimeout(() => {
           onSubmit();
           onHide();
@@ -159,45 +168,68 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
     <Modal show={show} onHide={onHide} centered>
       <Modal.Header className="bg-light" closeButton>
         <Modal.Title>
-          {myTeams ? "Category" : "Add a New Team"}
+          {myTeams ? "Team" : "Add a New Team"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="name">
-            <Form.Label>Category Name</Form.Label>
+            <Form.Label>Company</Form.Label>
             <Form.Control
               type="text"
-              name="category"
-              value={formData.category}
+              name="company"
+              value={formData.company}
               onChange={handleInputChange}
-              placeholder="Podcast studio "
+              placeholder="Name "
               required
             />
           </Form.Group>
+          <Form.Group className="mb-3" controlId="name">
+            <Form.Label>Department</Form.Label>
+            <Form.Control
+              type="text"
+              name="department"
+              value={formData.department}
+              onChange={handleInputChange}
+              placeholder="Department "
+              required
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="name">
+            <Form.Label>Description</Form.Label>
+            <Form.Control
+              type="textbox"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Description "
+              required
+            />
+          </Form.Group>
+
           <div>
-            <Form.Group className="mb-3" controlId="location_id">
-              <Form.Label>Location</Form.Label>
+            <Form.Group className="mb-3" controlId="manager">
+              <Form.Label>Manager</Form.Label>
               <Form.Select
-                name="location_id"
-                value={formData.location_id}
+                name="manager"
+                value={formData.manager}
                 onChange={handleInputChange}
                 required
               >
-                <option value="">Select a location</option>
-                {Array.isArray(locations) &&
-                  locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.name} at {location.state} state
+                <option value="">Select a user</option>
+                {Array.isArray(users) &&
+                  users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.first_name} {user.last_name} 
                     </option>
                   ))}
               </Form.Select>
             </Form.Group>
-
             {/* {myTeams ? (
                             <>
                                 <Form.Label>
-                                    Select the location you want to add the Room/Space Category.
+                                    Select the user you want to add the Room/Space Category.
                                 </Form.Label>
                                 <Form.Select
                                     style={{ marginBottom: "25px", fontSize: "1rem" }}
@@ -205,14 +237,14 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
                                     onChange={handleLocationChange}
                                     required
                                 >
-                                    <option disabled value={formData.location_id}>
+                                    <option disabled value={formData.manager}>
                                         {isLocationName}
                                     </option>
                                 </Form.Select>
                             </>
                         ) : (
                             <>
-                                <Form.Label>Select the location you want to add the room/space.</Form.Label>
+                                <Form.Label>Select the user you want to add the room/space.</Form.Label>
                                 <Form.Select
                                     style={{ marginBottom: "25px", fontSize: "1rem" }}
                                     value={selectedLocation || ""}
@@ -220,11 +252,11 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
                                     required
                                 >
                                     <option value="" disabled>
-                                        Select a location
+                                        Select a user
                                     </option>
-                                    {locations.map((location) => (
-                                        <option key={location.id} value={location.id}>
-                                            {location.name} at {location.state}
+                                    {users.map((user) => (
+                                        <option key={user.id} value={user.id}>
+                                            {user.name} at {user.state}
                                         </option>
                                     ))}
                                 </Form.Select>
@@ -242,7 +274,7 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
                 as="span"
                 animation="border"
                 size="sm"
-                locations="status"
+                users="status"
                 aria-hidden="true"
               />
             ) : myTeams ? (

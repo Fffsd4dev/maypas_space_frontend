@@ -14,18 +14,26 @@ const notificationContainerStyle = {
 const notificationShowContainerStyle = {
   maxHeight: "300px"
 };
-const NotificationDropdown = props => {
+const NotificationDropdown = ({ notifications, fetchNotification }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [notificationContentStyle, setNotificationContentStyles] = useState(notificationContainerStyle);
-  let notifications = props.notifications;
+  const [notificationContentStyle, setNotificationContentStyles] = useState(
+    notificationContainerStyle
+  );
 
   /*
    * toggle notification-dropdown
    */
-  const toggleDropdown = () => {
-    setDropdownOpen(!dropdownOpen);
-    setNotificationContentStyles(notificationContentStyle === notificationContainerStyle ? notificationShowContainerStyle : notificationContainerStyle);
-  };
+  const toggleDropdown = (isOpen) => {
+    setDropdownOpen(isOpen);
+    fetchNotification();
+    setNotificationContentStyles(
+      isOpen ? notificationShowContainerStyle : notificationContainerStyle
+    );
+    // Fetch notifications when the dropdown is closed
+    if (!isOpen) {
+      fetchNotification();
+    }
+    };
   const handleClearNotification = index => {
     notifications.splice(index, 1);
   };
@@ -46,59 +54,45 @@ const NotificationDropdown = props => {
                 <h6 className="m-0 font-16 fw-semibold">Notification</h6>
               </div>
               <div className="col-auto">
-                <Link to="#" className="text-dark text-decoration-underline">
+                {/* <Link to="#" className="text-dark text-decoration-underline">
                   <small>Clear All</small>
-                </Link>
+                </Link> */}
               </div>
             </div>
           </div>
-          <SimpleBar className="px-1" style={notificationContentStyle}>
-            <h5 className="text-muted font-13 fw-normal mt-2">Today</h5>
-            {(notifications || []).map((item, i) => {
-            return <Link to="#" className="dropdown-item p-0 notify-item card unread-noti shadow-none mb-1" key={i + "-noti"}>
-                  {item.avatar ? <div className="card-body">
-                      <span className="float-end noti-close-btn text-muted" onClick={() => handleClearNotification(i)}>
-                        <i className="mdi mdi-close"></i>
-                      </span>
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0">
-                          <div className="notify-icon">
-                            <img src={item.avatar} alt="" className="img-fluid rounded-circle" />
-                          </div>
-                        </div>
-                        <div className="flex-grow-1 text-truncate ms-2">
-                          <h5 className="noti-item-title fw-semibold font-14">
-                            {item.text}
-                            <small className="fw-normal text-muted ms-1">
-                              {item.text}
-                            </small>
-                          </h5>
-                          <small className="noti-item-subtitle text-muted">
-                            {item.subText}
-                          </small>
-                        </div>
-                      </div>
-                    </div> : <div className="card-body">
-                      <span className="float-end noti-close-btn text-muted" onClick={() => handleClearNotification(i)}>
-                        <i className="mdi mdi-close" />
-                      </span>
+          <SimpleBar className="px-1" style={{ maxHeight: "300px" }}>
+            {(notifications || []).map((item, i) => (
+              <div
+                className="dropdown-item p-0 notify-item card shadow-none mb-1"
+                key={i}
+                style={{
+                  backgroundColor: item.is_read ? "#E8F5E9" : "#FFEBEE", // Green for read, red for unread
+                }}
+              >
+                <div className="card-body">
+                  <div className="d-flex align-items-center">
+                    <div className="flex-shrink-0">
                       <div className={`notify-icon bg-${item.bgColor}`}>
                         <i className={item.icon}></i>
                       </div>
-                      <p className="notify-details">
+                    </div>
+                    <div className="flex-grow-1 text-truncate ms-2">
+                      <h5 className="noti-item-title fw-semibold font-14">
                         {item.text}
-                        <small className="noti-item-subtitle text-muted">
-                          {item.subText}
-                        </small>
-                      </p>
-                    </div>}
-                </Link>;
-          })}
+                      </h5>
+                      <small className="noti-item-subtitle text-muted">
+                        {item.subText}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </SimpleBar>
 
-          <Link to="#" className="dropdown-item text-center text-primary notify-item notify-all">
+          {/* <Link to="#" className="dropdown-item text-center text-primary notify-item notify-all">
             View All <i className="fe-arrow-right"></i>
-          </Link>
+          </Link> */}
         </div>
       </Dropdown.Menu>
     </Dropdown>;

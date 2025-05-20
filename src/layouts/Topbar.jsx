@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 
 // components
@@ -24,42 +24,8 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 
 
 
-// get the notifications
-const Notifications = [{
-  id: 1,
-  text: "Cristina Pride",
-  subText: "Hi, How are you? What about our next meeting",
-  avatar: profilePic
-}, {
-  id: 2,
-  text: "Caleb Flakelar commented on Admin",
-  subText: "1 min ago",
-  icon: "mdi mdi-comment-account-outline",
-  bgColor: "primary"
-}, {
-  id: 3,
-  text: "Karen Robinson",
-  subText: "Wow ! this admin looks good and awesome design",
-  avatar: avatar4
-}, {
-  id: 4,
-  text: "New user registered.",
-  subText: "5 hours ago",
-  icon: "mdi mdi-account-plus",
-  bgColor: "warning"
-}, {
-  id: 5,
-  text: "Caleb Flakelar commented on Admin",
-  subText: "1 min ago",
-  icon: "mdi mdi-comment-account-outline",
-  bgColor: "info"
-}, {
-  id: 6,
-  text: "Carlos Crouch liked Admin",
-  subText: "13 days ago",
-  icon: "mdi mdi-heart",
-  bgColor: "secondary"
-}];
+
+
 
 // dummy search results
 const SearchResults = [{
@@ -128,11 +94,88 @@ const Topbar = ({
     themeCustomizer
   } = useLayoutContext();
 
+
+
   const {user} = useAuthContext();
   const  tenantSlug  = user?.tenant;
   const tenantFirstName = user?.tenantFirstName;
   const navbarCssClasses = navCssClasses || "";
   const containerCssClasses = !hideLogo ? "container-fluid" : "";
+
+  // get the notifications
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+   const [pagination, setPagination] = useState({
+      currentPage: 1,
+      totalPages: 1,
+      nextPageUrl: null,
+      prevPageUrl: null,
+      pageSize: 10,
+    });
+
+  // Fetch notifications
+  const fetchNotification = async (page = 1, pageSize = 10) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/notification/view-my-notifications`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${user?.tenantToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Notification Result:", result);
+      if (result && Array.isArray(result)) {
+        const fetchedData = result;
+        fetchedData.sort(
+          (a, b) =>
+            new Date(b.updated_at || b.created_at) -
+            new Date(a.updated_at || a.created_at)
+        );
+        setData(fetchedData);
+        setPagination({
+          currentPage: result.data.current_page,
+          totalPages: result.data.last_page,
+          nextPageUrl: result.data.next_page_url,
+          prevPageUrl: result.data.prev_page_url,
+          pageSize: pageSize,
+        });
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotification();
+  }, [user?.tenantToken ]);
+
+  // Notifications array
+  const Notifications = data.map((item, i) => ({
+    id: i,
+    text: item.name,
+    subText: item.description,
+    icon: "mdi mdi-comment-account-outline",
+    bgColor: "info",
+    time: item.updated_at,
+    redirectTo: "#",
+    is_read: item.is_read,
+  }));
+  
 
   const ProfileMenus = [
   //   {
@@ -255,7 +298,7 @@ const Topbar = ({
                             <LanguageDropdown />
                         </li> */}
                         <li className="dropdown notification-list">
-                            <NotificationDropdown notifications={Notifications} />
+                            <NotificationDropdown notifications={Notifications} fetchNotification={fetchNotification} />
                         </li>
                         <li className="dropdown">
                             <ProfileDropdown profilePic={profilePic} menuItems={ProfileMenus} username={tenantFirstName}  />

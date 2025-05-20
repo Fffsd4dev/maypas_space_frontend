@@ -1,4 +1,4 @@
-import { Button, Row, Col, FormGroup, FormLabel, FormControl } from "react-bootstrap";
+import { Button, Row, Col, FormGroup, FormLabel, FormControl, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import classNames from "classnames";
@@ -77,7 +77,8 @@ const Login = () => {
     login,
     control,
     popup,
-    setPopup
+    setPopup,
+    loading
   } = useLogin();
 
   
@@ -121,9 +122,19 @@ const Login = () => {
                     </div>
 
                     <div className="text-center d-grid">
-                        <Button variant="primary" type="submit">
-                            {t("Log In")}
-                        </Button>
+                    <Button variant="primary" type="submit" disabled={loading}>
+  {loading ? (
+    <Spinner
+      as="span"
+      animation="border"
+      size="sm"
+      role="status"
+      aria-hidden="true"
+    />
+  ) : (
+    t("Log In")
+  )}
+</Button>
                     </div>
                 </form>
 

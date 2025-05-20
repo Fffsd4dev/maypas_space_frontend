@@ -14,7 +14,7 @@ const DealsChart = () => {
         columnWidth: "50%"
       }
     },
-    colors: ["#1abc9c", "#f1556c"],
+    colors: ["#1abc9c", "#fe0002"],
     dataLabels: {
       enabled: true,
       enabledOnSeries: [1]

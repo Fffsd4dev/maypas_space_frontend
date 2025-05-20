@@ -1,27 +1,4708 @@
+// // // import React, { useState, useEffect } from "react";
+// // // import { Link } from "react-router-dom";
+// // // import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
+// // // import PageTitle from "../../../components/PageTitle";
+// // // import { useAuthContext } from "@/context/useAuthContext.jsx";
+// // // import Popup from "../../../components/Popup/Popup";
+// // // import Table2 from "../../../components/Table2";
+// // // import { toast } from "react-toastify";
+
+// // // const SeatBookingSystem = () => {
+// // //   const { user } = useAuthContext();
+// // //   const tenantToken = user?.tenantToken;
+// // //   const tenantSlug = user?.tenant;
+
+// // //   // State variables
+// // //   const [show, setShow] = useState(false);
+// // //   const [data, setData] = useState([]);
+// // //   const [loading, setLoading] = useState(true);
+// // //   const [loadingLocations, setLoadingLocations] = useState(true);
+// // //   const [loadingFloor, setLoadingFloor] = useState(false);
+// // //   const [floorData, setFloorData] = useState([]);
+// // //   const [roomsData, setRoomsData] = useState([]);
+// // //   const [selectedRoom, setSelectedRoom] = useState(null);
+// // //   const [roomDetails, setRoomDetails] = useState(null);
+// // //   const [spaceCards, setSpaceCards] = useState([]);
+// // //   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+// // //   const [selectedUser, setSelectedUser] = useState(null);
+// // //   const [isLoading, setIsLoading] = useState(false);
+// // //   const [isError, setIsError] = useState(false);
+// // //   const [locations, setLocations] = useState([]);
+// // //   const [selectedLocation, setSelectedLocation] = useState(null);
+
+// // //   const [popup, setPopup] = useState({
+// // //     message: "",
+// // //     type: "",
+// // //     isVisible: false,
+// // //     buttonLabel: "",
+// // //     buttonRoute: "",
+// // //   });
+
+// // //   const [deletePopup, setDeletePopup] = useState({
+// // //     isVisible: false,
+// // //     myRoomID: null,
+// // //   });
+
+// // //   const [pagination, setPagination] = useState({
+// // //     currentPage: 1,
+// // //     totalPages: 1,
+// // //     nextPageUrl: null,
+// // //     prevPageUrl: null,
+// // //     pageSize: 10,
+// // //   });
+
+// // //   const [formData, setFormData] = useState({
+// // //     name: "",
+// // //     location_id: "",
+// // //     floor_id: "",
+// // //     room_id: ""
+// // //   });
+
+// // //   // Format date time
+// // //   const formatDateTime = (isoString) => {
+// // //     const options = {
+// // //       year: "numeric",
+// // //       month: "long",
+// // //       day: "numeric",
+// // //       hour: "2-digit",
+// // //       minute: "2-digit",
+// // //       second: "2-digit",
+// // //     };
+// // //     return new Date(isoString).toLocaleDateString("en-US", options);
+// // //   };
+
+// // //   // Fetch locations
+// // //   const fetchLocations = async () => {
+// // //     setLoadingLocations(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+// // //         {
+// // //           headers: { Authorization: `Bearer ${user.tenantToken}` },
+// // //         }
+// // //       );
+// // //       const result = await response.json();
+// // //       if (response.ok) {
+// // //         setLocations(result.data.data || []);
+// // //       } else {
+// // //         throw new Error(result.message || "Failed to fetch locations.");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoadingLocations(false);
+// // //     }
+// // //   };
+
+// // //   // Handle location change
+// // //   const handleLocationChange = (e) => {
+// // //     const locationId = e.target.value;
+// // //     setSelectedLocation(locationId);
+// // //     setFormData((prev) => ({
+// // //       ...prev,
+// // //       location_id: locationId,
+// // //       floor_id: "",
+// // //       room_id: ""
+// // //     }));
+// // //     setFloorData([]);
+// // //     setRoomsData([]);
+// // //     setData([]);
+// // //     setSpaceCards([]);
+// // //     setRoomDetails(null);
+// // //   };
+
+// // //   // Fetch floors for selected location
+// // //   const fetchFloor = async (locationId) => {
+// // //     setLoadingFloor(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+// // //         {
+// // //           method: "GET",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //           },
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // //       }
+
+// // //       const result = await response.json();
+// // //       if (result && Array.isArray(result.data.data)) {
+// // //         setFloorData(result.data.data);
+// // //       } else {
+// // //         throw new Error("Invalid response format");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoadingFloor(false);
+// // //     }
+// // //   };
+
+// // //   // Fetch rooms for selected floor
+// // //   const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+// // //     setLoading(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+// // //         {
+// // //           method: "GET",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //           },
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // //       }
+
+// // //       const result = await response.json();
+// // //       if (result && Array.isArray(result)) {
+// // //         const sortedData = result.sort(
+// // //           (a, b) =>
+// // //             new Date(b.updated_at || b.created_at) -
+// // //             new Date(a.updated_at || a.created_at)
+// // //         );
+// // //         setRoomsData(sortedData);
+// // //         setData(sortedData);
+// // //         setPagination({
+// // //           currentPage: result.current_page,
+// // //           totalPages: result.last_page,
+// // //           nextPageUrl: result.next_page_url,
+// // //           prevPageUrl: result.prev_page_url,
+// // //           pageSize: pageSize,
+// // //         });
+// // //       } else {
+// // //         throw new Error("Invalid response format");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoading(false);
+// // //     }
+// // //   };
+
+// // //   // Generate space cards based on space_number
+// // //   const generateSpaceCards = (spaceNumber) => {
+// // //     if (!spaceNumber || isNaN(spaceNumber) || spaceNumber <= 0) return [];
+    
+// // //     const cards = [];
+// // //     for (let i = 1; i <= spaceNumber; i++) {
+// // //       cards.push({
+// // //         id: i,
+// // //         space_number: i,
+// // //         is_available: true, // Default to available
+// // //         space_fee: roomDetails?.space_fee || 0,
+// // //         space_type: 'Standard'
+// // //       });
+// // //     }
+// // //     return cards;
+// // //   };
+
+// // //   // Fetch individual room details and generate space cards
+// // //   const fetchRoomDetails = async (roomId) => {
+// // //     if (!roomId) {
+// // //       setRoomDetails(null);
+// // //       setSpaceCards([]);
+// // //       return;
+// // //     }
+
+// // //     setLoadingRoomDetails(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+// // //         {
+// // //           method: "GET",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //           },
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+// // //       }
+
+// // //       const result = await response.json();
+// // //       if (result && result.data) {
+// // //         setRoomDetails(result.data);
+// // //         // Generate space cards based on space_number
+// // //         const cards = generateSpaceCards(result.data.space_number);
+// // //         setSpaceCards(cards);
+// // //       } else {
+// // //         throw new Error("Invalid room details format");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoadingRoomDetails(false);
+// // //     }
+// // //   };
+
+// // //   // Handle floor change
+// // //   const handleFloorChange = (e) => {
+// // //     const floorId = e.target.value;
+// // //     setFormData((prev) => ({
+// // //       ...prev,
+// // //       floor_id: floorId,
+// // //       room_id: ""
+// // //     }));
+// // //     setSelectedRoom(null);
+// // //     setSpaceCards([]);
+// // //     setRoomDetails(null);
+
+// // //     if (floorId && selectedLocation) {
+// // //       fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
+// // //     }
+// // //   };
+
+// // //   // Handle room change
+// // //   const handleRoomChange = async (e) => {
+// // //     const roomId = e.target.value;
+// // //     setSelectedRoom(roomId);
+// // //     setFormData((prev) => ({
+// // //       ...prev,
+// // //       room_id: roomId
+// // //     }));
+
+// // //     if (roomId) {
+// // //       const filteredData = roomsData.filter(room => room.id === roomId);
+// // //       setData(filteredData);
+// // //       await fetchRoomDetails(roomId);
+// // //     } else {
+// // //       setData(roomsData);
+// // //       setSpaceCards([]);
+// // //       setRoomDetails(null);
+// // //     }
+// // //   };
+
+// // //   // Handle edit click
+// // //   const handleEditClick = (myRoom) => {
+// // //     setSelectedUser(myRoom);
+// // //     setShow(true);
+// // //   };
+
+// // //   // Handle close modal
+// // //   const handleClose = () => {
+// // //     setShow(false);
+// // //     setSelectedUser(null);
+
+// // //     if (selectedLocation && formData.floor_id) {
+// // //       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+// // //     }
+// // //   };
+
+// // //   // Handle delete
+// // //   const handleDelete = async (myRoomID) => {
+// // //     if (!user?.tenantToken) return;
+
+// // //     setIsLoading(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,
+// // //         {
+// // //           method: "POST",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //             "Content-Type": "application/json",
+// // //           },
+// // //           body: JSON.stringify({ id: myRoomID }),
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // //       }
+
+// // //       setData((prevData) => prevData.filter((myRoom) => myRoom.id !== myRoomID));
+// // //       setPopup({
+// // //         message: "Room deleted successfully!",
+// // //         type: "success",
+// // //         isVisible: true,
+// // //       });
+      
+// // //       if (formData.floor_id && selectedLocation) {
+// // //         fetchRoom(
+// // //           selectedLocation,
+// // //           formData.floor_id,
+// // //           pagination.currentPage,
+// // //           pagination.pageSize
+// // //         );
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error("Failed to delete room!");
+// // //     } finally {
+// // //       setIsLoading(false);
+// // //     }
+// // //   };
+
+// // //   // Handle delete button click
+// // //   const handleDeleteButton = (myRoomID) => {
+// // //     setDeletePopup({
+// // //       isVisible: true,
+// // //       myRoomID,
+// // //     });
+// // //   };
+
+// // //   // Confirm delete
+// // //   const confirmDelete = () => {
+// // //     const { myRoomID } = deletePopup;
+// // //     handleDelete(myRoomID);
+// // //     setDeletePopup({ isVisible: false, myRoomID: null });
+// // //   };
+
+// // //   // Table columns
+// // //   const columns = [
+// // //     {
+// // //       Header: "S/N",
+// // //       accessor: (row, i) => i + 1,
+// // //       id: "serialNo",
+// // //       sort: false,
+// // //     },
+// // //     {
+// // //       Header: "Room Name",
+// // //       accessor: "space_name",
+// // //       sort: true,
+// // //     },
+// // //     {
+// // //       Header: "Space Number",
+// // //       accessor: "space_number",
+// // //       sort: true,
+// // //     },
+// // //     {
+// // //       Header: "Space Fee",
+// // //       accessor: "space_fee",
+// // //       sort: true,
+// // //     },
+// // //     {
+// // //       Header: "Created On",
+// // //       accessor: "created_at",
+// // //       sort: true,
+// // //       Cell: ({ row }) => formatDateTime(row.original.created_at),
+// // //     },
+// // //     {
+// // //       Header: "Updated On",
+// // //       accessor: "updated_at",
+// // //       sort: true,
+// // //       Cell: ({ row }) => formatDateTime(row.original.updated_at),
+// // //     },
+// // //     {
+// // //       Header: "Action",
+// // //       accessor: "action",
+// // //       sort: false,
+// // //       Cell: ({ row }) => (
+// // //         <>
+// // //           <Link
+// // //             to="#"
+// // //             className="action-icon"
+// // //             onClick={() => handleEditClick(row.original)}
+// // //           >
+// // //             <i className="mdi mdi-square-edit-outline"></i>
+// // //           </Link>
+// // //           <Link
+// // //             to="#"
+// // //             className="action-icon"
+// // //             onClick={() => handleDeleteButton(row.original.id)}
+// // //           >
+// // //             <i className="mdi mdi-delete"></i>
+// // //           </Link>
+// // //         </>
+// // //       ),
+// // //     },
+// // //   ];
+
+// // //   // Use effects
+// // //   useEffect(() => {
+// // //     if (user?.tenantToken) {
+// // //       fetchLocations();
+// // //     }
+// // //   }, [user?.tenantToken]);
+
+// // //   useEffect(() => {
+// // //     if (selectedLocation) {
+// // //       fetchFloor(selectedLocation);
+// // //     }
+// // //   }, [selectedLocation]);
+
+// // //   useEffect(() => {
+// // //     if (formData.floor_id && user?.tenantToken) {
+// // //       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+// // //     }
+// // //   }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+
+// // //   return (
+// // //     <>
+// // //       <PageTitle
+// // //         breadCrumbItems={[
+// // //           { label: "My Rooms", path: "/room/my-rooms", active: true },
+// // //         ]}
+// // //         title="My Rooms"
+// // //       />
+
+// // //       <Row>
+// // //         <Col>
+// // //           <Card>
+// // //             <Card.Body>
+// // //               <Card>
+// // //                 <Card.Body style={{ 
+// // //                   background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", 
+// // //                   marginTop: "30px" 
+// // //                 }}>
+// // //                   {/* Location Selection */}
+// // //                   {loadingLocations ? (
+// // //                     <div className="text-center">
+// // //                       <Spinner animation="border" role="status">
+// // //                         <span className="visually-hidden">Loading...</span>
+// // //                       </Spinner>{" "}
+// // //                       Loading your locations...
+// // //                     </div>
+// // //                   ) : (
+// // //                     <div>
+// // //                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+// // //                         Select a location to view or update the room.
+// // //                       </p>
+// // //                       <Form.Select
+// // //                         style={{ marginBottom: "25px", fontSize: "1rem" }}
+// // //                         value={selectedLocation || ""}
+// // //                         onChange={handleLocationChange}
+// // //                       >
+// // //                         <option value="" disabled>
+// // //                           Select a location
+// // //                         </option>
+// // //                         {locations.map((location) => (
+// // //                           <option key={location.id} value={location.id}>
+// // //                             {location.name} at {location.state}
+// // //                           </option>
+// // //                         ))}
+// // //                       </Form.Select>
+// // //                     </div>
+// // //                   )}
+
+// // //                   {/* Floor Selection */}
+// // //                   {selectedLocation && (
+// // //                     <Form.Group className="mb-3" controlId="location_id">
+// // //                       {loadingFloor ? (
+// // //                         <div className="text-center">
+// // //                           <Spinner animation="border" role="status">
+// // //                             <span className="visually-hidden">Loading floors/sections...</span>
+// // //                           </Spinner>
+// // //                         </div>
+// // //                       ) : (
+// // //                         <>
+// // //                           <Form.Label>
+// // //                             Select the Floor of the room you want to view.
+// // //                           </Form.Label>
+// // //                           <Form.Select
+// // //                             name="floor_id"
+// // //                             value={formData.floor_id}
+// // //                             onChange={handleFloorChange}
+// // //                             required
+// // //                           >
+// // //                             <option value="">Select a Floor/Section</option>
+// // //                             {Array.isArray(floorData) &&
+// // //                               floorData.map((floor) => (
+// // //                                 <option key={floor.id} value={floor.id}>
+// // //                                   {floor.name}
+// // //                                 </option>
+// // //                               ))}
+// // //                           </Form.Select>
+// // //                         </>
+// // //                       )}
+// // //                     </Form.Group>
+// // //                   )}
+
+// // //                   {/* Room Selection */}
+// // //                   {formData.floor_id && (
+// // //                     <Form.Group className="mb-3" controlId="room_id">
+// // //                       <Form.Label>
+// // //                         Select a specific room (optional)
+// // //                       </Form.Label>
+// // //                       <Form.Select
+// // //                         name="room_id"
+// // //                         value={formData.room_id}
+// // //                         onChange={handleRoomChange}
+// // //                       >
+// // //                         <option value="">All Rooms</option>
+// // //                         {Array.isArray(roomsData) &&
+// // //                           roomsData.map((room) => (
+// // //                             <option key={room.id} value={room.id}>
+// // //                               {room.space_name} (No: {room.space_number})
+// // //                             </option>
+// // //                           ))}
+// // //                       </Form.Select>
+// // //                     </Form.Group>
+// // //                   )}
+
+// // //                   {/* Rooms Table */}
+// // //                   {formData.floor_id && (
+// // //                     <>
+// // //                       {loading ? (
+// // //                         <p>Loading rooms...</p>
+// // //                       ) : isLoading ? (
+// // //                         <div className="text-center">
+// // //                           <Spinner animation="border" role="status">
+// // //                             <span className="visually-hidden">Deleting...</span>
+// // //                           </Spinner>{" "}
+// // //                           Deleting...
+// // //                         </div>
+// // //                       ) : (
+// // //                         <>
+// // //                           <Table2
+// // //                             columns={columns}
+// // //                             data={data}
+// // //                             pageSize={pagination.pageSize}
+// // //                             isSortable
+// // //                             pagination
+// // //                             isSearchable
+// // //                             tableClass="table-striped dt-responsive nowrap w-100"
+// // //                             searchBoxClass="my-2"
+// // //                             paginationProps={{
+// // //                               currentPage: pagination.currentPage,
+// // //                               totalPages: pagination.totalPages,
+// // //                               onPageChange: (page) =>
+// // //                                 setPagination((prev) => ({
+// // //                                   ...prev,
+// // //                                   currentPage: page,
+// // //                                 })),
+// // //                               onPageSizeChange: (pageSize) =>
+// // //                                 setPagination((prev) => ({ ...prev, pageSize })),
+// // //                             }}
+// // //                           />
+
+// // //                           {/* Room Details and Spaces Section */}
+// // //                           {selectedRoom && (
+// // //                             <div className="mt-4">
+// // //                               {/* Room Details Card */}
+// // //                               {loadingRoomDetails ? (
+// // //                                 <div className="text-center mb-4">
+// // //                                   <Spinner animation="border" role="status">
+// // //                                     <span className="visually-hidden">Loading room details...</span>
+// // //                                   </Spinner>
+// // //                                 </div>
+// // //                               ) : roomDetails ? (
+// // //                                 <Card className="mb-4">
+// // //                                   <Card.Header className="d-flex justify-content-between align-items-center">
+// // //                                     <h5 className="mb-0">Room Details</h5>
+// // //                                     <Badge bg="info">ID: {roomDetails.id}</Badge>
+// // //                                   </Card.Header>
+// // //                                   <Card.Body>
+// // //                                     <Row>
+// // //                                       <Col md={6}>
+// // //                                         <p><strong>Name:</strong> {roomDetails.space_name}</p>
+// // //                                         <p><strong>Number:</strong> {roomDetails.space_number}</p>
+// // //                                         <p><strong>Capacity:</strong> {roomDetails.capacity || 'N/A'}</p>
+// // //                                       </Col>
+// // //                                       <Col md={6}>
+// // //                                         <p><strong>Fee:</strong> ${roomDetails.space_fee || '0.00'}</p>
+// // //                                         <p><strong>Status:</strong> 
+// // //                                           <Badge bg={roomDetails.status === 'active' ? 'success' : 'secondary'} className="ms-2">
+// // //                                             {roomDetails.status || 'N/A'}
+// // //                                           </Badge>
+// // //                                         </p>
+// // //                                         <p><strong>Created:</strong> {formatDateTime(roomDetails.created_at)}</p>
+// // //                                       </Col>
+// // //                                     </Row>
+// // //                                     {roomDetails.description && (
+// // //                                       <div className="mt-3">
+// // //                                         <strong>Description:</strong>
+// // //                                         <Card className="mt-1">
+// // //                                           <Card.Body className="p-2">
+// // //                                             {roomDetails.description}
+// // //                                           </Card.Body>
+// // //                                         </Card>
+// // //                                       </div>
+// // //                                     )}
+// // //                                   </Card.Body>
+// // //                                 </Card>
+// // //                               ) : (
+// // //                                 <Alert variant="warning" className="mb-4">
+// // //                                   No details available for this room
+// // //                                 </Alert>
+// // //                               )}
+
+// // //                               {/* Spaces Section */}
+// // //                               <h4 className="mb-3">Available Spaces</h4>
+// // //                               {loadingRoomDetails ? (
+// // //                                 <div className="text-center">
+// // //                                   <Spinner animation="border" role="status">
+// // //                                     <span className="visually-hidden">Loading spaces...</span>
+// // //                                   </Spinner>
+// // //                                 </div>
+// // //                               ) : spaceCards && spaceCards.length > 0 ? (
+// // //                                 <>
+// // //                                   <p className="mb-3">Total spaces: {spaceCards.length}</p>
+// // //                                   <Row>
+// // //                                     {spaceCards.map((space) => (
+// // //                                       <Col key={space.id} md={3} className="mb-3">
+// // //                                         <Card className="h-100">
+// // //                                           <Card.Body className="d-flex flex-column">
+// // //                                             <Card.Title className="d-flex justify-content-between align-items-center">
+// // //                                               <span>Space {space.space_number}</span>
+// // //                                               <Badge bg={space.is_available ? "success" : "danger"}>
+// // //                                                 {space.is_available ? "Available" : "Occupied"}
+// // //                                               </Badge>
+// // //                                             </Card.Title>
+// // //                                             <Card.Text className="flex-grow-1">
+// // //                                               <div><strong>Number:</strong> {space.space_number}</div>
+// // //                                               <div><strong>Fee:</strong> ${space.space_fee}</div>
+// // //                                               <div><strong>Type:</strong> {space.space_type}</div>
+// // //                                             </Card.Text>
+// // //                                             <div className="mt-auto">
+// // //                                               <Button 
+// // //                                                 variant={space.is_available ? "primary" : "secondary"} 
+// // //                                                 size="sm"
+// // //                                                 disabled={!space.is_available}
+// // //                                                 className="w-100"
+// // //                                               >
+// // //                                                 {space.is_available ? "Book Now" : "Unavailable"}
+// // //                                               </Button>
+// // //                                             </div>
+// // //                                           </Card.Body>
+// // //                                         </Card>
+// // //                                       </Col>
+// // //                                     ))}
+// // //                                   </Row>
+// // //                                 </>
+// // //                               ) : (
+// // //                                 <Alert variant="info">
+// // //                                   {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
+// // //                                 </Alert>
+// // //                               )}
+// // //                             </div>
+// // //                           )}
+// // //                         </>
+// // //                       )}
+// // //                     </>
+// // //                   )}
+// // //                 </Card.Body>
+// // //               </Card>
+// // //             </Card.Body>
+// // //           </Card>
+// // //         </Col>
+// // //       </Row>
+
+// // //       {/* Popups */}
+// // //       {popup.isVisible && (
+// // //         <Popup
+// // //           message={popup.message}
+// // //           type={popup.type}
+// // //           onClose={() => setPopup({ ...popup, isVisible: false })}
+// // //           buttonLabel={popup.buttonLabel}
+// // //           buttonRoute={popup.buttonRoute}
+// // //         />
+// // //       )}
+
+// // //       {deletePopup.isVisible && (
+// // //         <Popup
+// // //           message="Are you sure you want to delete this room?"
+// // //           type="confirm"
+// // //           onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+// // //           buttonLabel="Yes"
+// // //           onAction={confirmDelete}
+// // //         />
+// // //       )}
+// // //     </>
+// // //   );
+// // // };
+
+// // // // // export default SeatBookingSystem;
+
+
+
+
+
+// // // import React, { useState, useEffect } from "react";
+// // // import { Link } from "react-router-dom";
+// // // import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
+// // // import PageTitle from "../../../components/PageTitle";
+// // // import { useAuthContext } from "@/context/useAuthContext.jsx";
+// // // import Popup from "../../../components/Popup/Popup";
+// // // import Table2 from "../../../components/Table2";
+// // // import { toast } from "react-toastify";
+
+// // // const SeatBookingSystem = () => {
+// // //   const { user } = useAuthContext();
+// // //   const tenantToken = user?.tenantToken;
+// // //   const tenantSlug = user?.tenant;
+
+// // //   // State variables
+// // //   const [show, setShow] = useState(false);
+// // //   const [data, setData] = useState([]);
+// // //   const [loading, setLoading] = useState(true);
+// // //   const [loadingLocations, setLoadingLocations] = useState(true);
+// // //   const [loadingFloor, setLoadingFloor] = useState(false);
+// // //   const [floorData, setFloorData] = useState([]);
+// // //   const [roomsData, setRoomsData] = useState([]);
+// // //   const [selectedRoom, setSelectedRoom] = useState(null);
+// // //   const [roomDetails, setRoomDetails] = useState(null);
+// // //   const [spaceCards, setSpaceCards] = useState([]);
+// // //   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+// // //   const [selectedUser, setSelectedUser] = useState(null);
+// // //   const [isLoading, setIsLoading] = useState(false);
+// // //   const [isError, setIsError] = useState(false);
+// // //   const [locations, setLocations] = useState([]);
+// // //   const [selectedLocation, setSelectedLocation] = useState(null);
+
+// // //   // Booking popup states
+// // //   const [showBookingPopup, setShowBookingPopup] = useState(false);
+// // //   const [selectedSpace, setSelectedSpace] = useState(null);
+// // //   const [bookingFormData, setBookingFormData] = useState({
+// // //     name: "",
+// // //     email: "",
+// // //     phone: "",
+// // //     start_date: "",
+// // //     end_date: "",
+// // //     notes: ""
+// // //   });
+
+// // //   const [popup, setPopup] = useState({
+// // //     message: "",
+// // //     type: "",
+// // //     isVisible: false,
+// // //     buttonLabel: "",
+// // //     buttonRoute: "",
+// // //   });
+
+// // //   const [deletePopup, setDeletePopup] = useState({
+// // //     isVisible: false,
+// // //     myRoomID: null,
+// // //   });
+
+// // //   const [pagination, setPagination] = useState({
+// // //     currentPage: 1,
+// // //     totalPages: 1,
+// // //     nextPageUrl: null,
+// // //     prevPageUrl: null,
+// // //     pageSize: 10,
+// // //   });
+
+// // //   const [formData, setFormData] = useState({
+// // //     name: "",
+// // //     location_id: "",
+// // //     floor_id: "",
+// // //     room_id: ""
+// // //   });
+
+// // //   // Format date time
+// // //   const formatDateTime = (isoString) => {
+// // //     const options = {
+// // //       year: "numeric",
+// // //       month: "long",
+// // //       day: "numeric",
+// // //       hour: "2-digit",
+// // //       minute: "2-digit",
+// // //       second: "2-digit",
+// // //     };
+// // //     return new Date(isoString).toLocaleDateString("en-US", options);
+// // //   };
+
+// // //   // Fetch locations
+// // //   const fetchLocations = async () => {
+// // //     setLoadingLocations(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+// // //         {
+// // //           headers: { Authorization: `Bearer ${user.tenantToken}` },
+// // //         }
+// // //       );
+// // //       const result = await response.json();
+// // //       if (response.ok) {
+// // //         setLocations(result.data.data || []);
+// // //       } else {
+// // //         throw new Error(result.message || "Failed to fetch locations.");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoadingLocations(false);
+// // //     }
+// // //   };
+
+// // //   // Handle location change
+// // //   const handleLocationChange = (e) => {
+// // //     const locationId = e.target.value;
+// // //     setSelectedLocation(locationId);
+// // //     setFormData((prev) => ({
+// // //       ...prev,
+// // //       location_id: locationId,
+// // //       floor_id: "",
+// // //       room_id: ""
+// // //     }));
+// // //     setFloorData([]);
+// // //     setRoomsData([]);
+// // //     setData([]);
+// // //     setSpaceCards([]);
+// // //     setRoomDetails(null);
+// // //   };
+
+// // //   // Fetch floors for selected location
+// // //   const fetchFloor = async (locationId) => {
+// // //     setLoadingFloor(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+// // //         {
+// // //           method: "GET",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //           },
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // //       }
+
+// // //       const result = await response.json();
+// // //       if (result && Array.isArray(result.data.data)) {
+// // //         setFloorData(result.data.data);
+// // //       } else {
+// // //         throw new Error("Invalid response format");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoadingFloor(false);
+// // //     }
+// // //   };
+
+// // //   // Fetch rooms for selected floor
+// // //   const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+// // //     setLoading(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+// // //         {
+// // //           method: "GET",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //           },
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // //       }
+
+// // //       const result = await response.json();
+// // //       if (result && Array.isArray(result)) {
+// // //         const sortedData = result.sort(
+// // //           (a, b) =>
+// // //             new Date(b.updated_at || b.created_at) -
+// // //             new Date(a.updated_at || a.created_at)
+// // //         );
+// // //         setRoomsData(sortedData);
+// // //         setData(sortedData);
+// // //         setPagination({
+// // //           currentPage: result.current_page,
+// // //           totalPages: result.last_page,
+// // //           nextPageUrl: result.next_page_url,
+// // //           prevPageUrl: result.prev_page_url,
+// // //           pageSize: pageSize,
+// // //         });
+// // //       } else {
+// // //         throw new Error("Invalid response format");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoading(false);
+// // //     }
+// // //   };
+
+// // //   // Generate space cards based on space_number
+// // //   const generateSpaceCards = (spaceNumber) => {
+// // //     if (!spaceNumber || isNaN(spaceNumber) || spaceNumber <= 0) return [];
+    
+// // //     const cards = [];
+// // //     for (let i = 1; i <= spaceNumber; i++) {
+// // //       cards.push({
+// // //         id: i,
+// // //         space_number: i,
+// // //         is_available: true, // Default to available
+// // //         space_fee: roomDetails?.space_fee || 0,
+// // //         space_type: 'Standard'
+// // //       });
+// // //     }
+// // //     return cards;
+// // //   };
+
+// // //   // Fetch individual room details and generate space cards
+// // //   const fetchRoomDetails = async (roomId) => {
+// // //     if (!roomId) {
+// // //       setRoomDetails(null);
+// // //       setSpaceCards([]);
+// // //       return;
+// // //     }
+
+// // //     setLoadingRoomDetails(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+// // //         {
+// // //           method: "GET",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //           },
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+// // //       }
+
+// // //       const result = await response.json();
+// // //       if (result && result.data) {
+// // //         setRoomDetails(result.data);
+// // //         // Generate space cards based on space_number
+// // //         const cards = generateSpaceCards(result.data.space_number);
+// // //         setSpaceCards(cards);
+// // //       } else {
+// // //         throw new Error("Invalid room details format");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoadingRoomDetails(false);
+// // //     }
+// // //   };
+
+// // //   // Handle floor change
+// // //   const handleFloorChange = (e) => {
+// // //     const floorId = e.target.value;
+// // //     setFormData((prev) => ({
+// // //       ...prev,
+// // //       floor_id: floorId,
+// // //       room_id: ""
+// // //     }));
+// // //     setSelectedRoom(null);
+// // //     setSpaceCards([]);
+// // //     setRoomDetails(null);
+
+// // //     if (floorId && selectedLocation) {
+// // //       fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
+// // //     }
+// // //   };
+
+// // //   // Handle room change
+// // //   const handleRoomChange = async (e) => {
+// // //     const roomId = e.target.value;
+// // //     setSelectedRoom(roomId);
+// // //     setFormData((prev) => ({
+// // //       ...prev,
+// // //       room_id: roomId
+// // //     }));
+
+// // //     if (roomId) {
+// // //       const filteredData = roomsData.filter(room => room.id === roomId);
+// // //       setData(filteredData);
+// // //       await fetchRoomDetails(roomId);
+// // //     } else {
+// // //       setData(roomsData);
+// // //       setSpaceCards([]);
+// // //       setRoomDetails(null);
+// // //     }
+// // //   };
+
+// // //   // Handle edit click
+// // //   const handleEditClick = (myRoom) => {
+// // //     setSelectedUser(myRoom);
+// // //     setShow(true);
+// // //   };
+
+// // //   // Handle close modal
+// // //   const handleClose = () => {
+// // //     setShow(false);
+// // //     setSelectedUser(null);
+
+// // //     if (selectedLocation && formData.floor_id) {
+// // //       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+// // //     }
+// // //   };
+
+// // //   // Handle delete
+// // //   const handleDelete = async (myRoomID) => {
+// // //     if (!user?.tenantToken) return;
+
+// // //     setIsLoading(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,
+// // //         {
+// // //           method: "POST",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //             "Content-Type": "application/json",
+// // //           },
+// // //           body: JSON.stringify({ id: myRoomID }),
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // //       }
+
+// // //       setData((prevData) => prevData.filter((myRoom) => myRoom.id !== myRoomID));
+// // //       setPopup({
+// // //         message: "Room deleted successfully!",
+// // //         type: "success",
+// // //         isVisible: true,
+// // //       });
+      
+// // //       if (formData.floor_id && selectedLocation) {
+// // //         fetchRoom(
+// // //           selectedLocation,
+// // //           formData.floor_id,
+// // //           pagination.currentPage,
+// // //           pagination.pageSize
+// // //         );
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error("Failed to delete room!");
+// // //     } finally {
+// // //       setIsLoading(false);
+// // //     }
+// // //   };
+
+// // //   // Handle delete button click
+// // //   const handleDeleteButton = (myRoomID) => {
+// // //     setDeletePopup({
+// // //       isVisible: true,
+// // //       myRoomID,
+// // //     });
+// // //   };
+
+// // //   // Confirm delete
+// // //   const confirmDelete = () => {
+// // //     const { myRoomID } = deletePopup;
+// // //     handleDelete(myRoomID);
+// // //     setDeletePopup({ isVisible: false, myRoomID: null });
+// // //   };
+
+// // //   // Booking handlers
+// // //   const handleBookNowClick = (space) => {
+// // //     setSelectedSpace(space);
+// // //     setShowBookingPopup(true);
+// // //   };
+
+// // //   const handleBookingClose = () => {
+// // //     setShowBookingPopup(false);
+// // //     setSelectedSpace(null);
+// // //     setBookingFormData({
+// // //       name: "",
+// // //       email: "",
+// // //       phone: "",
+// // //       start_date: "",
+// // //       end_date: "",
+// // //       notes: ""
+// // //     });
+// // //   };
+
+// // //   const handleBookingInputChange = (e) => {
+// // //     const { name, value } = e.target;
+// // //     setBookingFormData(prev => ({
+// // //       ...prev,
+// // //       [name]: value
+// // //     }));
+// // //   };
+
+// // //   const handleBookingSubmit = async (e) => {
+// // //     e.preventDefault();
+// // //     setIsLoading(true);
+    
+// // //     try {
+// // //       // Here you would make your API call to book the space
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/book-space`,
+// // //         {
+// // //           method: "POST",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //             "Content-Type": "application/json",
+// // //           },
+// // //           body: JSON.stringify({
+// // //             space_id: selectedSpace.id,
+// // //             room_id: selectedRoom,
+// // //             ...bookingFormData
+// // //           }),
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error("Failed to book space");
+// // //       }
+
+// // //       toast.success("Space booked successfully!");
+// // //       handleBookingClose();
+      
+// // //       // Refresh the space data
+// // //       if (selectedRoom) {
+// // //         await fetchRoomDetails(selectedRoom);
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message || "Failed to book space");
+// // //     } finally {
+// // //       setIsLoading(false);
+// // //     }
+// // //   };
+
+// // //   // Table columns
+// // //   const columns = [
+// // //     {
+// // //       Header: "S/N",
+// // //       accessor: (row, i) => i + 1,
+// // //       id: "serialNo",
+// // //       sort: false,
+// // //     },
+// // //     {
+// // //       Header: "Room Name",
+// // //       accessor: "space_name",
+// // //       sort: true,
+// // //     },
+// // //     {
+// // //       Header: "Space Number",
+// // //       accessor: "space_number",
+// // //       sort: true,
+// // //     },
+// // //     {
+// // //       Header: "Space Fee",
+// // //       accessor: "space_fee",
+// // //       sort: true,
+// // //     },
+// // //     {
+// // //       Header: "Created On",
+// // //       accessor: "created_at",
+// // //       sort: true,
+// // //       Cell: ({ row }) => formatDateTime(row.original.created_at),
+// // //     },
+// // //     {
+// // //       Header: "Updated On",
+// // //       accessor: "updated_at",
+// // //       sort: true,
+// // //       Cell: ({ row }) => formatDateTime(row.original.updated_at),
+// // //     },
+// // //     {
+// // //       Header: "Action",
+// // //       accessor: "action",
+// // //       sort: false,
+// // //       Cell: ({ row }) => (
+// // //         <>
+// // //           <Link
+// // //             to="#"
+// // //             className="action-icon"
+// // //             onClick={() => handleEditClick(row.original)}
+// // //           >
+// // //             <i className="mdi mdi-square-edit-outline"></i>
+// // //           </Link>
+// // //           <Link
+// // //             to="#"
+// // //             className="action-icon"
+// // //             onClick={() => handleDeleteButton(row.original.id)}
+// // //           >
+// // //             <i className="mdi mdi-delete"></i>
+// // //           </Link>
+// // //         </>
+// // //       ),
+// // //     },
+// // //   ];
+
+// // //   // Use effects
+// // //   useEffect(() => {
+// // //     if (user?.tenantToken) {
+// // //       fetchLocations();
+// // //     }
+// // //   }, [user?.tenantToken]);
+
+// // //   useEffect(() => {
+// // //     if (selectedLocation) {
+// // //       fetchFloor(selectedLocation);
+// // //     }
+// // //   }, [selectedLocation]);
+
+// // //   useEffect(() => {
+// // //     if (formData.floor_id && user?.tenantToken) {
+// // //       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+// // //     }
+// // //   }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+
+// // //   return (
+// // //     <>
+// // //       <PageTitle
+// // //         breadCrumbItems={[
+// // //           { label: "My Rooms", path: "/room/my-rooms", active: true },
+// // //         ]}
+// // //         title="My Rooms"
+// // //       />
+
+// // //       <Row>
+// // //         <Col>
+// // //           <Card>
+// // //             <Card.Body>
+// // //               <Card>
+// // //                 <Card.Body style={{ 
+// // //                   background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", 
+// // //                   marginTop: "30px" 
+// // //                 }}>
+// // //                   {/* Location Selection */}
+// // //                   {loadingLocations ? (
+// // //                     <div className="text-center">
+// // //                       <Spinner animation="border" role="status">
+// // //                         <span className="visually-hidden">Loading...</span>
+// // //                       </Spinner>{" "}
+// // //                       Loading your locations...
+// // //                     </div>
+// // //                   ) : (
+// // //                     <div>
+// // //                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+// // //                         Select a location to view or update the room.
+// // //                       </p>
+// // //                       <Form.Select
+// // //                         style={{ marginBottom: "25px", fontSize: "1rem" }}
+// // //                         value={selectedLocation || ""}
+// // //                         onChange={handleLocationChange}
+// // //                       >
+// // //                         <option value="" disabled>
+// // //                           Select a location
+// // //                         </option>
+// // //                         {locations.map((location) => (
+// // //                           <option key={location.id} value={location.id}>
+// // //                             {location.name} at {location.state}
+// // //                           </option>
+// // //                         ))}
+// // //                       </Form.Select>
+// // //                     </div>
+// // //                   )}
+
+// // //                   {/* Floor Selection */}
+// // //                   {selectedLocation && (
+// // //                     <Form.Group className="mb-3" controlId="location_id">
+// // //                       {loadingFloor ? (
+// // //                         <div className="text-center">
+// // //                           <Spinner animation="border" role="status">
+// // //                             <span className="visually-hidden">Loading floors/sections...</span>
+// // //                           </Spinner>
+// // //                         </div>
+// // //                       ) : (
+// // //                         <>
+// // //                           <Form.Label>
+// // //                             Select the Floor of the room you want to view.
+// // //                           </Form.Label>
+// // //                           <Form.Select
+// // //                             name="floor_id"
+// // //                             value={formData.floor_id}
+// // //                             onChange={handleFloorChange}
+// // //                             required
+// // //                           >
+// // //                             <option value="">Select a Floor/Section</option>
+// // //                             {Array.isArray(floorData) &&
+// // //                               floorData.map((floor) => (
+// // //                                 <option key={floor.id} value={floor.id}>
+// // //                                   {floor.name}
+// // //                                 </option>
+// // //                               ))}
+// // //                           </Form.Select>
+// // //                         </>
+// // //                       )}
+// // //                     </Form.Group>
+// // //                   )}
+
+// // //                   {/* Room Selection */}
+// // //                   {formData.floor_id && (
+// // //                     <Form.Group className="mb-3" controlId="room_id">
+// // //                       <Form.Label>
+// // //                         Select a specific room (optional)
+// // //                       </Form.Label>
+// // //                       <Form.Select
+// // //                         name="room_id"
+// // //                         value={formData.room_id}
+// // //                         onChange={handleRoomChange}
+// // //                       >
+// // //                         <option value="">All Rooms</option>
+// // //                         {Array.isArray(roomsData) &&
+// // //                           roomsData.map((room) => (
+// // //                             <option key={room.id} value={room.id}>
+// // //                               {room.space_name} (No: {room.space_number})
+// // //                             </option>
+// // //                           ))}
+// // //                       </Form.Select>
+// // //                     </Form.Group>
+// // //                   )}
+
+// // //                   {/* Rooms Table */}
+// // //                   {formData.floor_id && (
+// // //                     <>
+// // //                       {loading ? (
+// // //                         <p>Loading rooms...</p>
+// // //                       ) : isLoading ? (
+// // //                         <div className="text-center">
+// // //                           <Spinner animation="border" role="status">
+// // //                             <span className="visually-hidden">Deleting...</span>
+// // //                           </Spinner>{" "}
+// // //                           Deleting...
+// // //                         </div>
+// // //                       ) : (
+// // //                         <>
+// // //                           <Table2
+// // //                             columns={columns}
+// // //                             data={data}
+// // //                             pageSize={pagination.pageSize}
+// // //                             isSortable
+// // //                             pagination
+// // //                             isSearchable
+// // //                             tableClass="table-striped dt-responsive nowrap w-100"
+// // //                             searchBoxClass="my-2"
+// // //                             paginationProps={{
+// // //                               currentPage: pagination.currentPage,
+// // //                               totalPages: pagination.totalPages,
+// // //                               onPageChange: (page) =>
+// // //                                 setPagination((prev) => ({
+// // //                                   ...prev,
+// // //                                   currentPage: page,
+// // //                                 })),
+// // //                               onPageSizeChange: (pageSize) =>
+// // //                                 setPagination((prev) => ({ ...prev, pageSize })),
+// // //                             }}
+// // //                           />
+
+// // //                           {/* Room Details and Spaces Section */}
+// // //                           {selectedRoom && (
+// // //                             <div className="mt-4">
+// // //                               {/* Room Details Card */}
+// // //                               {loadingRoomDetails ? (
+// // //                                 <div className="text-center mb-4">
+// // //                                   <Spinner animation="border" role="status">
+// // //                                     <span className="visually-hidden">Loading room details...</span>
+// // //                                   </Spinner>
+// // //                                 </div>
+// // //                               ) : roomDetails ? (
+// // //                                 <Card className="mb-4">
+// // //                                   <Card.Header className="d-flex justify-content-between align-items-center">
+// // //                                     <h5 className="mb-0">Room Details</h5>
+// // //                                     <Badge bg="info">ID: {roomDetails.id}</Badge>
+// // //                                   </Card.Header>
+// // //                                   <Card.Body>
+// // //                                     <Row>
+// // //                                       <Col md={6}>
+// // //                                         <p><strong>Name:</strong> {roomDetails.space_name}</p>
+// // //                                         <p><strong>Number:</strong> {roomDetails.space_number}</p>
+// // //                                         <p><strong>Capacity:</strong> {roomDetails.capacity || 'N/A'}</p>
+// // //                                       </Col>
+// // //                                       <Col md={6}>
+// // //                                         <p><strong>Fee:</strong> ${roomDetails.space_fee || '0.00'}</p>
+// // //                                         <p><strong>Status:</strong> 
+// // //                                           <Badge bg={roomDetails.status === 'active' ? 'success' : 'secondary'} className="ms-2">
+// // //                                             {roomDetails.status || 'N/A'}
+// // //                                           </Badge>
+// // //                                         </p>
+// // //                                         <p><strong>Created:</strong> {formatDateTime(roomDetails.created_at)}</p>
+// // //                                       </Col>
+// // //                                     </Row>
+// // //                                     {roomDetails.description && (
+// // //                                       <div className="mt-3">
+// // //                                         <strong>Description:</strong>
+// // //                                         <Card className="mt-1">
+// // //                                           <Card.Body className="p-2">
+// // //                                             {roomDetails.description}
+// // //                                           </Card.Body>
+// // //                                         </Card>
+// // //                                       </div>
+// // //                                     )}
+// // //                                   </Card.Body>
+// // //                                 </Card>
+// // //                               ) : (
+// // //                                 <Alert variant="warning" className="mb-4">
+// // //                                   No details available for this room
+// // //                                 </Alert>
+// // //                               )}
+
+// // //                               {/* Spaces Section */}
+// // //                               <h4 className="mb-3">Available Spaces</h4>
+// // //                               {loadingRoomDetails ? (
+// // //                                 <div className="text-center">
+// // //                                   <Spinner animation="border" role="status">
+// // //                                     <span className="visually-hidden">Loading spaces...</span>
+// // //                                   </Spinner>
+// // //                                 </div>
+// // //                               ) : spaceCards && spaceCards.length > 0 ? (
+// // //                                 <>
+// // //                                   <p className="mb-3">Total spaces: {spaceCards.length}</p>
+// // //                                   <Row>
+// // //                                     {spaceCards.map((space) => (
+// // //                                       <Col key={space.id} md={3} className="mb-3">
+// // //                                         <Card className="h-100">
+// // //                                           <Card.Body className="d-flex flex-column">
+// // //                                             <Card.Title className="d-flex justify-content-between align-items-center">
+// // //                                               <span>Space {space.space_number}</span>
+// // //                                               <Badge bg={space.is_available ? "success" : "danger"}>
+// // //                                                 {space.is_available ? "Available" : "Occupied"}
+// // //                                               </Badge>
+// // //                                             </Card.Title>
+// // //                                             <Card.Text className="flex-grow-1">
+// // //                                               <div><strong>Number:</strong> {space.space_number}</div>
+// // //                                               <div><strong>Fee:</strong> ${space.space_fee}</div>
+// // //                                               <div><strong>Type:</strong> {space.space_type}</div>
+// // //                                             </Card.Text>
+// // //                                             <div className="mt-auto">
+// // //                                               <Button 
+// // //                                                 variant={space.is_available ? "primary" : "secondary"} 
+// // //                                                 size="sm"
+// // //                                                 disabled={!space.is_available}
+// // //                                                 className="w-100"
+// // //                                                 onClick={() => handleBookNowClick(space)}
+// // //                                               >
+// // //                                                 {space.is_available ? "Book Now" : "Unavailable"}
+// // //                                               </Button>
+// // //                                             </div>
+// // //                                           </Card.Body>
+// // //                                         </Card>
+// // //                                       </Col>
+// // //                                     ))}
+// // //                                   </Row>
+// // //                                 </>
+// // //                               ) : (
+// // //                                 <Alert variant="info">
+// // //                                   {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
+// // //                                 </Alert>
+// // //                               )}
+// // //                             </div>
+// // //                           )}
+// // //                         </>
+// // //                       )}
+// // //                     </>
+// // //                   )}
+// // //                 </Card.Body>
+// // //               </Card>
+// // //             </Card.Body>
+// // //           </Card>
+// // //         </Col>
+// // //       </Row>
+
+// // //       {/* Popups */}
+// // //       {popup.isVisible && (
+// // //         <Popup
+// // //           message={popup.message}
+// // //           type={popup.type}
+// // //           onClose={() => setPopup({ ...popup, isVisible: false })}
+// // //           buttonLabel={popup.buttonLabel}
+// // //           buttonRoute={popup.buttonRoute}
+// // //         />
+// // //       )}
+
+// // //       {deletePopup.isVisible && (
+// // //         <Popup
+// // //           message="Are you sure you want to delete this room?"
+// // //           type="confirm"
+// // //           onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+// // //           buttonLabel="Yes"
+// // //           onAction={confirmDelete}
+// // //         />
+// // //       )}
+
+// // //       {/* Booking Popup */}
+// // //       {showBookingPopup && selectedSpace && (
+// // //         <Popup
+// // //           title={`Book Space ${selectedSpace.space_number}`}
+// // //           isVisible={showBookingPopup}
+// // //           onClose={handleBookingClose}
+// // //           size="lg"
+// // //         >
+// // //           <Form onSubmit={handleBookingSubmit}>
+// // //             <Row>
+// // //               <Col md={6}>
+// // //                 <Form.Group className="mb-3">
+// // //                   <Form.Label>Name</Form.Label>
+// // //                   <Form.Control
+// // //                     type="text"
+// // //                     name="name"
+// // //                     value={bookingFormData.name}
+// // //                     onChange={handleBookingInputChange}
+// // //                     required
+// // //                   />
+// // //                 </Form.Group>
+// // //               </Col>
+// // //               <Col md={6}>
+// // //                 <Form.Group className="mb-3">
+// // //                   <Form.Label>Email</Form.Label>
+// // //                   <Form.Control
+// // //                     type="email"
+// // //                     name="email"
+// // //                     value={bookingFormData.email}
+// // //                     onChange={handleBookingInputChange}
+// // //                     required
+// // //                   />
+// // //                 </Form.Group>
+// // //               </Col>
+// // //             </Row>
+            
+// // //             <Row>
+// // //               <Col md={6}>
+// // //                 <Form.Group className="mb-3">
+// // //                   <Form.Label>Phone Number</Form.Label>
+// // //                   <Form.Control
+// // //                     type="tel"
+// // //                     name="phone"
+// // //                     value={bookingFormData.phone}
+// // //                     onChange={handleBookingInputChange}
+// // //                     required
+// // //                   />
+// // //                 </Form.Group>
+// // //               </Col>
+// // //               <Col md={3}>
+// // //                 <Form.Group className="mb-3">
+// // //                   <Form.Label>Start Date</Form.Label>
+// // //                   <Form.Control
+// // //                     type="date"
+// // //                     name="start_date"
+// // //                     value={bookingFormData.start_date}
+// // //                     onChange={handleBookingInputChange}
+// // //                     required
+// // //                   />
+// // //                 </Form.Group>
+// // //               </Col>
+// // //               <Col md={3}>
+// // //                 <Form.Group className="mb-3">
+// // //                   <Form.Label>End Date</Form.Label>
+// // //                   <Form.Control
+// // //                     type="date"
+// // //                     name="end_date"
+// // //                     value={bookingFormData.end_date}
+// // //                     onChange={handleBookingInputChange}
+// // //                     required
+// // //                   />
+// // //                 </Form.Group>
+// // //               </Col>
+// // //             </Row>
+            
+// // //             <Form.Group className="mb-3">
+// // //               <Form.Label>Additional Notes</Form.Label>
+// // //               <Form.Control
+// // //                 as="textarea"
+// // //                 rows={3}
+// // //                 name="notes"
+// // //                 value={bookingFormData.notes}
+// // //                 onChange={handleBookingInputChange}
+// // //               />
+// // //             </Form.Group>
+            
+// // //             <div className="d-flex justify-content-end">
+// // //               <Button variant="secondary" onClick={handleBookingClose} className="me-2">
+// // //                 Cancel
+// // //               </Button>
+// // //               <Button variant="primary" type="submit" disabled={isLoading}>
+// // //                 {isLoading ? (
+// // //                   <>
+// // //                     <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+// // //                     {' '}Booking...
+// // //                   </>
+// // //                 ) : 'Confirm Booking'}
+// // //               </Button>
+// // //             </div>
+// // //           </Form>
+// // //         </Popup>
+// // //       )}
+// // //     </>
+// // //   );
+// // // };
+
+// // // export default SeatBookingSystem;
+
+
+
+// // // // import React, { useState, useEffect } from "react";
+// // // // import { Link } from "react-router-dom";
+// // // // import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
+// // // // import PageTitle from "../../../components/PageTitle";
+// // // // import { useAuthContext } from "@/context/useAuthContext.jsx";
+// // // // import Popup from "../../../components/Popup/Popup";
+// // // // import Table2 from "../../../components/Table2";
+// // // // import { toast } from "react-toastify";
+
+// // // // const SeatBookingSystem = () => {
+// // // //   const { user } = useAuthContext();
+// // // //   const tenantToken = user?.tenantToken;
+// // // //   const tenantSlug = user?.tenant;
+
+// // // //   // State variables
+// // // //   const [show, setShow] = useState(false);
+// // // //   const [data, setData] = useState([]);
+// // // //   const [loading, setLoading] = useState(true);
+// // // //   const [loadingLocations, setLoadingLocations] = useState(true);
+// // // //   const [loadingFloor, setLoadingFloor] = useState(false);
+// // // //   const [floorData, setFloorData] = useState([]);
+// // // //   const [roomsData, setRoomsData] = useState([]);
+// // // //   const [selectedRoom, setSelectedRoom] = useState(null);
+// // // //   const [roomDetails, setRoomDetails] = useState(null);
+// // // //   const [spaceCards, setSpaceCards] = useState([]);
+// // // //   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+// // // //   const [selectedUser, setSelectedUser] = useState(null);
+// // // //   const [isLoading, setIsLoading] = useState(false);
+// // // //   const [isError, setIsError] = useState(false);
+// // // //   const [locations, setLocations] = useState([]);
+// // // //   const [selectedLocation, setSelectedLocation] = useState(null);
+
+// // // //   // Booking popup states
+// // // //   const [showBookingPopup, setShowBookingPopup] = useState(false);
+// // // //   const [selectedSpace, setSelectedSpace] = useState(null);
+// // // //   const [bookingFormData, setBookingFormData] = useState({
+// // // //     type: "one-off",
+// // // //     chosen_days: [{
+// // // //       day: "",
+// // // //       start_time: "",
+// // // //       end_time: ""
+// // // //     }],
+// // // //     number_weeks: "",
+// // // //     number_months: ""
+// // // //   });
+
+// // // //   const [popup, setPopup] = useState({
+// // // //     message: "",
+// // // //     type: "",
+// // // //     isVisible: false,
+// // // //     buttonLabel: "",
+// // // //     buttonRoute: "",
+// // // //   });
+
+// // // //   const [deletePopup, setDeletePopup] = useState({
+// // // //     isVisible: false,
+// // // //     myRoomID: null,
+// // // //   });
+
+// // // //   const [pagination, setPagination] = useState({
+// // // //     currentPage: 1,
+// // // //     totalPages: 1,
+// // // //     nextPageUrl: null,
+// // // //     prevPageUrl: null,
+// // // //     pageSize: 10,
+// // // //   });
+
+// // // //   const [formData, setFormData] = useState({
+// // // //     name: "",
+// // // //     location_id: "",
+// // // //     floor_id: "",
+// // // //     room_id: ""
+// // // //   });
+
+// // // //   // Format date time
+// // // //   const formatDateTime = (isoString) => {
+// // // //     const options = {
+// // // //       year: "numeric",
+// // // //       month: "long",
+// // // //       day: "numeric",
+// // // //       hour: "2-digit",
+// // // //       minute: "2-digit",
+// // // //       second: "2-digit",
+// // // //     };
+// // // //     return new Date(isoString).toLocaleDateString("en-US", options);
+// // // //   };
+
+// // // //   // Fetch locations
+// // // //   const fetchLocations = async () => {
+// // // //     setLoadingLocations(true);
+// // // //     try {
+// // // //       const response = await fetch(
+// // // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+// // // //         {
+// // // //           headers: { Authorization: `Bearer ${user.tenantToken}` },
+// // // //         }
+// // // //       );
+// // // //       const result = await response.json();
+// // // //       if (response.ok) {
+// // // //         setLocations(result.data.data || []);
+// // // //       } else {
+// // // //         throw new Error(result.message || "Failed to fetch locations.");
+// // // //       }
+// // // //     } catch (error) {
+// // // //       toast.error(error.message);
+// // // //     } finally {
+// // // //       setLoadingLocations(false);
+// // // //     }
+// // // //   };
+
+// // // //   // Handle location change
+// // // //   const handleLocationChange = (e) => {
+// // // //     const locationId = e.target.value;
+// // // //     setSelectedLocation(locationId);
+// // // //     setFormData((prev) => ({
+// // // //       ...prev,
+// // // //       location_id: locationId,
+// // // //       floor_id: "",
+// // // //       room_id: ""
+// // // //     }));
+// // // //     setFloorData([]);
+// // // //     setRoomsData([]);
+// // // //     setData([]);
+// // // //     setSpaceCards([]);
+// // // //     setRoomDetails(null);
+// // // //   };
+
+// // // //   // Fetch floors for selected location
+// // // //   const fetchFloor = async (locationId) => {
+// // // //     setLoadingFloor(true);
+// // // //     try {
+// // // //       const response = await fetch(
+// // // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+// // // //         {
+// // // //           method: "GET",
+// // // //           headers: {
+// // // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // // //           },
+// // // //         }
+// // // //       );
+
+// // // //       if (!response.ok) {
+// // // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // // //       }
+
+// // // //       const result = await response.json();
+// // // //       if (result && Array.isArray(result.data.data)) {
+// // // //         setFloorData(result.data.data);
+// // // //       } else {
+// // // //         throw new Error("Invalid response format");
+// // // //       }
+// // // //     } catch (error) {
+// // // //       toast.error(error.message);
+// // // //     } finally {
+// // // //       setLoadingFloor(false);
+// // // //     }
+// // // //   };
+
+// // // //   // Fetch rooms for selected floor
+// // // //   const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+// // // //     setLoading(true);
+// // // //     try {
+// // // //       const response = await fetch(
+// // // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+// // // //         {
+// // // //           method: "GET",
+// // // //           headers: {
+// // // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // // //           },
+// // // //         }
+// // // //       );
+
+// // // //       if (!response.ok) {
+// // // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // // //       }
+
+// // // //       const result = await response.json();
+// // // //       if (result && Array.isArray(result)) {
+// // // //         const sortedData = result.sort(
+// // // //           (a, b) =>
+// // // //             new Date(b.updated_at || b.created_at) -
+// // // //             new Date(a.updated_at || a.created_at)
+// // // //         );
+// // // //         setRoomsData(sortedData);
+// // // //         setData(sortedData);
+// // // //         setPagination({
+// // // //           currentPage: result.current_page,
+// // // //           totalPages: result.last_page,
+// // // //           nextPageUrl: result.next_page_url,
+// // // //           prevPageUrl: result.prev_page_url,
+// // // //           pageSize: pageSize,
+// // // //         });
+// // // //       } else {
+// // // //         throw new Error("Invalid response format");
+// // // //       }
+// // // //     } catch (error) {
+// // // //       toast.error(error.message);
+// // // //     } finally {
+// // // //       setLoading(false);
+// // // //     }
+// // // //   };
+
+// // // //   // Generate space cards based on space_number
+// // // //   const generateSpaceCards = (spaceNumber) => {
+// // // //     if (!spaceNumber || isNaN(spaceNumber) || spaceNumber <= 0) return [];
+    
+// // // //     const cards = [];
+// // // //     for (let i = 1; i <= spaceNumber; i++) {
+// // // //       cards.push({
+// // // //         id: i,
+// // // //         space_number: i,
+// // // //         is_available: true, // Default to available
+// // // //         space_fee: roomDetails?.space_fee || 0,
+// // // //         space_type: 'Standard'
+// // // //       });
+// // // //     }
+// // // //     return cards;
+// // // //   };
+
+// // // //   // Fetch individual room details and generate space cards
+// // // //   const fetchRoomDetails = async (roomId) => {
+// // // //     if (!roomId) {
+// // // //       setRoomDetails(null);
+// // // //       setSpaceCards([]);
+// // // //       return;
+// // // //     }
+
+// // // //     setLoadingRoomDetails(true);
+// // // //     try {
+// // // //       const response = await fetch(
+// // // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+// // // //         {
+// // // //           method: "GET",
+// // // //           headers: {
+// // // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // // //           },
+// // // //         }
+// // // //       );
+
+// // // //       if (!response.ok) {
+// // // //         throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+// // // //       }
+
+// // // //       const result = await response.json();
+// // // //       if (result && result.data) {
+// // // //         setRoomDetails(result.data);
+// // // //         // Generate space cards based on space_number
+// // // //         const cards = generateSpaceCards(result.data.space_number);
+// // // //         setSpaceCards(cards);
+// // // //       } else {
+// // // //         throw new Error("Invalid room details format");
+// // // //       }
+// // // //     } catch (error) {
+// // // //       toast.error(error.message);
+// // // //     } finally {
+// // // //       setLoadingRoomDetails(false);
+// // // //     }
+// // // //   };
+
+// // // //   // Handle floor change
+// // // //   const handleFloorChange = (e) => {
+// // // //     const floorId = e.target.value;
+// // // //     setFormData((prev) => ({
+// // // //       ...prev,
+// // // //       floor_id: floorId,
+// // // //       room_id: ""
+// // // //     }));
+// // // //     setSelectedRoom(null);
+// // // //     setSpaceCards([]);
+// // // //     setRoomDetails(null);
+
+// // // //     if (floorId && selectedLocation) {
+// // // //       fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
+// // // //     }
+// // // //   };
+
+// // // //   // Handle room change
+// // // //   const handleRoomChange = async (e) => {
+// // // //     const roomId = e.target.value;
+// // // //     setSelectedRoom(roomId);
+// // // //     setFormData((prev) => ({
+// // // //       ...prev,
+// // // //       room_id: roomId
+// // // //     }));
+
+// // // //     if (roomId) {
+// // // //       const filteredData = roomsData.filter(room => room.id === roomId);
+// // // //       setData(filteredData);
+// // // //       await fetchRoomDetails(roomId);
+// // // //     } else {
+// // // //       setData(roomsData);
+// // // //       setSpaceCards([]);
+// // // //       setRoomDetails(null);
+// // // //     }
+// // // //   };
+
+// // // //   // Handle edit click
+// // // //   const handleEditClick = (myRoom) => {
+// // // //     setSelectedUser(myRoom);
+// // // //     setShow(true);
+// // // //   };
+
+// // // //   // Handle close modal
+// // // //   const handleClose = () => {
+// // // //     setShow(false);
+// // // //     setSelectedUser(null);
+
+// // // //     if (selectedLocation && formData.floor_id) {
+// // // //       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+// // // //     }
+// // // //   };
+
+// // // //   // Handle delete
+// // // //   const handleDelete = async (myRoomID) => {
+// // // //     if (!user?.tenantToken) return;
+
+// // // //     setIsLoading(true);
+// // // //     try {
+// // // //       const response = await fetch(
+// // // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,
+// // // //         {
+// // // //           method: "POST",
+// // // //           headers: {
+// // // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // // //             "Content-Type": "application/json",
+// // // //           },
+// // // //           body: JSON.stringify({ id: myRoomID }),
+// // // //         }
+// // // //       );
+
+// // // //       if (!response.ok) {
+// // // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // // //       }
+
+// // // //       setData((prevData) => prevData.filter((myRoom) => myRoom.id !== myRoomID));
+// // // //       setPopup({
+// // // //         message: "Room deleted successfully!",
+// // // //         type: "success",
+// // // //         isVisible: true,
+// // // //       });
+      
+// // // //       if (formData.floor_id && selectedLocation) {
+// // // //         fetchRoom(
+// // // //           selectedLocation,
+// // // //           formData.floor_id,
+// // // //           pagination.currentPage,
+// // // //           pagination.pageSize
+// // // //         );
+// // // //       }
+// // // //     } catch (error) {
+// // // //       toast.error("Failed to delete room!");
+// // // //     } finally {
+// // // //       setIsLoading(false);
+// // // //     }
+// // // //   };
+
+// // // //   // Handle delete button click
+// // // //   const handleDeleteButton = (myRoomID) => {
+// // // //     setDeletePopup({
+// // // //       isVisible: true,
+// // // //       myRoomID,
+// // // //     });
+// // // //   };
+
+// // // //   // Confirm delete
+// // // //   const confirmDelete = () => {
+// // // //     const { myRoomID } = deletePopup;
+// // // //     handleDelete(myRoomID);
+// // // //     setDeletePopup({ isVisible: false, myRoomID: null });
+// // // //   };
+
+// // // //   // Handle changes to day fields
+// // // //   const handleDayChange = (index, field, value) => {
+// // // //     const updatedDays = [...bookingFormData.chosen_days];
+// // // //     updatedDays[index][field] = value;
+// // // //     setBookingFormData(prev => ({
+// // // //       ...prev,
+// // // //       chosen_days: updatedDays
+// // // //     }));
+// // // //   };
+
+// // // //   // Add a new day to the booking
+// // // //   const addDay = () => {
+// // // //     setBookingFormData(prev => ({
+// // // //       ...prev,
+// // // //       chosen_days: [
+// // // //         ...prev.chosen_days,
+// // // //         { day: "", start_time: "", end_time: "" }
+// // // //       ]
+// // // //     }));
+// // // //   };
+
+// // // //   // Remove a day from the booking
+// // // //   const removeDay = (index) => {
+// // // //     setBookingFormData(prev => ({
+// // // //       ...prev,
+// // // //       chosen_days: prev.chosen_days.filter((_, i) => i !== index)
+// // // //     }));
+// // // //   };
+
+// // // //   // Handle book now click
+// // // //   const handleBookNowClick = (space) => {
+// // // //     setSelectedSpace(space);
+// // // //     setBookingFormData({
+// // // //       type: "one-off",
+// // // //       chosen_days: [{
+// // // //         day: "",
+// // // //         start_time: "",
+// // // //         end_time: ""
+// // // //       }],
+// // // //       number_weeks: "",
+// // // //       number_months: ""
+// // // //     });
+// // // //     setShowBookingPopup(true);
+// // // //   };
+
+// // // //   const handleBookingClose = () => {
+// // // //     setShowBookingPopup(false);
+// // // //     setSelectedSpace(null);
+// // // //   };
+
+// // // //   const handleBookingInputChange = (e) => {
+// // // //     const { name, value } = e.target;
+// // // //     setBookingFormData(prev => ({
+// // // //       ...prev,
+// // // //       [name]: value
+// // // //     }));
+// // // //   };
+
+// // // //   const handleBookingSubmit = async (e) => {
+// // // //     e.preventDefault();
+// // // //     setIsLoading(true);
+    
+// // // //     try {
+// // // //       // Validate chosen days
+// // // //       const hasEmptyFields = bookingFormData.chosen_days.some(day => 
+// // // //         !day.day || !day.start_time || !day.end_time
+// // // //       );
+      
+// // // //       if (hasEmptyFields) {
+// // // //         throw new Error("Please fill in all day fields");
+// // // //       }
+
+// // // //       // Validate time ranges
+// // // //       for (const day of bookingFormData.chosen_days) {
+// // // //         if (new Date(day.start_time) >= new Date(day.end_time)) {
+// // // //           throw new Error("End time must be after start time");
+// // // //         }
+// // // //       }
+
+// // // //       // Validate recurring booking fields if needed
+// // // //       if (bookingFormData.type === "recurring") {
+// // // //         if (!bookingFormData.number_weeks && !bookingFormData.number_months) {
+// // // //           throw new Error("Please specify duration for recurring booking");
+// // // //         }
+// // // //       }
+
+// // // //       // Prepare the booking data
+// // // //       const bookingData = {
+// // // //         spot_id: selectedSpace.id,
+// // // //         user_id: user.id,
+// // // //         type: bookingFormData.type,
+// // // //         ...(bookingFormData.type === "recurring" && {
+// // // //           number_weeks: bookingFormData.number_weeks || "0",
+// // // //           number_months: bookingFormData.number_months || "0"
+// // // //         }),
+// // // //         chosen_days: bookingFormData.chosen_days.map(day => ({
+// // // //           day: day.day.toLowerCase(),
+// // // //           start_time: day.start_time,
+// // // //           end_time: day.end_time
+// // // //         }))
+// // // //       };
+
+// // // //       // Make API call
+// // // //       const response = await fetch(
+// // // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/book-space`,
+// // // //         {
+// // // //           method: "POST",
+// // // //           headers: {
+// // // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // // //             "Content-Type": "application/json",
+// // // //           },
+// // // //           body: JSON.stringify(bookingData),
+// // // //         }
+// // // //       );
+
+// // // //       if (!response.ok) {
+// // // //         const errorData = await response.json();
+// // // //         throw new Error(errorData.message || "Failed to book space");
+// // // //       }
+
+// // // //       const result = await response.json();
+// // // //       toast.success("Space booked successfully!");
+// // // //       handleBookingClose();
+      
+// // // //       // Refresh the space data
+// // // //       if (selectedRoom) {
+// // // //         await fetchRoomDetails(selectedRoom);
+// // // //       }
+// // // //     } catch (error) {
+// // // //       toast.error(error.message || "Failed to book space");
+// // // //     } finally {
+// // // //       setIsLoading(false);
+// // // //     }
+// // // //   };
+
+// // // //   // Table columns
+// // // //   const columns = [
+// // // //     {
+// // // //       Header: "S/N",
+// // // //       accessor: (row, i) => i + 1,
+// // // //       id: "serialNo",
+// // // //       sort: false,
+// // // //     },
+// // // //     {
+// // // //       Header: "Room Name",
+// // // //       accessor: "space_name",
+// // // //       sort: true,
+// // // //     },
+// // // //     {
+// // // //       Header: "Space Number",
+// // // //       accessor: "space_number",
+// // // //       sort: true,
+// // // //     },
+// // // //     {
+// // // //       Header: "Space Fee",
+// // // //       accessor: "space_fee",
+// // // //       sort: true,
+// // // //     },
+// // // //     {
+// // // //       Header: "Created On",
+// // // //       accessor: "created_at",
+// // // //       sort: true,
+// // // //       Cell: ({ row }) => formatDateTime(row.original.created_at),
+// // // //     },
+// // // //     {
+// // // //       Header: "Updated On",
+// // // //       accessor: "updated_at",
+// // // //       sort: true,
+// // // //       Cell: ({ row }) => formatDateTime(row.original.updated_at),
+// // // //     },
+// // // //     {
+// // // //       Header: "Action",
+// // // //       accessor: "action",
+// // // //       sort: false,
+// // // //       Cell: ({ row }) => (
+// // // //         <>
+// // // //           <Link
+// // // //             to="#"
+// // // //             className="action-icon"
+// // // //             onClick={() => handleEditClick(row.original)}
+// // // //           >
+// // // //             <i className="mdi mdi-square-edit-outline"></i>
+// // // //           </Link>
+// // // //           <Link
+// // // //             to="#"
+// // // //             className="action-icon"
+// // // //             onClick={() => handleDeleteButton(row.original.id)}
+// // // //           >
+// // // //             <i className="mdi mdi-delete"></i>
+// // // //           </Link>
+// // // //         </>
+// // // //       ),
+// // // //     },
+// // // //   ];
+
+// // // //   // Use effects
+// // // //   useEffect(() => {
+// // // //     if (user?.tenantToken) {
+// // // //       fetchLocations();
+// // // //     }
+// // // //   }, [user?.tenantToken]);
+
+// // // //   useEffect(() => {
+// // // //     if (selectedLocation) {
+// // // //       fetchFloor(selectedLocation);
+// // // //     }
+// // // //   }, [selectedLocation]);
+
+// // // //   useEffect(() => {
+// // // //     if (formData.floor_id && user?.tenantToken) {
+// // // //       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+// // // //     }
+// // // //   }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+
+// // // //   return (
+// // // //     <>
+// // // //       <PageTitle
+// // // //         breadCrumbItems={[
+// // // //           { label: "My Rooms", path: "/room/my-rooms", active: true },
+// // // //         ]}
+// // // //         title="My Rooms"
+// // // //       />
+
+// // // //       <Row>
+// // // //         <Col>
+// // // //           <Card>
+// // // //             <Card.Body>
+// // // //               <Card>
+// // // //                 <Card.Body style={{ 
+// // // //                   background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", 
+// // // //                   marginTop: "30px" 
+// // // //                 }}>
+// // // //                   {/* Location Selection */}
+// // // //                   {loadingLocations ? (
+// // // //                     <div className="text-center">
+// // // //                       <Spinner animation="border" role="status">
+// // // //                         <span className="visually-hidden">Loading...</span>
+// // // //                       </Spinner>{" "}
+// // // //                       Loading your locations...
+// // // //                     </div>
+// // // //                   ) : (
+// // // //                     <div>
+// // // //                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+// // // //                         Select a location to view or update the room.
+// // // //                       </p>
+// // // //                       <Form.Select
+// // // //                         style={{ marginBottom: "25px", fontSize: "1rem" }}
+// // // //                         value={selectedLocation || ""}
+// // // //                         onChange={handleLocationChange}
+// // // //                       >
+// // // //                         <option value="" disabled>
+// // // //                           Select a location
+// // // //                         </option>
+// // // //                         {locations.map((location) => (
+// // // //                           <option key={location.id} value={location.id}>
+// // // //                             {location.name} at {location.state}
+// // // //                           </option>
+// // // //                         ))}
+// // // //                       </Form.Select>
+// // // //                     </div>
+// // // //                   )}
+
+// // // //                   {/* Floor Selection */}
+// // // //                   {selectedLocation && (
+// // // //                     <Form.Group className="mb-3" controlId="location_id">
+// // // //                       {loadingFloor ? (
+// // // //                         <div className="text-center">
+// // // //                           <Spinner animation="border" role="status">
+// // // //                             <span className="visually-hidden">Loading floors/sections...</span>
+// // // //                           </Spinner>
+// // // //                         </div>
+// // // //                       ) : (
+// // // //                         <>
+// // // //                           <Form.Label>
+// // // //                             Select the Floor of the room you want to view.
+// // // //                           </Form.Label>
+// // // //                           <Form.Select
+// // // //                             name="floor_id"
+// // // //                             value={formData.floor_id}
+// // // //                             onChange={handleFloorChange}
+// // // //                             required
+// // // //                           >
+// // // //                             <option value="">Select a Floor/Section</option>
+// // // //                             {Array.isArray(floorData) &&
+// // // //                               floorData.map((floor) => (
+// // // //                                 <option key={floor.id} value={floor.id}>
+// // // //                                   {floor.name}
+// // // //                                 </option>
+// // // //                               ))}
+// // // //                           </Form.Select>
+// // // //                         </>
+// // // //                       )}
+// // // //                     </Form.Group>
+// // // //                   )}
+
+// // // //                   {/* Room Selection */}
+// // // //                   {formData.floor_id && (
+// // // //                     <Form.Group className="mb-3" controlId="room_id">
+// // // //                       <Form.Label>
+// // // //                         Select a specific room (optional)
+// // // //                       </Form.Label>
+// // // //                       <Form.Select
+// // // //                         name="room_id"
+// // // //                         value={formData.room_id}
+// // // //                         onChange={handleRoomChange}
+// // // //                       >
+// // // //                         <option value="">All Rooms</option>
+// // // //                         {Array.isArray(roomsData) &&
+// // // //                           roomsData.map((room) => (
+// // // //                             <option key={room.id} value={room.id}>
+// // // //                               {room.space_name} (No: {room.space_number})
+// // // //                             </option>
+// // // //                           ))}
+// // // //                       </Form.Select>
+// // // //                     </Form.Group>
+// // // //                   )}
+
+// // // //                   {/* Rooms Table */}
+// // // //                   {formData.floor_id && (
+// // // //                     <>
+// // // //                       {loading ? (
+// // // //                         <p>Loading rooms...</p>
+// // // //                       ) : isLoading ? (
+// // // //                         <div className="text-center">
+// // // //                           <Spinner animation="border" role="status">
+// // // //                             <span className="visually-hidden">Deleting...</span>
+// // // //                           </Spinner>{" "}
+// // // //                           Deleting...
+// // // //                         </div>
+// // // //                       ) : (
+// // // //                         <>
+// // // //                           <Table2
+// // // //                             columns={columns}
+// // // //                             data={data}
+// // // //                             pageSize={pagination.pageSize}
+// // // //                             isSortable
+// // // //                             pagination
+// // // //                             isSearchable
+// // // //                             tableClass="table-striped dt-responsive nowrap w-100"
+// // // //                             searchBoxClass="my-2"
+// // // //                             paginationProps={{
+// // // //                               currentPage: pagination.currentPage,
+// // // //                               totalPages: pagination.totalPages,
+// // // //                               onPageChange: (page) =>
+// // // //                                 setPagination((prev) => ({
+// // // //                                   ...prev,
+// // // //                                   currentPage: page,
+// // // //                                 })),
+// // // //                               onPageSizeChange: (pageSize) =>
+// // // //                                 setPagination((prev) => ({ ...prev, pageSize })),
+// // // //                             }}
+// // // //                           />
+
+// // // //                           {/* Room Details and Spaces Section */}
+// // // //                           {selectedRoom && (
+// // // //                             <div className="mt-4">
+// // // //                               {/* Room Details Card */}
+// // // //                               {loadingRoomDetails ? (
+// // // //                                 <div className="text-center mb-4">
+// // // //                                   <Spinner animation="border" role="status">
+// // // //                                     <span className="visually-hidden">Loading room details...</span>
+// // // //                                   </Spinner>
+// // // //                                 </div>
+// // // //                               ) : roomDetails ? (
+// // // //                                 <Card className="mb-4">
+// // // //                                   <Card.Header className="d-flex justify-content-between align-items-center">
+// // // //                                     <h5 className="mb-0">Room Details</h5>
+// // // //                                     <Badge bg="info">ID: {roomDetails.id}</Badge>
+// // // //                                   </Card.Header>
+// // // //                                   <Card.Body>
+// // // //                                     <Row>
+// // // //                                       <Col md={6}>
+// // // //                                         <p><strong>Name:</strong> {roomDetails.space_name}</p>
+// // // //                                         <p><strong>Number:</strong> {roomDetails.space_number}</p>
+// // // //                                         <p><strong>Capacity:</strong> {roomDetails.capacity || 'N/A'}</p>
+// // // //                                       </Col>
+// // // //                                       <Col md={6}>
+// // // //                                         <p><strong>Fee:</strong> ${roomDetails.space_fee || '0.00'}</p>
+// // // //                                         <p><strong>Status:</strong> 
+// // // //                                           <Badge bg={roomDetails.status === 'active' ? 'success' : 'secondary'} className="ms-2">
+// // // //                                             {roomDetails.status || 'N/A'}
+// // // //                                           </Badge>
+// // // //                                         </p>
+// // // //                                         <p><strong>Created:</strong> {formatDateTime(roomDetails.created_at)}</p>
+// // // //                                       </Col>
+// // // //                                     </Row>
+// // // //                                     {roomDetails.description && (
+// // // //                                       <div className="mt-3">
+// // // //                                         <strong>Description:</strong>
+// // // //                                         <Card className="mt-1">
+// // // //                                           <Card.Body className="p-2">
+// // // //                                             {roomDetails.description}
+// // // //                                           </Card.Body>
+// // // //                                         </Card>
+// // // //                                       </div>
+// // // //                                     )}
+// // // //                                   </Card.Body>
+// // // //                                 </Card>
+// // // //                               ) : (
+// // // //                                 <Alert variant="warning" className="mb-4">
+// // // //                                   No details available for this room
+// // // //                                 </Alert>
+// // // //                               )}
+
+// // // //                               {/* Spaces Section */}
+// // // //                               <h4 className="mb-3">Available Spaces</h4>
+// // // //                               {loadingRoomDetails ? (
+// // // //                                 <div className="text-center">
+// // // //                                   <Spinner animation="border" role="status">
+// // // //                                     <span className="visually-hidden">Loading spaces...</span>
+// // // //                                   </Spinner>
+// // // //                                 </div>
+// // // //                               ) : spaceCards && spaceCards.length > 0 ? (
+// // // //                                 <>
+// // // //                                   <p className="mb-3">Total spaces: {spaceCards.length}</p>
+// // // //                                   <Row>
+// // // //                                     {spaceCards.map((space) => (
+// // // //                                       <Col key={space.id} md={3} className="mb-3">
+// // // //                                         <Card className="h-100">
+// // // //                                           <Card.Body className="d-flex flex-column">
+// // // //                                             <Card.Title className="d-flex justify-content-between align-items-center">
+// // // //                                               <span>Space {space.space_number}</span>
+// // // //                                               <Badge bg={space.is_available ? "success" : "danger"}>
+// // // //                                                 {space.is_available ? "Available" : "Occupied"}
+// // // //                                               </Badge>
+// // // //                                             </Card.Title>
+// // // //                                             <Card.Text className="flex-grow-1">
+// // // //                                               <div><strong>Number:</strong> {space.space_number}</div>
+// // // //                                               <div><strong>Fee:</strong> ${space.space_fee}</div>
+// // // //                                               <div><strong>Type:</strong> {space.space_type}</div>
+// // // //                                             </Card.Text>
+// // // //                                             <div className="mt-auto">
+// // // //                                               <Button 
+// // // //                                                 variant={space.is_available ? "primary" : "secondary"} 
+// // // //                                                 size="sm"
+// // // //                                                 disabled={!space.is_available}
+// // // //                                                 className="w-100"
+// // // //                                                 onClick={() => handleBookNowClick(space)}
+// // // //                                               >
+// // // //                                                 {space.is_available ? "Book Now" : "Unavailable"}
+// // // //                                               </Button>
+// // // //                                             </div>
+// // // //                                           </Card.Body>
+// // // //                                         </Card>
+// // // //                                       </Col>
+// // // //                                     ))}
+// // // //                                   </Row>
+// // // //                                 </>
+// // // //                               ) : (
+// // // //                                 <Alert variant="info">
+// // // //                                   {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
+// // // //                                 </Alert>
+// // // //                               )}
+// // // //                             </div>
+// // // //                           )}
+// // // //                         </>
+// // // //                       )}
+// // // //                     </>
+// // // //                   )}
+// // // //                 </Card.Body>
+// // // //               </Card>
+// // // //             </Card.Body>
+// // // //           </Card>
+// // // //         </Col>
+// // // //       </Row>
+
+// // // //       {/* Popups */}
+// // // //       {popup.isVisible && (
+// // // //         <Popup
+// // // //           message={popup.message}
+// // // //           type={popup.type}
+// // // //           onClose={() => setPopup({ ...popup, isVisible: false })}
+// // // //           buttonLabel={popup.buttonLabel}
+// // // //           buttonRoute={popup.buttonRoute}
+// // // //         />
+// // // //       )}
+
+// // // //       {deletePopup.isVisible && (
+// // // //         <Popup
+// // // //           message="Are you sure you want to delete this room?"
+// // // //           type="confirm"
+// // // //           onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+// // // //           buttonLabel="Yes"
+// // // //           onAction={confirmDelete}
+// // // //         />
+// // // //       )}
+
+// // // //       {/* Booking Popup */}
+// // // //       {showBookingPopup && selectedSpace && (
+// // // //         <Popup
+// // // //           title={`Book Space ${selectedSpace.space_number}`}
+// // // //           isVisible={showBookingPopup}
+// // // //           onClose={handleBookingClose}
+// // // //           size="lg"
+// // // //         >
+// // // //           <Form onSubmit={handleBookingSubmit}>
+// // // //             <Row>
+// // // //               <Col md={12}>
+// // // //                 <Form.Group className="mb-3">
+// // // //                   <Form.Label>Booking Type</Form.Label>
+// // // //                   <Form.Select
+// // // //                     name="type"
+// // // //                     value={bookingFormData.type}
+// // // //                     onChange={handleBookingInputChange}
+// // // //                     required
+// // // //                   >
+// // // //                     <option value="one-off">One-time Booking</option>
+// // // //                     <option value="recurring">Recurring Booking</option>
+// // // //                   </Form.Select>
+// // // //                 </Form.Group>
+// // // //               </Col>
+// // // //             </Row>
+
+// // // //             {bookingFormData.type === "recurring" && (
+// // // //               <Row>
+// // // //                 <Col md={6}>
+// // // //                   <Form.Group className="mb-3">
+// // // //                     <Form.Label>Number of Weeks</Form.Label>
+// // // //                     <Form.Control
+// // // //                       type="number"
+// // // //                       name="number_weeks"
+// // // //                       value={bookingFormData.number_weeks}
+// // // //                       onChange={handleBookingInputChange}
+// // // //                       min="1"
+// // // //                       required={bookingFormData.type === "recurring"}
+// // // //                     />
+// // // //                   </Form.Group>
+// // // //                 </Col>
+// // // //                 <Col md={6}>
+// // // //                   <Form.Group className="mb-3">
+// // // //                     <Form.Label>Number of Months</Form.Label>
+// // // //                     <Form.Control
+// // // //                       type="number"
+// // // //                       name="number_months"
+// // // //                       value={bookingFormData.number_months}
+// // // //                       onChange={handleBookingInputChange}
+// // // //                       min="0"
+// // // //                       required={bookingFormData.type === "recurring"}
+// // // //                     />
+// // // //                   </Form.Group>
+// // // //                 </Col>
+// // // //               </Row>
+// // // //             )}
+
+// // // //             <h5 className="mt-3">Booking Schedule</h5>
+// // // //             {bookingFormData.chosen_days.map((day, index) => (
+// // // //               <div key={index} className="border p-3 mb-3">
+// // // //                 <Row>
+// // // //                   <Col md={4}>
+// // // //                     <Form.Group className="mb-3">
+// // // //                       <Form.Label>Day of Week</Form.Label>
+// // // //                       <Form.Select
+// // // //                         name={`day-${index}`}
+// // // //                         value={day.day}
+// // // //                         onChange={(e) => handleDayChange(index, 'day', e.target.value)}
+// // // //                         required
+// // // //                       >
+// // // //                         <option value="">Select day</option>
+// // // //                         <option value="monday">Monday</option>
+// // // //                         <option value="tuesday">Tuesday</option>
+// // // //                         <option value="wednesday">Wednesday</option>
+// // // //                         <option value="thursday">Thursday</option>
+// // // //                         <option value="friday">Friday</option>
+// // // //                         <option value="saturday">Saturday</option>
+// // // //                         <option value="sunday">Sunday</option>
+// // // //                       </Form.Select>
+// // // //                     </Form.Group>
+// // // //                   </Col>
+// // // //                   <Col md={4}>
+// // // //                     <Form.Group className="mb-3">
+// // // //                       <Form.Label>Start Time</Form.Label>
+// // // //                       <Form.Control
+// // // //                         type="datetime-local"
+// // // //                         name={`start_time-${index}`}
+// // // //                         value={day.start_time}
+// // // //                         onChange={(e) => handleDayChange(index, 'start_time', e.target.value)}
+// // // //                         required
+// // // //                       />
+// // // //                     </Form.Group>
+// // // //                   </Col>
+// // // //                   <Col md={4}>
+// // // //                     <Form.Group className="mb-3">
+// // // //                       <Form.Label>End Time</Form.Label>
+// // // //                       <Form.Control
+// // // //                         type="datetime-local"
+// // // //                         name={`end_time-${index}`}
+// // // //                         value={day.end_time}
+// // // //                         onChange={(e) => handleDayChange(index, 'end_time', e.target.value)}
+// // // //                         required
+// // // //                       />
+// // // //                     </Form.Group>
+// // // //                   </Col>
+// // // //                 </Row>
+// // // //                 {index > 0 && (
+// // // //                   <Button 
+// // // //                     variant="danger" 
+// // // //                     size="sm" 
+// // // //                     onClick={() => removeDay(index)}
+// // // //                     className="mt-2"
+// // // //                   >
+// // // //                     Remove Day
+// // // //                   </Button>
+// // // //                 )}
+// // // //               </div>
+// // // //             ))}
+
+// // // //             <Button 
+// // // //               variant="outline-primary" 
+// // // //               size="sm" 
+// // // //               onClick={addDay}
+// // // //               className="mb-3"
+// // // //             >
+// // // //               Add Another Day
+// // // //             </Button>
+
+// // // //             <div className="d-flex justify-content-end">
+// // // //               <Button variant="secondary" onClick={handleBookingClose} className="me-2">
+// // // //                 Cancel
+// // // //               </Button>
+// // // //               <Button variant="primary" type="submit" disabled={isLoading}>
+// // // //                 {isLoading ? (
+// // // //                   <>
+// // // //                     <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+// // // //                     {' '}Booking...
+// // // //                   </>
+// // // //                 ) : 'Confirm Booking'}
+// // // //               </Button>
+// // // //             </div>
+// // // //           </Form>
+// // // //         </Popup>
+// // // //       )}
+// // // //     </>
+// // // //   );
+// // // // };
+
+// // // // export default SeatBookingSystem;
+
+
+
+// // // import React, { useState, useEffect } from "react";
+// // // import { Link } from "react-router-dom";
+// // // import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
+// // // import PageTitle from "../../../components/PageTitle";
+// // // import { useAuthContext } from "@/context/useAuthContext.jsx";
+// // // import Popup from "../../../components/Popup/Popup";
+// // // import Table2 from "../../../components/Table2";
+// // // import { toast } from "react-toastify";
+
+// // // const SeatBookingSystem = () => {
+// // //   const { user } = useAuthContext();
+// // //   const tenantToken = user?.tenantToken;
+// // //   const tenantSlug = user?.tenant;
+
+// // //   // State variables
+// // //   const [show, setShow] = useState(false);
+// // //   const [data, setData] = useState([]);
+// // //   const [loading, setLoading] = useState(true);
+// // //   const [loadingLocations, setLoadingLocations] = useState(true);
+// // //   const [loadingFloor, setLoadingFloor] = useState(false);
+// // //   const [floorData, setFloorData] = useState([]);
+// // //   const [roomsData, setRoomsData] = useState([]);
+// // //   const [selectedRoom, setSelectedRoom] = useState(null);
+// // //   const [roomDetails, setRoomDetails] = useState(null);
+// // //   const [spaceCards, setSpaceCards] = useState([]);
+// // //   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+// // //   const [selectedUser, setSelectedUser] = useState(null);
+// // //   const [isLoading, setIsLoading] = useState(false);
+// // //   const [isError, setIsError] = useState(false);
+// // //   const [locations, setLocations] = useState([]);
+// // //   const [selectedLocation, setSelectedLocation] = useState(null);
+
+// // //   // Booking popup states
+// // //   const [showBookingPopup, setShowBookingPopup] = useState(false);
+// // //   const [selectedSpace, setSelectedSpace] = useState(null);
+// // //   const [bookingFormData, setBookingFormData] = useState({
+// // //     type: "one-off",
+// // //     chosen_days: [{
+// // //       day: "",
+// // //       start_time: "",
+// // //       end_time: ""
+// // //     }],
+// // //     number_weeks: "",
+// // //     number_months: ""
+// // //   });
+
+// // //   const [popup, setPopup] = useState({
+// // //     message: "",
+// // //     type: "",
+// // //     isVisible: false,
+// // //     buttonLabel: "",
+// // //     buttonRoute: "",
+// // //   });
+
+// // //   const [deletePopup, setDeletePopup] = useState({
+// // //     isVisible: false,
+// // //     myRoomID: null,
+// // //   });
+
+// // //   const [pagination, setPagination] = useState({
+// // //     currentPage: 1,
+// // //     totalPages: 1,
+// // //     nextPageUrl: null,
+// // //     prevPageUrl: null,
+// // //     pageSize: 10,
+// // //   });
+
+// // //   const [formData, setFormData] = useState({
+// // //     name: "",
+// // //     location_id: "",
+// // //     floor_id: "",
+// // //     room_id: ""
+// // //   });
+
+// // //   // Format date time
+// // //   const formatDateTime = (isoString) => {
+// // //     const options = {
+// // //       year: "numeric",
+// // //       month: "long",
+// // //       day: "numeric",
+// // //       hour: "2-digit",
+// // //       minute: "2-digit",
+// // //       second: "2-digit",
+// // //     };
+// // //     return new Date(isoString).toLocaleDateString("en-US", options);
+// // //   };
+
+// // //   // Fetch locations
+// // //   const fetchLocations = async () => {
+// // //     setLoadingLocations(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+// // //         {
+// // //           headers: { Authorization: `Bearer ${user.tenantToken}` },
+// // //         }
+// // //       );
+// // //       const result = await response.json();
+// // //       if (response.ok) {
+// // //         setLocations(result.data.data || []);
+// // //       } else {
+// // //         throw new Error(result.message || "Failed to fetch locations.");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoadingLocations(false);
+// // //     }
+// // //   };
+
+// // //   // Handle location change
+// // //   const handleLocationChange = (e) => {
+// // //     const locationId = e.target.value;
+// // //     setSelectedLocation(locationId);
+// // //     setFormData((prev) => ({
+// // //       ...prev,
+// // //       location_id: locationId,
+// // //       floor_id: "",
+// // //       room_id: ""
+// // //     }));
+// // //     setFloorData([]);
+// // //     setRoomsData([]);
+// // //     setData([]);
+// // //     setSpaceCards([]);
+// // //     setRoomDetails(null);
+// // //   };
+
+// // //   // Fetch floors for selected location
+// // //   const fetchFloor = async (locationId) => {
+// // //     setLoadingFloor(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+// // //         {
+// // //           method: "GET",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //           },
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // //       }
+
+// // //       const result = await response.json();
+// // //       if (result && Array.isArray(result.data.data)) {
+// // //         setFloorData(result.data.data);
+// // //       } else {
+// // //         throw new Error("Invalid response format");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoadingFloor(false);
+// // //     }
+// // //   };
+
+// // //   // Fetch rooms for selected floor
+// // //   const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+// // //     setLoading(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+// // //         {
+// // //           method: "GET",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //           },
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // //       }
+
+// // //       const result = await response.json();
+// // //       if (result && Array.isArray(result)) {
+// // //         const sortedData = result.sort(
+// // //           (a, b) =>
+// // //             new Date(b.updated_at || b.created_at) -
+// // //             new Date(a.updated_at || a.created_at)
+// // //         );
+// // //         setRoomsData(sortedData);
+// // //         setData(sortedData);
+// // //         setPagination({
+// // //           currentPage: result.current_page,
+// // //           totalPages: result.last_page,
+// // //           nextPageUrl: result.next_page_url,
+// // //           prevPageUrl: result.prev_page_url,
+// // //           pageSize: pageSize,
+// // //         });
+// // //       } else {
+// // //         throw new Error("Invalid response format");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoading(false);
+// // //     }
+// // //   };
+
+// // //   // Generate space cards based on space_number
+// // //   const generateSpaceCards = (spaceNumber) => {
+// // //     if (!spaceNumber || isNaN(spaceNumber) || spaceNumber <= 0) return [];
+    
+// // //     const cards = [];
+// // //     for (let i = 1; i <= spaceNumber; i++) {
+// // //       cards.push({
+// // //         id: i,
+// // //         space_number: i,
+// // //         is_available: true, // Default to available
+// // //         space_fee: roomDetails?.space_fee || 0,
+// // //         space_type: 'Standard'
+// // //       });
+// // //     }
+// // //     return cards;
+// // //   };
+
+// // //   // Fetch individual room details and generate space cards
+// // //   const fetchRoomDetails = async (roomId) => {
+// // //     if (!roomId) {
+// // //       setRoomDetails(null);
+// // //       setSpaceCards([]);
+// // //       return;
+// // //     }
+
+// // //     setLoadingRoomDetails(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+// // //         {
+// // //           method: "GET",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //           },
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+// // //       }
+
+// // //       const result = await response.json();
+// // //       if (result && result.data) {
+// // //         setRoomDetails(result.data);
+// // //         // Generate space cards based on space_number
+// // //         const cards = generateSpaceCards(result.data.space_number);
+// // //         setSpaceCards(cards);
+// // //       } else {
+// // //         throw new Error("Invalid room details format");
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message);
+// // //     } finally {
+// // //       setLoadingRoomDetails(false);
+// // //     }
+// // //   };
+
+// // //   // Handle floor change
+// // //   const handleFloorChange = (e) => {
+// // //     const floorId = e.target.value;
+// // //     setFormData((prev) => ({
+// // //       ...prev,
+// // //       floor_id: floorId,
+// // //       room_id: ""
+// // //     }));
+// // //     setSelectedRoom(null);
+// // //     setSpaceCards([]);
+// // //     setRoomDetails(null);
+
+// // //     if (floorId && selectedLocation) {
+// // //       fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
+// // //     }
+// // //   };
+
+// // //   // Handle room change
+// // //   const handleRoomChange = async (e) => {
+// // //     const roomId = e.target.value;
+// // //     setSelectedRoom(roomId);
+// // //     setFormData((prev) => ({
+// // //       ...prev,
+// // //       room_id: roomId
+// // //     }));
+
+// // //     if (roomId) {
+// // //       const filteredData = roomsData.filter(room => room.id === roomId);
+// // //       setData(filteredData);
+// // //       await fetchRoomDetails(roomId);
+// // //     } else {
+// // //       setData(roomsData);
+// // //       setSpaceCards([]);
+// // //       setRoomDetails(null);
+// // //     }
+// // //   };
+
+// // //   // Handle edit click
+// // //   const handleEditClick = (myRoom) => {
+// // //     setSelectedUser(myRoom);
+// // //     setShow(true);
+// // //   };
+
+// // //   // Handle close modal
+// // //   const handleClose = () => {
+// // //     setShow(false);
+// // //     setSelectedUser(null);
+
+// // //     if (selectedLocation && formData.floor_id) {
+// // //       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+// // //     }
+// // //   };
+
+// // //   // Handle delete
+// // //   const handleDelete = async (myRoomID) => {
+// // //     if (!user?.tenantToken) return;
+
+// // //     setIsLoading(true);
+// // //     try {
+// // //       const response = await fetch(
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,
+// // //         {
+// // //           method: "POST",
+// // //           headers: {
+// // //             Authorization: `Bearer ${user?.tenantToken}`,
+// // //             "Content-Type": "application/json",
+// // //           },
+// // //           body: JSON.stringify({ id: myRoomID }),
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         throw new Error(`HTTP error! Status: ${response.status}`);
+// // //       }
+
+// // //       setData((prevData) => prevData.filter((myRoom) => myRoom.id !== myRoomID));
+// // //       setPopup({
+// // //         message: "Room deleted successfully!",
+// // //         type: "success",
+// // //         isVisible: true,
+// // //       });
+      
+// // //       if (formData.floor_id && selectedLocation) {
+// // //         fetchRoom(
+// // //           selectedLocation,
+// // //           formData.floor_id,
+// // //           pagination.currentPage,
+// // //           pagination.pageSize
+// // //         );
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error("Failed to delete room!");
+// // //     } finally {
+// // //       setIsLoading(false);
+// // //     }
+// // //   };
+
+// // //   // Handle delete button click
+// // //   const handleDeleteButton = (myRoomID) => {
+// // //     setDeletePopup({
+// // //       isVisible: true,
+// // //       myRoomID,
+// // //     });
+// // //   };
+
+// // //   // Confirm delete
+// // //   const confirmDelete = () => {
+// // //     const { myRoomID } = deletePopup;
+// // //     handleDelete(myRoomID);
+// // //     setDeletePopup({ isVisible: false, myRoomID: null });
+// // //   };
+
+// // //   // Handle changes to day fields
+// // //   const handleDayChange = (index, field, value) => {
+// // //     const updatedDays = [...bookingFormData.chosen_days];
+// // //     updatedDays[index][field] = value;
+// // //     setBookingFormData(prev => ({
+// // //       ...prev,
+// // //       chosen_days: updatedDays
+// // //     }));
+// // //   };
+
+// // //   // Add a new day to the booking
+// // //   const addDay = () => {
+// // //     setBookingFormData(prev => ({
+// // //       ...prev,
+// // //       chosen_days: [
+// // //         ...prev.chosen_days,
+// // //         { day: "", start_time: "", end_time: "" }
+// // //       ]
+// // //     }));
+// // //   };
+
+// // //   // Remove a day from the booking
+// // //   const removeDay = (index) => {
+// // //     setBookingFormData(prev => ({
+// // //       ...prev,
+// // //       chosen_days: prev.chosen_days.filter((_, i) => i !== index)
+// // //     }));
+// // //   };
+
+// // //   // Handle book now click
+// // //   const handleBookNowClick = (space) => {
+// // //     setSelectedSpace(space);
+// // //     setBookingFormData({
+// // //       type: "one-off",
+// // //       chosen_days: [{
+// // //         day: "",
+// // //         start_time: "",
+// // //         end_time: ""
+// // //       }],
+// // //       number_weeks: "",
+// // //       number_months: ""
+// // //     });
+// // //     setShowBookingPopup(true);
+// // //   };
+
+// // //   const handleBookingClose = () => {
+// // //     setShowBookingPopup(false);
+// // //     setSelectedSpace(null);
+// // //   };
+
+// // //   const handleBookingInputChange = (e) => {
+// // //     const { name, value } = e.target;
+// // //     setBookingFormData(prev => ({
+// // //       ...prev,
+// // //       [name]: value
+// // //     }));
+// // //   };
+
+// // //   const formatTimeForAPI = (datetimeString) => {
+// // //     if (!datetimeString) return "";
+// // //     const date = new Date(datetimeString);
+// // //     return date.toISOString().replace('T', ' ').substring(0, 19);
+// // //   };
+
+// // //   const handleBookingSubmit = async (e) => {
+// // //     e.preventDefault();
+// // //     setIsLoading(true);
+    
+// // //     try {
+// // //       // Validate chosen days
+// // //       const hasEmptyFields = bookingFormData.chosen_days.some(day => 
+// // //         !day.day || !day.start_time || !day.end_time
+// // //       );
+      
+// // //       if (hasEmptyFields) {
+// // //         throw new Error("Please fill in all day fields");
+// // //       }
+
+// // //       // Validate time ranges
+// // //       for (const day of bookingFormData.chosen_days) {
+// // //         if (new Date(day.start_time) >= new Date(day.end_time)) {
+// // //           throw new Error("End time must be after start time");
+// // //         }
+// // //       }
+
+// // //       // Validate recurring booking fields if needed
+// // //       if (bookingFormData.type === "recurring") {
+// // //         if (!bookingFormData.number_weeks && !bookingFormData.number_months) {
+// // //           throw new Error("Please specify duration for recurring booking");
+// // //         }
+// // //       }
+
+// // //       // Prepare the booking data according to your API requirements
+// // //       const bookingData = {
+// // //         spot_id: selectedSpace.id.toString(),
+// // //         user_id: user.id.toString(),
+// // //         type: bookingFormData.type,
+// // //         ...(bookingFormData.type === "recurring" && {
+// // //           number_weeks: bookingFormData.number_weeks || "0",
+// // //           number_months: bookingFormData.number_months || "0"
+// // //         }),
+// // //         chosen_days: bookingFormData.chosen_days.map(day => ({
+// // //           day: day.day.toLowerCase(),
+// // //           start_time: formatTimeForAPI(day.start_time),
+// // //           end_time: formatTimeForAPI(day.end_time)
+// // //         }))
+// // //       };
+
+// // //       // Make API call to your specific endpoint
+// // //       const response = await fetch(
+// // //         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+// // //         {
+// // //           method: "POST",
+// // //           headers: {
+// // //             "Authorization": `Bearer ${user?.tenantToken}`,
+// // //             "Content-Type": "application/json",
+// // //           },
+// // //           body: JSON.stringify(bookingData),
+// // //         }
+// // //       );
+
+// // //       if (!response.ok) {
+// // //         const errorData = await response.json();
+// // //         throw new Error(errorData.message || "Failed to book space");
+// // //       }
+
+// // //       const result = await response.json();
+// // //       toast.success(result.message || "Space booked successfully!");
+// // //       handleBookingClose();
+      
+// // //       // Refresh the space data
+// // //       if (selectedRoom) {
+// // //         await fetchRoomDetails(selectedRoom);
+// // //       }
+// // //     } catch (error) {
+// // //       toast.error(error.message || "Failed to book space");
+// // //     } finally {
+// // //       setIsLoading(false);
+// // //     }
+// // //   };
+
+// // //   // Table columns
+// // //   const columns = [
+// // //     {
+// // //       Header: "S/N",
+// // //       accessor: (row, i) => i + 1,
+// // //       id: "serialNo",
+// // //       sort: false,
+// // //     },
+// // //     {
+// // //       Header: "Room Name",
+// // //       accessor: "space_name",
+// // //       sort: true,
+// // //     },
+// // //     {
+// // //       Header: "Space Number",
+// // //       accessor: "space_number",
+// // //       sort: true,
+// // //     },
+// // //     {
+// // //       Header: "Space Fee",
+// // //       accessor: "space_fee",
+// // //       sort: true,
+// // //     },
+// // //     {
+// // //       Header: "Created On",
+// // //       accessor: "created_at",
+// // //       sort: true,
+// // //       Cell: ({ row }) => formatDateTime(row.original.created_at),
+// // //     },
+// // //     {
+// // //       Header: "Updated On",
+// // //       accessor: "updated_at",
+// // //       sort: true,
+// // //       Cell: ({ row }) => formatDateTime(row.original.updated_at),
+// // //     },
+// // //     {
+// // //       Header: "Action",
+// // //       accessor: "action",
+// // //       sort: false,
+// // //       Cell: ({ row }) => (
+// // //         <>
+// // //           <Link
+// // //             to="#"
+// // //             className="action-icon"
+// // //             onClick={() => handleEditClick(row.original)}
+// // //           >
+// // //             <i className="mdi mdi-square-edit-outline"></i>
+// // //           </Link>
+// // //           <Link
+// // //             to="#"
+// // //             className="action-icon"
+// // //             onClick={() => handleDeleteButton(row.original.id)}
+// // //           >
+// // //             <i className="mdi mdi-delete"></i>
+// // //           </Link>
+// // //         </>
+// // //       ),
+// // //     },
+// // //   ];
+
+// // //   // Use effects
+// // //   useEffect(() => {
+// // //     if (user?.tenantToken) {
+// // //       fetchLocations();
+// // //     }
+// // //   }, [user?.tenantToken]);
+
+// // //   useEffect(() => {
+// // //     if (selectedLocation) {
+// // //       fetchFloor(selectedLocation);
+// // //     }
+// // //   }, [selectedLocation]);
+
+// // //   useEffect(() => {
+// // //     if (formData.floor_id && user?.tenantToken) {
+// // //       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+// // //     }
+// // //   }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+
+// // //   return (
+// // //     <>
+// // //       <PageTitle
+// // //         breadCrumbItems={[
+// // //           { label: "My Rooms", path: "/room/my-rooms", active: true },
+// // //         ]}
+// // //         title="My Rooms"
+// // //       />
+
+// // //       <Row>
+// // //         <Col>
+// // //           <Card>
+// // //             <Card.Body>
+// // //               <Card>
+// // //                 <Card.Body style={{ 
+// // //                   background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", 
+// // //                   marginTop: "30px" 
+// // //                 }}>
+// // //                   {/* Location Selection */}
+// // //                   {loadingLocations ? (
+// // //                     <div className="text-center">
+// // //                       <Spinner animation="border" role="status">
+// // //                         <span className="visually-hidden">Loading...</span>
+// // //                       </Spinner>{" "}
+// // //                       Loading your locations...
+// // //                     </div>
+// // //                   ) : (
+// // //                     <div>
+// // //                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+// // //                         Select a location to view or update the room.
+// // //                       </p>
+// // //                       <Form.Select
+// // //                         style={{ marginBottom: "25px", fontSize: "1rem" }}
+// // //                         value={selectedLocation || ""}
+// // //                         onChange={handleLocationChange}
+// // //                       >
+// // //                         <option value="" disabled>
+// // //                           Select a location
+// // //                         </option>
+// // //                         {locations.map((location) => (
+// // //                           <option key={location.id} value={location.id}>
+// // //                             {location.name} at {location.state}
+// // //                           </option>
+// // //                         ))}
+// // //                       </Form.Select>
+// // //                     </div>
+// // //                   )}
+
+// // //                   {/* Floor Selection */}
+// // //                   {selectedLocation && (
+// // //                     <Form.Group className="mb-3" controlId="location_id">
+// // //                       {loadingFloor ? (
+// // //                         <div className="text-center">
+// // //                           <Spinner animation="border" role="status">
+// // //                             <span className="visually-hidden">Loading floors/sections...</span>
+// // //                           </Spinner>
+// // //                         </div>
+// // //                       ) : (
+// // //                         <>
+// // //                           <Form.Label>
+// // //                             Select the Floor of the room you want to view.
+// // //                           </Form.Label>
+// // //                           <Form.Select
+// // //                             name="floor_id"
+// // //                             value={formData.floor_id}
+// // //                             onChange={handleFloorChange}
+// // //                             required
+// // //                           >
+// // //                             <option value="">Select a Floor/Section</option>
+// // //                             {Array.isArray(floorData) &&
+// // //                               floorData.map((floor) => (
+// // //                                 <option key={floor.id} value={floor.id}>
+// // //                                   {floor.name}
+// // //                                 </option>
+// // //                               ))}
+// // //                           </Form.Select>
+// // //                         </>
+// // //                       )}
+// // //                     </Form.Group>
+// // //                   )}
+
+// // //                   {/* Room Selection */}
+// // //                   {formData.floor_id && (
+// // //                     <Form.Group className="mb-3" controlId="room_id">
+// // //                       <Form.Label>
+// // //                         Select a specific room (optional)
+// // //                       </Form.Label>
+// // //                       <Form.Select
+// // //                         name="room_id"
+// // //                         value={formData.room_id}
+// // //                         onChange={handleRoomChange}
+// // //                       >
+// // //                         <option value="">All Rooms</option>
+// // //                         {Array.isArray(roomsData) &&
+// // //                           roomsData.map((room) => (
+// // //                             <option key={room.id} value={room.id}>
+// // //                               {room.space_name} (No: {room.space_number})
+// // //                             </option>
+// // //                           ))}
+// // //                       </Form.Select>
+// // //                     </Form.Group>
+// // //                   )}
+
+// // //                   {/* Rooms Table */}
+// // //                   {formData.floor_id && (
+// // //                     <>
+// // //                       {loading ? (
+// // //                         <p>Loading rooms...</p>
+// // //                       ) : isLoading ? (
+// // //                         <div className="text-center">
+// // //                           <Spinner animation="border" role="status">
+// // //                             <span className="visually-hidden">Deleting...</span>
+// // //                           </Spinner>{" "}
+// // //                           Deleting...
+// // //                         </div>
+// // //                       ) : (
+// // //                         <>
+// // //                           <Table2
+// // //                             columns={columns}
+// // //                             data={data}
+// // //                             pageSize={pagination.pageSize}
+// // //                             isSortable
+// // //                             pagination
+// // //                             isSearchable
+// // //                             tableClass="table-striped dt-responsive nowrap w-100"
+// // //                             searchBoxClass="my-2"
+// // //                             paginationProps={{
+// // //                               currentPage: pagination.currentPage,
+// // //                               totalPages: pagination.totalPages,
+// // //                               onPageChange: (page) =>
+// // //                                 setPagination((prev) => ({
+// // //                                   ...prev,
+// // //                                   currentPage: page,
+// // //                                 })),
+// // //                               onPageSizeChange: (pageSize) =>
+// // //                                 setPagination((prev) => ({ ...prev, pageSize })),
+// // //                             }}
+// // //                           />
+
+// // //                           {/* Room Details and Spaces Section */}
+// // //                           {selectedRoom && (
+// // //                             <div className="mt-4">
+// // //                               {/* Room Details Card */}
+// // //                               {loadingRoomDetails ? (
+// // //                                 <div className="text-center mb-4">
+// // //                                   <Spinner animation="border" role="status">
+// // //                                     <span className="visually-hidden">Loading room details...</span>
+// // //                                   </Spinner>
+// // //                                 </div>
+// // //                               ) : roomDetails ? (
+// // //                                 <Card className="mb-4">
+// // //                                   <Card.Header className="d-flex justify-content-between align-items-center">
+// // //                                     <h5 className="mb-0">Room Details</h5>
+// // //                                     <Badge bg="info">ID: {roomDetails.id}</Badge>
+// // //                                   </Card.Header>
+// // //                                   <Card.Body>
+// // //                                     <Row>
+// // //                                       <Col md={6}>
+// // //                                         <p><strong>Name:</strong> {roomDetails.space_name}</p>
+// // //                                         <p><strong>Number:</strong> {roomDetails.space_number}</p>
+// // //                                         <p><strong>Capacity:</strong> {roomDetails.capacity || 'N/A'}</p>
+// // //                                       </Col>
+// // //                                       <Col md={6}>
+// // //                                         <p><strong>Fee:</strong> ${roomDetails.space_fee || '0.00'}</p>
+// // //                                         <p><strong>Status:</strong> 
+// // //                                           <Badge bg={roomDetails.status === 'active' ? 'success' : 'secondary'} className="ms-2">
+// // //                                             {roomDetails.status || 'N/A'}
+// // //                                           </Badge>
+// // //                                         </p>
+// // //                                         <p><strong>Created:</strong> {formatDateTime(roomDetails.created_at)}</p>
+// // //                                       </Col>
+// // //                                     </Row>
+// // //                                     {roomDetails.description && (
+// // //                                       <div className="mt-3">
+// // //                                         <strong>Description:</strong>
+// // //                                         <Card className="mt-1">
+// // //                                           <Card.Body className="p-2">
+// // //                                             {roomDetails.description}
+// // //                                           </Card.Body>
+// // //                                         </Card>
+// // //                                       </div>
+// // //                                     )}
+// // //                                   </Card.Body>
+// // //                                 </Card>
+// // //                               ) : (
+// // //                                 <Alert variant="warning" className="mb-4">
+// // //                                   No details available for this room
+// // //                                 </Alert>
+// // //                               )}
+
+// // //                               {/* Spaces Section */}
+// // //                               <h4 className="mb-3">Available Spaces</h4>
+// // //                               {loadingRoomDetails ? (
+// // //                                 <div className="text-center">
+// // //                                   <Spinner animation="border" role="status">
+// // //                                     <span className="visually-hidden">Loading spaces...</span>
+// // //                                   </Spinner>
+// // //                                 </div>
+// // //                               ) : spaceCards && spaceCards.length > 0 ? (
+// // //                                 <>
+// // //                                   <p className="mb-3">Total spaces: {spaceCards.length}</p>
+// // //                                   <Row>
+// // //                                     {spaceCards.map((space) => (
+// // //                                       <Col key={space.id} md={3} className="mb-3">
+// // //                                         <Card className="h-100">
+// // //                                           <Card.Body className="d-flex flex-column">
+// // //                                             <Card.Title className="d-flex justify-content-between align-items-center">
+// // //                                               <span>Space {space.space_number}</span>
+// // //                                               <Badge bg={space.is_available ? "success" : "danger"}>
+// // //                                                 {space.is_available ? "Available" : "Occupied"}
+// // //                                               </Badge>
+// // //                                             </Card.Title>
+// // //                                             <Card.Text className="flex-grow-1">
+// // //                                               <div><strong>Number:</strong> {space.space_number}</div>
+// // //                                               <div><strong>Fee:</strong> ${space.space_fee}</div>
+// // //                                               <div><strong>Type:</strong> {space.space_type}</div>
+// // //                                             </Card.Text>
+// // //                                             <div className="mt-auto">
+// // //                                               <Button 
+// // //                                                 variant={space.is_available ? "primary" : "secondary"} 
+// // //                                                 size="sm"
+// // //                                                 disabled={!space.is_available}
+// // //                                                 className="w-100"
+// // //                                                 onClick={() => handleBookNowClick(space)}
+// // //                                               >
+// // //                                                 {space.is_available ? "Book Now" : "Unavailable"}
+// // //                                               </Button>
+// // //                                             </div>
+// // //                                           </Card.Body>
+// // //                                         </Card>
+// // //                                       </Col>
+// // //                                     ))}
+// // //                                   </Row>
+// // //                                 </>
+// // //                               ) : (
+// // //                                 <Alert variant="info">
+// // //                                   {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
+// // //                                 </Alert>
+// // //                               )}
+// // //                             </div>
+// // //                           )}
+// // //                         </>
+// // //                       )}
+// // //                     </>
+// // //                   )}
+// // //                 </Card.Body>
+// // //               </Card>
+// // //             </Card.Body>
+// // //           </Card>
+// // //         </Col>
+// // //       </Row>
+
+// // //       {/* Popups */}
+// // //       {popup.isVisible && (
+// // //         <Popup
+// // //           message={popup.message}
+// // //           type={popup.type}
+// // //           onClose={() => setPopup({ ...popup, isVisible: false })}
+// // //           buttonLabel={popup.buttonLabel}
+// // //           buttonRoute={popup.buttonRoute}
+// // //         />
+// // //       )}
+
+// // //       {deletePopup.isVisible && (
+// // //         <Popup
+// // //           message="Are you sure you want to delete this room?"
+// // //           type="confirm"
+// // //           onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+// // //           buttonLabel="Yes"
+// // //           onAction={confirmDelete}
+// // //         />
+// // //       )}
+
+// // //       {/* Booking Popup */}
+// // //       {showBookingPopup && selectedSpace && (
+// // //         <Popup
+// // //           title={`Book Space ${selectedSpace.space_number}`}
+// // //           isVisible={showBookingPopup}
+// // //           onClose={handleBookingClose}
+// // //           size="lg"
+// // //         >
+// // //           <Form onSubmit={handleBookingSubmit}>
+// // //             <Row>
+// // //               <Col md={12}>
+// // //                 <Form.Group className="mb-3">
+// // //                   <Form.Label>Booking Type</Form.Label>
+// // //                   <Form.Select
+// // //                     name="type"
+// // //                     value={bookingFormData.type}
+// // //                     onChange={handleBookingInputChange}
+// // //                     required
+// // //                   >
+// // //                     <option value="one-off">One-time Booking</option>
+// // //                     <option value="recurring">Recurring Booking</option>
+// // //                   </Form.Select>
+// // //                 </Form.Group>
+// // //               </Col>
+// // //             </Row>
+
+// // //             {bookingFormData.type === "recurring" && (
+// // //               <Row>
+// // //                 <Col md={6}>
+// // //                   <Form.Group className="mb-3">
+// // //                     <Form.Label>Number of Weeks</Form.Label>
+// // //                     <Form.Control
+// // //                       type="number"
+// // //                       name="number_weeks"
+// // //                       value={bookingFormData.number_weeks}
+// // //                       onChange={handleBookingInputChange}
+// // //                       min="1"
+// // //                       required={bookingFormData.type === "recurring"}
+// // //                     />
+// // //                   </Form.Group>
+// // //                 </Col>
+// // //                 <Col md={6}>
+// // //                   <Form.Group className="mb-3">
+// // //                     <Form.Label>Number of Months</Form.Label>
+// // //                     <Form.Control
+// // //                       type="number"
+// // //                       name="number_months"
+// // //                       value={bookingFormData.number_months}
+// // //                       onChange={handleBookingInputChange}
+// // //                       min="0"
+// // //                       required={bookingFormData.type === "recurring"}
+// // //                     />
+// // //                   </Form.Group>
+// // //                 </Col>
+// // //               </Row>
+// // //             )}
+
+// // //             <h5 className="mt-3">Booking Schedule</h5>
+// // //             {bookingFormData.chosen_days.map((day, index) => (
+// // //               <div key={index} className="border p-3 mb-3">
+// // //                 <Row>
+// // //                   <Col md={4}>
+// // //                     <Form.Group className="mb-3">
+// // //                       <Form.Label>Day of Week</Form.Label>
+// // //                       <Form.Select
+// // //                         name={`day-${index}`}
+// // //                         value={day.day}
+// // //                         onChange={(e) => handleDayChange(index, 'day', e.target.value)}
+// // //                         required
+// // //                       >
+// // //                         <option value="">Select day</option>
+// // //                         <option value="monday">Monday</option>
+// // //                         <option value="tuesday">Tuesday</option>
+// // //                         <option value="wednesday">Wednesday</option>
+// // //                         <option value="thursday">Thursday</option>
+// // //                         <option value="friday">Friday</option>
+// // //                         <option value="saturday">Saturday</option>
+// // //                         <option value="sunday">Sunday</option>
+// // //                       </Form.Select>
+// // //                     </Form.Group>
+// // //                   </Col>
+// // //                   <Col md={4}>
+// // //                     <Form.Group className="mb-3">
+// // //                       <Form.Label>Start Time</Form.Label>
+// // //                       <Form.Control
+// // //                         type="datetime-local"
+// // //                         name={`start_time-${index}`}
+// // //                         value={day.start_time}
+// // //                         onChange={(e) => handleDayChange(index, 'start_time', e.target.value)}
+// // //                         required
+// // //                       />
+// // //                     </Form.Group>
+// // //                   </Col>
+// // //                   <Col md={4}>
+// // //                     <Form.Group className="mb-3">
+// // //                       <Form.Label>End Time</Form.Label>
+// // //                       <Form.Control
+// // //                         type="datetime-local"
+// // //                         name={`end_time-${index}`}
+// // //                         value={day.end_time}
+// // //                         onChange={(e) => handleDayChange(index, 'end_time', e.target.value)}
+// // //                         required
+// // //                       />
+// // //                     </Form.Group>
+// // //                   </Col>
+// // //                 </Row>
+// // //                 {index > 0 && (
+// // //                   <Button 
+// // //                     variant="danger" 
+// // //                     size="sm" 
+// // //                     onClick={() => removeDay(index)}
+// // //                     className="mt-2"
+// // //                   >
+// // //                     Remove Day
+// // //                   </Button>
+// // //                 )}
+// // //               </div>
+// // //             ))}
+
+// // //             <Button 
+// // //               variant="outline-primary" 
+// // //               size="sm" 
+// // //               onClick={addDay}
+// // //               className="mb-3"
+// // //             >
+// // //               Add Another Day
+// // //             </Button>
+
+// // //             <div className="d-flex justify-content-end">
+// // //               <Button variant="secondary" onClick={handleBookingClose} className="me-2">
+// // //                 Cancel
+// // //               </Button>
+// // //               <Button variant="primary" type="submit" disabled={isLoading}>
+// // //                 {isLoading ? (
+// // //                   <>
+// // //                     <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+// // //                     {' '}Booking...
+// // //                   </>
+// // //                 ) : 'Confirm Booking'}
+// // //               </Button>
+// // //             </div>
+// // //           </Form>
+// // //         </Popup>
+// // //       )}
+// // //     </>
+// // //   );
+// // // };
+
+// // // export default SeatBookingSystem;
+
+
+
+
+// // import React, { useState, useEffect } from "react";
+// // import { Link } from "react-router-dom";
+// // import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
+// // import PageTitle from "../../../components/PageTitle";
+// // import { useAuthContext } from "@/context/useAuthContext.jsx";
+// // import Popup from "../../../components/Popup/Popup";
+// // import Table2 from "../../../components/Table2";
+// // import { toast } from "react-toastify";
+
+// // const SeatBookingSystem = () => {
+// //   const { user } = useAuthContext();
+// //   const tenantToken = user?.tenantToken;
+// //   const tenantSlug = user?.tenant;
+
+// //   // State variables
+// //   const [show, setShow] = useState(false);
+// //   const [data, setData] = useState([]);
+// //   const [loading, setLoading] = useState(true);
+// //   const [loadingLocations, setLoadingLocations] = useState(true);
+// //   const [loadingFloor, setLoadingFloor] = useState(false);
+// //   const [floorData, setFloorData] = useState([]);
+// //   const [roomsData, setRoomsData] = useState([]);
+// //   const [selectedRoom, setSelectedRoom] = useState(null);
+// //   const [roomDetails, setRoomDetails] = useState(null);
+// //   const [spaceCards, setSpaceCards] = useState([]);
+// //   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+// //   const [selectedUser, setSelectedUser] = useState(null);
+// //   const [isLoading, setIsLoading] = useState(false);
+// //   const [isError, setIsError] = useState(false);
+// //   const [locations, setLocations] = useState([]);
+// //   const [selectedLocation, setSelectedLocation] = useState(null);
+
+// //   // Booking popup states
+// //   const [showBookingPopup, setShowBookingPopup] = useState(false);
+// //   const [selectedSpace, setSelectedSpace] = useState(null);
+// //   const [bookingFormData, setBookingFormData] = useState({
+// //     type: "one-off",
+// //     chosen_days: [{
+// //       day: "",
+// //       start_time: "",
+// //       end_time: ""
+// //     }],
+// //     number_weeks: "",
+// //     number_months: ""
+// //   });
+
+// //   const [popup, setPopup] = useState({
+// //     message: "",
+// //     type: "",
+// //     isVisible: false,
+// //     buttonLabel: "",
+// //     buttonRoute: "",
+// //   });
+
+// //   const [deletePopup, setDeletePopup] = useState({
+// //     isVisible: false,
+// //     myRoomID: null,
+// //   });
+
+// //   const [pagination, setPagination] = useState({
+// //     currentPage: 1,
+// //     totalPages: 1,
+// //     nextPageUrl: null,
+// //     prevPageUrl: null,
+// //     pageSize: 10,
+// //   });
+
+// //   const [formData, setFormData] = useState({
+// //     name: "",
+// //     location_id: "",
+// //     floor_id: "",
+// //     room_id: ""
+// //   });
+
+// //   // Format date time
+// //   const formatDateTime = (isoString) => {
+// //     const options = {
+// //       year: "numeric",
+// //       month: "long",
+// //       day: "numeric",
+// //       hour: "2-digit",
+// //       minute: "2-digit",
+// //       second: "2-digit",
+// //     };
+// //     return new Date(isoString).toLocaleDateString("en-US", options);
+// //   };
+
+// //   // Fetch locations
+// //   const fetchLocations = async () => {
+// //     setLoadingLocations(true);
+// //     try {
+// //       const response = await fetch(
+// //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+// //         {
+// //           headers: { Authorization: `Bearer ${user.tenantToken}` },
+// //         }
+// //       );
+// //       const result = await response.json();
+// //       if (response.ok) {
+// //         setLocations(result.data.data || []);
+// //       } else {
+// //         throw new Error(result.message || "Failed to fetch locations.");
+// //       }
+// //     } catch (error) {
+// //       toast.error(error.message);
+// //     } finally {
+// //       setLoadingLocations(false);
+// //     }
+// //   };
+
+// //   // Handle location change
+// //   const handleLocationChange = (e) => {
+// //     const locationId = e.target.value;
+// //     setSelectedLocation(locationId);
+// //     setFormData((prev) => ({
+// //       ...prev,
+// //       location_id: locationId,
+// //       floor_id: "",
+// //       room_id: ""
+// //     }));
+// //     setFloorData([]);
+// //     setRoomsData([]);
+// //     setData([]);
+// //     setSpaceCards([]);
+// //     setRoomDetails(null);
+// //   };
+
+// //   // Fetch floors for selected location
+// //   const fetchFloor = async (locationId) => {
+// //     setLoadingFloor(true);
+// //     try {
+// //       const response = await fetch(
+// //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+// //         {
+// //           method: "GET",
+// //           headers: {
+// //             Authorization: `Bearer ${user?.tenantToken}`,
+// //           },
+// //         }
+// //       );
+
+// //       if (!response.ok) {
+// //         throw new Error(`HTTP error! Status: ${response.status}`);
+// //       }
+
+// //       const result = await response.json();
+// //       if (result && Array.isArray(result.data.data)) {
+// //         setFloorData(result.data.data);
+// //       } else {
+// //         throw new Error("Invalid response format");
+// //       }
+// //     } catch (error) {
+// //       toast.error(error.message);
+// //     } finally {
+// //       setLoadingFloor(false);
+// //     }
+// //   };
+
+// //   // Fetch rooms for selected floor
+// //   const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+// //     setLoading(true);
+// //     try {
+// //       const response = await fetch(
+// //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+// //         {
+// //           method: "GET",
+// //           headers: {
+// //             Authorization: `Bearer ${user?.tenantToken}`,
+// //           },
+// //         }
+// //       );
+
+// //       if (!response.ok) {
+// //         throw new Error(`HTTP error! Status: ${response.status}`);
+// //       }
+
+// //       const result = await response.json();
+// //       if (result && Array.isArray(result)) {
+// //         const sortedData = result.sort(
+// //           (a, b) =>
+// //             new Date(b.updated_at || b.created_at) -
+// //             new Date(a.updated_at || a.created_at)
+// //         );
+// //         setRoomsData(sortedData);
+// //         setData(sortedData);
+// //         setPagination({
+// //           currentPage: result.current_page,
+// //           totalPages: result.last_page,
+// //           nextPageUrl: result.next_page_url,
+// //           prevPageUrl: result.prev_page_url,
+// //           pageSize: pageSize,
+// //         });
+// //       } else {
+// //         throw new Error("Invalid response format");
+// //       }
+// //     } catch (error) {
+// //       toast.error(error.message);
+// //     } finally {
+// //       setLoading(false);
+// //     }
+// //   };
+
+// //   // Generate space cards based on space_number
+// //   const generateSpaceCards = (spaceNumber) => {
+// //     if (!spaceNumber || isNaN(spaceNumber) || spaceNumber <= 0) return [];
+    
+// //     const cards = [];
+// //     for (let i = 1; i <= spaceNumber; i++) {
+// //       cards.push({
+// //         id: i,
+// //         space_number: i,
+// //         is_available: true, // Default to available
+// //         space_fee: roomDetails?.space_fee || 0,
+// //         space_type: 'Standard'
+// //       });
+// //     }
+// //     return cards;
+// //   };
+
+// //   // Fetch individual room details and generate space cards
+// //   const fetchRoomDetails = async (roomId) => {
+// //     if (!roomId) {
+// //       setRoomDetails(null);
+// //       setSpaceCards([]);
+// //       return;
+// //     }
+
+// //     setLoadingRoomDetails(true);
+// //     try {
+// //       const response = await fetch(
+// //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+// //         {
+// //           method: "GET",
+// //           headers: {
+// //             Authorization: `Bearer ${user?.tenantToken}`,
+// //           },
+// //         }
+// //       );
+
+// //       if (!response.ok) {
+// //         throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+// //       }
+
+// //       const result = await response.json();
+// //       if (result && result.data) {
+// //         setRoomDetails(result.data);
+// //         // Generate space cards based on space_number
+// //         const cards = generateSpaceCards(result.data.space_number);
+// //         setSpaceCards(cards);
+// //       } else {
+// //         throw new Error("Invalid room details format");
+// //       }
+// //     } catch (error) {
+// //       toast.error(error.message);
+// //     } finally {
+// //       setLoadingRoomDetails(false);
+// //     }
+// //   };
+
+// //   // Handle floor change
+// //   const handleFloorChange = (e) => {
+// //     const floorId = e.target.value;
+// //     setFormData((prev) => ({
+// //       ...prev,
+// //       floor_id: floorId,
+// //       room_id: ""
+// //     }));
+// //     setSelectedRoom(null);
+// //     setSpaceCards([]);
+// //     setRoomDetails(null);
+
+// //     if (floorId && selectedLocation) {
+// //       fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
+// //     }
+// //   };
+
+// //   // Handle room change
+// //   const handleRoomChange = async (e) => {
+// //     const roomId = e.target.value;
+// //     setSelectedRoom(roomId);
+// //     setFormData((prev) => ({
+// //       ...prev,
+// //       room_id: roomId
+// //     }));
+
+// //     if (roomId) {
+// //       const filteredData = roomsData.filter(room => room.id === roomId);
+// //       setData(filteredData);
+// //       await fetchRoomDetails(roomId);
+// //     } else {
+// //       setData(roomsData);
+// //       setSpaceCards([]);
+// //       setRoomDetails(null);
+// //     }
+// //   };
+
+// //   // Handle edit click
+// //   const handleEditClick = (myRoom) => {
+// //     setSelectedUser(myRoom);
+// //     setShow(true);
+// //   };
+
+// //   // Handle close modal
+// //   const handleClose = () => {
+// //     setShow(false);
+// //     setSelectedUser(null);
+
+// //     if (selectedLocation && formData.floor_id) {
+// //       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+// //     }
+// //   };
+
+// //   // Handle delete
+// //   const handleDelete = async (myRoomID) => {
+// //     if (!user?.tenantToken) return;
+
+// //     setIsLoading(true);
+// //     try {
+// //       const response = await fetch(
+// //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,
+// //         {
+// //           method: "POST",
+// //           headers: {
+// //             Authorization: `Bearer ${user?.tenantToken}`,
+// //             "Content-Type": "application/json",
+// //           },
+// //           body: JSON.stringify({ id: myRoomID }),
+// //         }
+// //       );
+
+// //       if (!response.ok) {
+// //         throw new Error(`HTTP error! Status: ${response.status}`);
+// //       }
+
+// //       setData((prevData) => prevData.filter((myRoom) => myRoom.id !== myRoomID));
+// //       setPopup({
+// //         message: "Room deleted successfully!",
+// //         type: "success",
+// //         isVisible: true,
+// //       });
+      
+// //       if (formData.floor_id && selectedLocation) {
+// //         fetchRoom(
+// //           selectedLocation,
+// //           formData.floor_id,
+// //           pagination.currentPage,
+// //           pagination.pageSize
+// //         );
+// //       }
+// //     } catch (error) {
+// //       toast.error("Failed to delete room!");
+// //     } finally {
+// //       setIsLoading(false);
+// //     }
+// //   };
+
+// //   // Handle delete button click
+// //   const handleDeleteButton = (myRoomID) => {
+// //     setDeletePopup({
+// //       isVisible: true,
+// //       myRoomID,
+// //     });
+// //   };
+
+// //   // Confirm delete
+// //   const confirmDelete = () => {
+// //     const { myRoomID } = deletePopup;
+// //     handleDelete(myRoomID);
+// //     setDeletePopup({ isVisible: false, myRoomID: null });
+// //   };
+
+// //   // Handle changes to day fields
+// //   const handleDayChange = (index, field, value) => {
+// //     const updatedDays = [...bookingFormData.chosen_days];
+// //     updatedDays[index][field] = value;
+// //     setBookingFormData(prev => ({
+// //       ...prev,
+// //       chosen_days: updatedDays
+// //     }));
+// //   };
+
+// //   // Add a new day to the booking
+// //   const addDay = () => {
+// //     setBookingFormData(prev => ({
+// //       ...prev,
+// //       chosen_days: [
+// //         ...prev.chosen_days,
+// //         { day: "", start_time: "", end_time: "" }
+// //       ]
+// //     }));
+// //   };
+
+// //   // Remove a day from the booking
+// //   const removeDay = (index) => {
+// //     setBookingFormData(prev => ({
+// //       ...prev,
+// //       chosen_days: prev.chosen_days.filter((_, i) => i !== index)
+// //     }));
+// //   };
+
+// //   // Handle book now click - UPDATED WITH console.log
+// //   const handleBookNowClick = (space) => {
+// //     console.log("Book Now clicked for spot ID:", space.id); // Added console.log here
+// //     setSelectedSpace(space);
+// //     setBookingFormData({
+// //       type: "one-off",
+// //       chosen_days: [{
+// //         day: "",
+// //         start_time: "",
+// //         end_time: ""
+// //       }],
+// //       number_weeks: "",
+// //       number_months: ""
+// //     });
+// //     setShowBookingPopup(true);
+// //   };
+
+// //   const handleBookingClose = () => {
+// //     setShowBookingPopup(false);
+// //     setSelectedSpace(null);
+// //   };
+
+// //   const handleBookingInputChange = (e) => {
+// //     const { name, value } = e.target;
+// //     setBookingFormData(prev => ({
+// //       ...prev,
+// //       [name]: value
+// //     }));
+// //   };
+
+// //   const formatTimeForAPI = (datetimeString) => {
+// //     if (!datetimeString) return "";
+// //     const date = new Date(datetimeString);
+// //     return date.toISOString().replace('T', ' ').substring(0, 19);
+// //   };
+
+// //   const handleBookingSubmit = async (e) => {
+// //     e.preventDefault();
+// //     setIsLoading(true);
+    
+// //     try {
+// //       // Validate chosen days
+// //       const hasEmptyFields = bookingFormData.chosen_days.some(day => 
+// //         !day.day || !day.start_time || !day.end_time
+// //       );
+      
+// //       if (hasEmptyFields) {
+// //         throw new Error("Please fill in all day fields");
+// //       }
+
+// //       // Validate time ranges
+// //       for (const day of bookingFormData.chosen_days) {
+// //         if (new Date(day.start_time) >= new Date(day.end_time)) {
+// //           throw new Error("End time must be after start time");
+// //         }
+// //       }
+
+// //       // Validate recurring booking fields if needed
+// //       if (bookingFormData.type === "recurring") {
+// //         if (!bookingFormData.number_weeks && !bookingFormData.number_months) {
+// //           throw new Error("Please specify duration for recurring booking");
+// //         }
+// //       }
+
+// //       // Prepare the booking data according to your API requirements
+// //       const bookingData = {
+// //         spot_id: selectedSpace.id.toString(),
+// //         user_id: user.id.toString(),
+// //         type: bookingFormData.type,
+// //         ...(bookingFormData.type === "recurring" && {
+// //           number_weeks: bookingFormData.number_weeks || "0",
+// //           number_months: bookingFormData.number_months || "0"
+// //         }),
+// //         chosen_days: bookingFormData.chosen_days.map(day => ({
+// //           day: day.day.toLowerCase(),
+// //           start_time: formatTimeForAPI(day.start_time),
+// //           end_time: formatTimeForAPI(day.end_time)
+// //         }))
+// //       };
+
+// //       // Make API call to your specific endpoint
+// //       const response = await fetch(
+// //         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+// //         {
+// //           method: "POST",
+// //           headers: {
+// //             "Authorization": `Bearer ${user?.tenantToken}`,
+// //             "Content-Type": "application/json",
+// //           },
+// //           body: JSON.stringify(bookingData),
+// //         }
+// //       );
+
+// //       if (!response.ok) {
+// //         const errorData = await response.json();
+// //         throw new Error(errorData.message || "Failed to book space");
+// //       }
+
+// //       const result = await response.json();
+// //       toast.success(result.message || "Space booked successfully!");
+// //       handleBookingClose();
+      
+// //       // Refresh the space data
+// //       if (selectedRoom) {
+// //         await fetchRoomDetails(selectedRoom);
+// //       }
+// //     } catch (error) {
+// //       toast.error(error.message || "Failed to book space");
+// //     } finally {
+// //       setIsLoading(false);
+// //     }
+// //   };
+
+// //   // Table columns
+// //   const columns = [
+// //     {
+// //       Header: "S/N",
+// //       accessor: (row, i) => i + 1,
+// //       id: "serialNo",
+// //       sort: false,
+// //     },
+// //     {
+// //       Header: "Room Name",
+// //       accessor: "space_name",
+// //       sort: true,
+// //     },
+// //     {
+// //       Header: "Space Number",
+// //       accessor: "space_number",
+// //       sort: true,
+// //     },
+// //     {
+// //       Header: "Space Fee",
+// //       accessor: "space_fee",
+// //       sort: true,
+// //     },
+// //     {
+// //       Header: "Created On",
+// //       accessor: "created_at",
+// //       sort: true,
+// //       Cell: ({ row }) => formatDateTime(row.original.created_at),
+// //     },
+// //     {
+// //       Header: "Updated On",
+// //       accessor: "updated_at",
+// //       sort: true,
+// //       Cell: ({ row }) => formatDateTime(row.original.updated_at),
+// //     },
+// //     {
+// //       Header: "Action",
+// //       accessor: "action",
+// //       sort: false,
+// //       Cell: ({ row }) => (
+// //         <>
+// //           <Link
+// //             to="#"
+// //             className="action-icon"
+// //             onClick={() => handleEditClick(row.original)}
+// //           >
+// //             <i className="mdi mdi-square-edit-outline"></i>
+// //           </Link>
+// //           <Link
+// //             to="#"
+// //             className="action-icon"
+// //             onClick={() => handleDeleteButton(row.original.id)}
+// //           >
+// //             <i className="mdi mdi-delete"></i>
+// //           </Link>
+// //         </>
+// //       ),
+// //     },
+// //   ];
+
+// //   // Use effects
+// //   useEffect(() => {
+// //     if (user?.tenantToken) {
+// //       fetchLocations();
+// //     }
+// //   }, [user?.tenantToken]);
+
+// //   useEffect(() => {
+// //     if (selectedLocation) {
+// //       fetchFloor(selectedLocation);
+// //     }
+// //   }, [selectedLocation]);
+
+// //   useEffect(() => {
+// //     if (formData.floor_id && user?.tenantToken) {
+// //       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+// //     }
+// //   }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+
+// //   return (
+// //     <>
+// //       <PageTitle
+// //         breadCrumbItems={[
+// //           { label: "My Rooms", path: "/room/my-rooms", active: true },
+// //         ]}
+// //         title="My Rooms"
+// //       />
+
+// //       <Row>
+// //         <Col>
+// //           <Card>
+// //             <Card.Body>
+// //               <Card>
+// //                 <Card.Body style={{ 
+// //                   background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", 
+// //                   marginTop: "30px" 
+// //                 }}>
+// //                   {/* Location Selection */}
+// //                   {loadingLocations ? (
+// //                     <div className="text-center">
+// //                       <Spinner animation="border" role="status">
+// //                         <span className="visually-hidden">Loading...</span>
+// //                       </Spinner>{" "}
+// //                       Loading your locations...
+// //                     </div>
+// //                   ) : (
+// //                     <div>
+// //                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+// //                         Select a location to view or update the room.
+// //                       </p>
+// //                       <Form.Select
+// //                         style={{ marginBottom: "25px", fontSize: "1rem" }}
+// //                         value={selectedLocation || ""}
+// //                         onChange={handleLocationChange}
+// //                       >
+// //                         <option value="" disabled>
+// //                           Select a location
+// //                         </option>
+// //                         {locations.map((location) => (
+// //                           <option key={location.id} value={location.id}>
+// //                             {location.name} at {location.state}
+// //                           </option>
+// //                         ))}
+// //                       </Form.Select>
+// //                     </div>
+// //                   )}
+
+// //                   {/* Floor Selection */}
+// //                   {selectedLocation && (
+// //                     <Form.Group className="mb-3" controlId="location_id">
+// //                       {loadingFloor ? (
+// //                         <div className="text-center">
+// //                           <Spinner animation="border" role="status">
+// //                             <span className="visually-hidden">Loading floors/sections...</span>
+// //                           </Spinner>
+// //                         </div>
+// //                       ) : (
+// //                         <>
+// //                           <Form.Label>
+// //                             Select the Floor of the room you want to view.
+// //                           </Form.Label>
+// //                           <Form.Select
+// //                             name="floor_id"
+// //                             value={formData.floor_id}
+// //                             onChange={handleFloorChange}
+// //                             required
+// //                           >
+// //                             <option value="">Select a Floor/Section</option>
+// //                             {Array.isArray(floorData) &&
+// //                               floorData.map((floor) => (
+// //                                 <option key={floor.id} value={floor.id}>
+// //                                   {floor.name}
+// //                                 </option>
+// //                               ))}
+// //                           </Form.Select>
+// //                         </>
+// //                       )}
+// //                     </Form.Group>
+// //                   )}
+
+// //                   {/* Room Selection */}
+// //                   {formData.floor_id && (
+// //                     <Form.Group className="mb-3" controlId="room_id">
+// //                       <Form.Label>
+// //                         Select a specific room (optional)
+// //                       </Form.Label>
+// //                       <Form.Select
+// //                         name="room_id"
+// //                         value={formData.room_id}
+// //                         onChange={handleRoomChange}
+// //                       >
+// //                         <option value="">All Rooms</option>
+// //                         {Array.isArray(roomsData) &&
+// //                           roomsData.map((room) => (
+// //                             <option key={room.id} value={room.id}>
+// //                               {room.space_name} (No: {room.space_number})
+// //                             </option>
+// //                           ))}
+// //                       </Form.Select>
+// //                     </Form.Group>
+// //                   )}
+
+// //                   {/* Rooms Table */}
+// //                   {formData.floor_id && (
+// //                     <>
+// //                       {loading ? (
+// //                         <p>Loading rooms...</p>
+// //                       ) : isLoading ? (
+// //                         <div className="text-center">
+// //                           <Spinner animation="border" role="status">
+// //                             <span className="visually-hidden">Deleting...</span>
+// //                           </Spinner>{" "}
+// //                           Deleting...
+// //                         </div>
+// //                       ) : (
+// //                         <>
+// //                           <Table2
+// //                             columns={columns}
+// //                             data={data}
+// //                             pageSize={pagination.pageSize}
+// //                             isSortable
+// //                             pagination
+// //                             isSearchable
+// //                             tableClass="table-striped dt-responsive nowrap w-100"
+// //                             searchBoxClass="my-2"
+// //                             paginationProps={{
+// //                               currentPage: pagination.currentPage,
+// //                               totalPages: pagination.totalPages,
+// //                               onPageChange: (page) =>
+// //                                 setPagination((prev) => ({
+// //                                   ...prev,
+// //                                   currentPage: page,
+// //                                 })),
+// //                               onPageSizeChange: (pageSize) =>
+// //                                 setPagination((prev) => ({ ...prev, pageSize })),
+// //                             }}
+// //                           />
+
+// //                           {/* Room Details and Spaces Section */}
+// //                           {selectedRoom && (
+// //                             <div className="mt-4">
+// //                               {/* Room Details Card */}
+// //                               {loadingRoomDetails ? (
+// //                                 <div className="text-center mb-4">
+// //                                   <Spinner animation="border" role="status">
+// //                                     <span className="visually-hidden">Loading room details...</span>
+// //                                   </Spinner>
+// //                                 </div>
+// //                               ) : roomDetails ? (
+// //                                 <Card className="mb-4">
+// //                                   <Card.Header className="d-flex justify-content-between align-items-center">
+// //                                     <h5 className="mb-0">Room Details</h5>
+// //                                     <Badge bg="info">ID: {roomDetails.id}</Badge>
+// //                                   </Card.Header>
+// //                                   <Card.Body>
+// //                                     <Row>
+// //                                       <Col md={6}>
+// //                                         <p><strong>Name:</strong> {roomDetails.space_name}</p>
+// //                                         <p><strong>Number:</strong> {roomDetails.space_number}</p>
+// //                                         <p><strong>Capacity:</strong> {roomDetails.capacity || 'N/A'}</p>
+// //                                       </Col>
+// //                                       <Col md={6}>
+// //                                         <p><strong>Fee:</strong> ${roomDetails.space_fee || '0.00'}</p>
+// //                                         <p><strong>Status:</strong> 
+// //                                           <Badge bg={roomDetails.status === 'active' ? 'success' : 'secondary'} className="ms-2">
+// //                                             {roomDetails.status || 'N/A'}
+// //                                           </Badge>
+// //                                         </p>
+// //                                         <p><strong>Created:</strong> {formatDateTime(roomDetails.created_at)}</p>
+// //                                       </Col>
+// //                                     </Row>
+// //                                     {roomDetails.description && (
+// //                                       <div className="mt-3">
+// //                                         <strong>Description:</strong>
+// //                                         <Card className="mt-1">
+// //                                           <Card.Body className="p-2">
+// //                                             {roomDetails.description}
+// //                                           </Card.Body>
+// //                                         </Card>
+// //                                       </div>
+// //                                     )}
+// //                                   </Card.Body>
+// //                                 </Card>
+// //                               ) : (
+// //                                 <Alert variant="warning" className="mb-4">
+// //                                   No details available for this room
+// //                                 </Alert>
+// //                               )}
+
+// //                               {/* Spaces Section */}
+// //                               <h4 className="mb-3">Available Spaces</h4>
+// //                               {loadingRoomDetails ? (
+// //                                 <div className="text-center">
+// //                                   <Spinner animation="border" role="status">
+// //                                     <span className="visually-hidden">Loading spaces...</span>
+// //                                   </Spinner>
+// //                                 </div>
+// //                               ) : spaceCards && spaceCards.length > 0 ? (
+// //                                 <>
+// //                                   <p className="mb-3">Total spaces: {spaceCards.length}</p>
+// //                                   <Row>
+// //                                     {spaceCards.map((space) => (
+// //                                       <Col key={space.id} md={3} className="mb-3">
+// //                                         <Card className="h-100">
+// //                                           <Card.Body className="d-flex flex-column">
+// //                                             <Card.Title className="d-flex justify-content-between align-items-center">
+// //                                               <span>Space {space.space_number}</span>
+// //                                               <Badge bg={space.is_available ? "success" : "danger"}>
+// //                                                 {space.is_available ? "Available" : "Occupied"}
+// //                                               </Badge>
+// //                                             </Card.Title>
+// //                                             <Card.Text className="flex-grow-1">
+// //                                               <div><strong>Number:</strong> {space.space_number}</div>
+// //                                               <div><strong>Fee:</strong> ${space.space_fee}</div>
+// //                                               <div><strong>Type:</strong> {space.space_type}</div>
+// //                                             </Card.Text>
+// //                                             <div className="mt-auto">
+// //                                               <Button 
+// //                                                 variant={space.is_available ? "primary" : "secondary"} 
+// //                                                 size="sm"
+// //                                                 disabled={!space.is_available}
+// //                                                 className="w-100"
+// //                                                 onClick={() => handleBookNowClick(space)}
+// //                                               >
+// //                                                 {space.is_available ? "Book Now" : "Unavailable"}
+// //                                               </Button>
+// //                                             </div>
+// //                                           </Card.Body>
+// //                                         </Card>
+// //                                       </Col>
+// //                                     ))}
+// //                                   </Row>
+// //                                 </>
+// //                               ) : (
+// //                                 <Alert variant="info">
+// //                                   {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
+// //                                 </Alert>
+// //                               )}
+// //                             </div>
+// //                           )}
+// //                         </>
+// //                       )}
+// //                     </>
+// //                   )}
+// //                 </Card.Body>
+// //               </Card>
+// //             </Card.Body>
+// //           </Card>
+// //         </Col>
+// //       </Row>
+
+// //       {/* Popups */}
+// //       {popup.isVisible && (
+// //         <Popup
+// //           message={popup.message}
+// //           type={popup.type}
+// //           onClose={() => setPopup({ ...popup, isVisible: false })}
+// //           buttonLabel={popup.buttonLabel}
+// //           buttonRoute={popup.buttonRoute}
+// //         />
+// //       )}
+
+// //       {deletePopup.isVisible && (
+// //         <Popup
+// //           message="Are you sure you want to delete this room?"
+// //           type="confirm"
+// //           onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+// //           buttonLabel="Yes"
+// //           onAction={confirmDelete}
+// //         />
+// //       )}
+
+// //       {/* Booking Popup */}
+// //       {showBookingPopup && selectedSpace && (
+// //         <Popup
+// //           title={`Book Space ${selectedSpace.space_number}`}
+// //           isVisible={showBookingPopup}
+// //           onClose={handleBookingClose}
+// //           size="lg"
+// //         >
+// //           <Form onSubmit={handleBookingSubmit}>
+// //             <Row>
+// //               <Col md={12}>
+// //                 <Form.Group className="mb-3">
+// //                   <Form.Label>Booking Type</Form.Label>
+// //                   <Form.Select
+// //                     name="type"
+// //                     value={bookingFormData.type}
+// //                     onChange={handleBookingInputChange}
+// //                     required
+// //                   >
+// //                     <option value="one-off">One-time Booking</option>
+// //                     <option value="recurring">Recurring Booking</option>
+// //                   </Form.Select>
+// //                 </Form.Group>
+// //               </Col>
+// //             </Row>
+
+// //             {bookingFormData.type === "recurring" && (
+// //               <Row>
+// //                 <Col md={6}>
+// //                   <Form.Group className="mb-3">
+// //                     <Form.Label>Number of Weeks</Form.Label>
+// //                     <Form.Control
+// //                       type="number"
+// //                       name="number_weeks"
+// //                       value={bookingFormData.number_weeks}
+// //                       onChange={handleBookingInputChange}
+// //                       min="1"
+// //                       required={bookingFormData.type === "recurring"}
+// //                     />
+// //                   </Form.Group>
+// //                 </Col>
+// //                 <Col md={6}>
+// //                   <Form.Group className="mb-3">
+// //                     <Form.Label>Number of Months</Form.Label>
+// //                     <Form.Control
+// //                       type="number"
+// //                       name="number_months"
+// //                       value={bookingFormData.number_months}
+// //                       onChange={handleBookingInputChange}
+// //                       min="0"
+// //                       required={bookingFormData.type === "recurring"}
+// //                     />
+// //                   </Form.Group>
+// //                 </Col>
+// //               </Row>
+// //             )}
+
+// //             <h5 className="mt-3">Booking Schedule</h5>
+// //             {bookingFormData.chosen_days.map((day, index) => (
+// //               <div key={index} className="border p-3 mb-3">
+// //                 <Row>
+// //                   <Col md={4}>
+// //                     <Form.Group className="mb-3">
+// //                       <Form.Label>Day of Week</Form.Label>
+// //                       <Form.Select
+// //                         name={`day-${index}`}
+// //                         value={day.day}
+// //                         onChange={(e) => handleDayChange(index, 'day', e.target.value)}
+// //                         required
+// //                       >
+// //                         <option value="">Select day</option>
+// //                         <option value="monday">Monday</option>
+// //                         <option value="tuesday">Tuesday</option>
+// //                         <option value="wednesday">Wednesday</option>
+// //                         <option value="thursday">Thursday</option>
+// //                         <option value="friday">Friday</option>
+// //                         <option value="saturday">Saturday</option>
+// //                         <option value="sunday">Sunday</option>
+// //                       </Form.Select>
+// //                     </Form.Group>
+// //                   </Col>
+// //                   <Col md={4}>
+// //                     <Form.Group className="mb-3">
+// //                       <Form.Label>Start Time</Form.Label>
+// //                       <Form.Control
+// //                         type="datetime-local"
+// //                         name={`start_time-${index}`}
+// //                         value={day.start_time}
+// //                         onChange={(e) => handleDayChange(index, 'start_time', e.target.value)}
+// //                         required
+// //                       />
+// //                     </Form.Group>
+// //                   </Col>
+// //                   <Col md={4}>
+// //                     <Form.Group className="mb-3">
+// //                       <Form.Label>End Time</Form.Label>
+// //                       <Form.Control
+// //                         type="datetime-local"
+// //                         name={`end_time-${index}`}
+// //                         value={day.end_time}
+// //                         onChange={(e) => handleDayChange(index, 'end_time', e.target.value)}
+// //                         required
+// //                       />
+// //                     </Form.Group>
+// //                   </Col>
+// //                 </Row>
+// //                 {index > 0 && (
+// //                   <Button 
+// //                     variant="danger" 
+// //                     size="sm" 
+// //                     onClick={() => removeDay(index)}
+// //                     className="mt-2"
+// //                   >
+// //                     Remove Day
+// //                   </Button>
+// //                 )}
+// //               </div>
+// //             ))}
+
+// //             <Button 
+// //               variant="outline-primary" 
+// //               size="sm" 
+// //               onClick={addDay}
+// //               className="mb-3"
+// //             >
+// //               Add Another Day
+// //             </Button>
+
+// //             <div className="d-flex justify-content-end">
+// //               <Button variant="secondary" onClick={handleBookingClose} className="me-2">
+// //                 Cancel
+// //               </Button>
+// //               <Button variant="primary" type="submit" disabled={isLoading}>
+// //                 {isLoading ? (
+// //                   <>
+// //                     <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+// //                     {' '}Booking...
+// //                   </>
+// //                 ) : 'Confirm Booking'}
+// //               </Button>
+// //             </div>
+// //           </Form>
+// //         </Popup>
+// //       )}
+// //     </>
+// //   );
+// // };
+
+// // export default SeatBookingSystem;
+
+
+
 // import React, { useState, useEffect } from "react";
-// import { Link, useParams } from "react-router-dom";
-// import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
+// import { Link } from "react-router-dom";
+// import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
 // import PageTitle from "../../../components/PageTitle";
-// import SpotRegistrationModal from "./SpotRegistrationForm";
 // import { useAuthContext } from "@/context/useAuthContext.jsx";
 // import Popup from "../../../components/Popup/Popup";
 // import Table2 from "../../../components/Table2";
+// import { toast } from "react-toastify";
 
-// const Spots = () => {
+// const SeatBookingSystem = () => {
 //   const { user } = useAuthContext();
 //   const tenantToken = user?.tenantToken;
 //   const tenantSlug = user?.tenant;
 
+//   // State variables
 //   const [show, setShow] = useState(false);
 //   const [data, setData] = useState([]);
 //   const [loading, setLoading] = useState(true);
 //   const [loadingLocations, setLoadingLocations] = useState(true);
 //   const [loadingFloor, setLoadingFloor] = useState(false);
-//   const [error, setError] = useState(null);
 //   const [floorData, setFloorData] = useState([]);
-  
+//   const [roomsData, setRoomsData] = useState([]);
+//   const [selectedRoom, setSelectedRoom] = useState(null);
+//   const [roomDetails, setRoomDetails] = useState(null);
+//   const [spaceCards, setSpaceCards] = useState([]);
+//   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
 //   const [selectedUser, setSelectedUser] = useState(null);
 //   const [isLoading, setIsLoading] = useState(false);
+//   const [isError, setIsError] = useState(false);
+//   const [locations, setLocations] = useState([]);
+//   const [selectedLocation, setSelectedLocation] = useState(null);
+
+//   // Booking popup states
+//   const [showBookingPopup, setShowBookingPopup] = useState(false);
+//   const [selectedSpace, setSelectedSpace] = useState(null);
+//   const [bookingFormData, setBookingFormData] = useState({
+//     type: "one-off",
+//     chosen_days: [{
+//       day: "",
+//       start_time: "",
+//       end_time: ""
+//     }],
+//     number_weeks: "",
+//     number_months: ""
+//   });
+
 //   const [popup, setPopup] = useState({
 //     message: "",
 //     type: "",
@@ -29,14 +4710,10 @@
 //     buttonLabel: "",
 //     buttonRoute: "",
 //   });
-//   const [errorMessage, setErrorMessage] = useState("");
-//   const [isError, setIsError] = useState(false);
-//   const [locations, setLocations] = useState([]);
-//   const [selectedLocation, setSelectedLocation] = useState(null);
 
 //   const [deletePopup, setDeletePopup] = useState({
 //     isVisible: false,
-//     mySpotID: null,
+//     myRoomID: null,
 //   });
 
 //   const [pagination, setPagination] = useState({
@@ -47,6 +4724,14 @@
 //     pageSize: 10,
 //   });
 
+//   const [formData, setFormData] = useState({
+//     name: "",
+//     location_id: "",
+//     floor_id: "",
+//     room_id: ""
+//   });
+
+//   // Format date time
 //   const formatDateTime = (isoString) => {
 //     const options = {
 //       year: "numeric",
@@ -59,57 +4744,52 @@
 //     return new Date(isoString).toLocaleDateString("en-US", options);
 //   };
 
-//   const [formData, setFormData] = useState({
-//           name: "",
-//           location_id: "",
-//           floor_id: ""
-//       });
-
+//   // Fetch locations
 //   const fetchLocations = async () => {
 //     setLoadingLocations(true);
 //     try {
 //       const response = await fetch(
-//         `${
-//           import.meta.env.VITE_BACKEND_URL
-//         }/api/${tenantSlug}/location/list-locations`,
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
 //         {
 //           headers: { Authorization: `Bearer ${user.tenantToken}` },
 //         }
 //       );
 //       const result = await response.json();
 //       if (response.ok) {
-//         console.log("Location:", result.data.data);
 //         setLocations(result.data.data || []);
 //       } else {
 //         throw new Error(result.message || "Failed to fetch locations.");
 //       }
 //     } catch (error) {
-//       setErrorMessage(error.message);
-//       setIsError(true);
+//       toast.error(error.message);
 //     } finally {
 //       setLoadingLocations(false);
 //     }
 //   };
 
+//   // Handle location change
 //   const handleLocationChange = (e) => {
 //     const locationId = e.target.value;
 //     setSelectedLocation(locationId);
 //     setFormData((prev) => ({
 //       ...prev,
-//       location_id: locationId, // Update formData with the selected location ID
+//       location_id: locationId,
+//       floor_id: "",
+//       room_id: ""
 //     }));
+//     setFloorData([]);
+//     setRoomsData([]);
+//     setData([]);
+//     setSpaceCards([]);
+//     setRoomDetails(null);
 //   };
 
+//   // Fetch floors for selected location
 //   const fetchFloor = async (locationId) => {
 //     setLoadingFloor(true);
-//     console.log("loadingFloor...")
-//     setError(null);
-//     console.log("User Token:", user?.tenantToken);
 //     try {
 //       const response = await fetch(
-//         `${
-//           import.meta.env.VITE_BACKEND_URL
-//         }/api/${tenantSlug}/floor/list-floors/${locationId}`,
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
 //         {
 //           method: "GET",
 //           headers: {
@@ -119,40 +4799,28 @@
 //       );
 
 //       if (!response.ok) {
-//         throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+//         throw new Error(`HTTP error! Status: ${response.status}`);
 //       }
 
 //       const result = await response.json();
-//       console.log(result);
 //       if (result && Array.isArray(result.data.data)) {
-//         setFloorData(result.data.data); // Store floors in state
+//         setFloorData(result.data.data);
 //       } else {
 //         throw new Error("Invalid response format");
 //       }
 //     } catch (error) {
-//       setError(error.message);
+//       toast.error(error.message);
 //     } finally {
 //       setLoadingFloor(false);
 //     }
 //   };
-//   useEffect(() => {
-//       if (selectedLocation) {
-//         fetchFloor(selectedLocation); // Fetch floors based on the selected location ID
-//       }
-//     }, [selectedLocation]);
 
-
-
-//   const fetchSpot = async (locationId, floorId, page = 1, pageSize = 10) => {
+//   // Fetch rooms for selected floor
+//   const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
 //     setLoading(true);
-//     console.log("fetching rooms")
-//     setError(null);
-//     console.log("User Token:", user?.tenantToken);
 //     try {
 //       const response = await fetch(
-//         `${
-//           import.meta.env.VITE_BACKEND_URL
-//         }/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
 //         {
 //           method: "GET",
 //           headers: {
@@ -162,78 +4830,147 @@
 //       );
 
 //       if (!response.ok) {
-//         throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+//         throw new Error(`HTTP error! Status: ${response.status}`);
 //       }
 
 //       const result = await response.json();
-//       console.log("roooms:", result)
-//       if (result && Array.isArray(result.data.data)) {
-//         const data = result.data.data;
-//         data.sort(
+//       if (result && Array.isArray(result)) {
+//         const sortedData = result.sort(
 //           (a, b) =>
 //             new Date(b.updated_at || b.created_at) -
 //             new Date(a.updated_at || a.created_at)
 //         );
-//         setData(data);
+//         setRoomsData(sortedData);
+//         setData(sortedData);
 //         setPagination({
-//           currentPage: result.data.current_page,
-//           totalPages: result.data.last_page,
-//           nextPageUrl: result.data.next_page_url,
-//           prevPageUrl: result.data.prev_page_url,
+//           currentPage: result.current_page,
+//           totalPages: result.last_page,
+//           nextPageUrl: result.next_page_url,
+//           prevPageUrl: result.prev_page_url,
 //           pageSize: pageSize,
 //         });
 //       } else {
 //         throw new Error("Invalid response format");
 //       }
 //     } catch (error) {
-//       setError(error.message);
+//       toast.error(error.message);
 //     } finally {
 //       setLoading(false);
 //     }
 //   };
 
-  
-
-//   useEffect(() => {
-//     if (user?.tenantToken) {
-//       fetchLocations();
+//   // Generate space cards based on space_number
+//   const generateSpaceCards = (spaceNumber) => {
+//     if (!spaceNumber || isNaN(spaceNumber) || spaceNumber <= 0) return [];
+    
+//     const cards = [];
+//     for (let i = 1; i <= spaceNumber; i++) {
+//       cards.push({
+//         id: i,
+//         space_number: i,
+//         is_available: true, // Default to available
+//         space_fee: roomDetails?.space_fee || 0,
+//         space_type: 'Standard'
+//       });
 //     }
-//   }, [user?.tenantToken]);
+//     return cards;
+//   };
 
+//   // Fetch individual room details and generate space cards
+//   const fetchRoomDetails = async (roomId) => {
+//     if (!roomId) {
+//       setRoomDetails(null);
+//       setSpaceCards([]);
+//       return;
+//     }
+
+//     setLoadingRoomDetails(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${user?.tenantToken}`,
+//           },
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+//       if (result && result.data) {
+//         setRoomDetails(result.data);
+//         // Generate space cards based on space_number
+//         const cards = generateSpaceCards(result.data.space_number);
+//         setSpaceCards(cards);
+//       } else {
+//         throw new Error("Invalid room details format");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoadingRoomDetails(false);
+//     }
+//   };
+
+//   // Handle floor change
 //   const handleFloorChange = (e) => {
 //     const floorId = e.target.value;
 //     setFormData((prev) => ({
 //       ...prev,
-//       floor_id: floorId, // Update formData with the selected floor ID
-//       space_category_id: "", // Reset category when floor changes
+//       floor_id: floorId,
+//       room_id: ""
 //     }));
+//     setSelectedRoom(null);
+//     setSpaceCards([]);
+//     setRoomDetails(null);
 
 //     if (floorId && selectedLocation) {
-//       fetchSpot(selectedLocation, floorId, pagination.currentPage, pagination.pageSize); // Fetch rooms immediately after floor selection
+//       fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
 //     }
 //   };
 
+//   // Handle room change
+//   const handleRoomChange = async (e) => {
+//     const roomId = e.target.value;
+//     setSelectedRoom(roomId);
+//     setFormData((prev) => ({
+//       ...prev,
+//       room_id: roomId
+//     }));
 
-//   useEffect(() => {
-//     if (formData.floor_id && user?.tenantToken) {
-//       fetchSpot(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+//     if (roomId) {
+//       const filteredData = roomsData.filter(room => room.id === roomId);
+//       setData(filteredData);
+//       await fetchRoomDetails(roomId);
+//     } else {
+//       setData(roomsData);
+//       setSpaceCards([]);
+//       setRoomDetails(null);
 //     }
-//   }, [user?.tenantToken, selectedLocation, pagination.currentPage, pagination.pageSize]);
+//   };
 
-//   const handleEditClick = (mySpot) => {
-//     setSelectedUser(mySpot);
+//   // Handle edit click
+//   const handleEditClick = (myRoom) => {
+//     setSelectedUser(myRoom);
 //     setShow(true);
 //   };
 
+//   // Handle close modal
 //   const handleClose = () => {
 //     setShow(false);
 //     setSelectedUser(null);
-//     if (selectedLocation) {
-//       fetchSpot(selectedLocation, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
+
+//     if (selectedLocation && formData.floor_id) {
+//       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
 //     }
 //   };
 
-//   const handleDelete = async (mySpotID) => {
+//   // Handle delete
+//   const handleDelete = async (myRoomID) => {
 //     if (!user?.tenantToken) return;
 
 //     setIsLoading(true);
@@ -246,53 +4983,196 @@
 //             Authorization: `Bearer ${user?.tenantToken}`,
 //             "Content-Type": "application/json",
 //           },
-//           body: JSON.stringify({ id: mySpotID }),
+//           body: JSON.stringify({ id: myRoomID }),
 //         }
 //       );
 
 //       if (!response.ok) {
-//         throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+//         throw new Error(`HTTP error! Status: ${response.status}`);
 //       }
 
-//       setData((prevData) =>
-//         prevData.filter((mySpot) => mySpot.id !== mySpotID)
-//       );
+//       setData((prevData) => prevData.filter((myRoom) => myRoom.id !== myRoomID));
 //       setPopup({
-//         message: "Spot deleted successfully!",
+//         message: "Room deleted successfully!",
 //         type: "success",
 //         isVisible: true,
 //       });
-//       if (selectedLocation) {
-//         fetchSpot(
+      
+//       if (formData.floor_id && selectedLocation) {
+//         fetchRoom(
 //           selectedLocation,
+//           formData.floor_id,
 //           pagination.currentPage,
 //           pagination.pageSize
-//         ); // Reload users after deleting a user
+//         );
 //       }
 //     } catch (error) {
-//       setPopup({
-//         message: "Failed to delete plan!",
-//         type: "error",
-//         isVisible: true,
-//       });
+//       toast.error("Failed to delete room!");
 //     } finally {
 //       setIsLoading(false);
 //     }
 //   };
 
-//   const handleDeleteButton = (mySpotID) => {
+//   // Handle delete button click
+//   const handleDeleteButton = (myRoomID) => {
 //     setDeletePopup({
 //       isVisible: true,
-//       mySpotID,
+//       myRoomID,
 //     });
 //   };
 
+//   // Confirm delete
 //   const confirmDelete = () => {
-//     const { mySpotID } = deletePopup;
-//     handleDelete(mySpotID);
-//     setDeletePopup({ isVisible: false, mySpotID: null });
+//     const { myRoomID } = deletePopup;
+//     handleDelete(myRoomID);
+//     setDeletePopup({ isVisible: false, myRoomID: null });
 //   };
 
+//   // Handle changes to day fields
+//   const handleDayChange = (index, field, value) => {
+//     const updatedDays = [...bookingFormData.chosen_days];
+//     updatedDays[index][field] = value;
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: updatedDays
+//     }));
+//   };
+
+//   // Add a new day to the booking
+//   const addDay = () => {
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: [
+//         ...prev.chosen_days,
+//         { day: "", start_time: "", end_time: "" }
+//       ]
+//     }));
+//   };
+
+//   // Remove a day from the booking
+//   const removeDay = (index) => {
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: prev.chosen_days.filter((_, i) => i !== index)
+//     }));
+//   };
+
+//   // Handle book now click
+//   const handleBookNowClick = (space) => {
+//     console.log("Book Now clicked for spot ID:", space.id);
+//     setSelectedSpace(space);
+//     setBookingFormData({
+//       type: "one-off",
+//       chosen_days: [{
+//         day: "",
+//         start_time: "",
+//         end_time: ""
+//       }],
+//       number_weeks: "",
+//       number_months: ""
+//     });
+//     setShowBookingPopup(true);
+//   };
+
+//   const handleBookingClose = () => {
+//     setShowBookingPopup(false);
+//     setSelectedSpace(null);
+//   };
+
+//   const handleBookingInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       [name]: value
+//     }));
+//   };
+
+//   const formatTimeForAPI = (datetimeString) => {
+//     if (!datetimeString) return "";
+//     const date = new Date(datetimeString);
+//     return date.toISOString().replace('T', ' ').substring(0, 19);
+//   };
+
+//   const handleBookingSubmit = async (e) => {
+//     e.preventDefault();
+//     setIsLoading(true);
+    
+//     try {
+//       // Validate chosen days
+//       const hasEmptyFields = bookingFormData.chosen_days.some(day => 
+//         !day.day || !day.start_time || !day.end_time
+//       );
+      
+//       if (hasEmptyFields) {
+//         throw new Error("Please fill in all day fields");
+//       }
+
+//       // Validate time ranges
+//       for (const day of bookingFormData.chosen_days) {
+//         if (new Date(day.start_time) >= new Date(day.end_time)) {
+//           throw new Error("End time must be after start time");
+//         }
+//       }
+
+//       // Validate recurring booking fields if needed
+//       if (bookingFormData.type === "recurring") {
+//         if (!bookingFormData.number_weeks && !bookingFormData.number_months) {
+//           throw new Error("Please specify duration for recurring booking");
+//         }
+//       }
+
+//       // Prepare the booking data with spot_id from selectedSpace and hardcoded user_id
+//       const bookingData = {
+//         spot_id: selectedSpace.id.toString(), // Get spot_id from selected space
+//         user_id: "2", // Hardcoded user_id of 2
+//         type: bookingFormData.type,
+//         ...(bookingFormData.type === "recurring" && {
+//           number_weeks: bookingFormData.number_weeks || "0",
+//           number_months: bookingFormData.number_months || "0"
+//         }),
+//         chosen_days: bookingFormData.chosen_days.map(day => ({
+//           day: day.day.toLowerCase(),
+//           start_time: formatTimeForAPI(day.start_time),
+//           end_time: formatTimeForAPI(day.end_time)
+//         }))
+//       };
+
+//       console.log("Submitting booking with data:", bookingData); // Log booking data before sending
+
+//       // Make API call to your specific endpoint
+//       const response = await fetch(
+//         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+//         {
+//           method: "POST",
+//           headers: {
+//             "Authorization": `Bearer ${user?.tenantToken}`,
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify(bookingData),
+//         }
+//       );
+
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         throw new Error(errorData.message || "Failed to book space");
+//       }
+
+//       const result = await response.json();
+//       toast.success(result.message || "Space booked successfully!");
+//       handleBookingClose();
+      
+//       // Refresh the space data
+//       if (selectedRoom) {
+//         await fetchRoomDetails(selectedRoom);
+//       }
+//     } catch (error) {
+//       toast.error(error.message || "Failed to book space");
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   // Table columns
 //   const columns = [
 //     {
 //       Header: "S/N",
@@ -301,7 +5181,7 @@
 //       sort: false,
 //     },
 //     {
-//       Header: "Spot Name",
+//       Header: "Room Name",
 //       accessor: "space_name",
 //       sort: true,
 //     },
@@ -352,36 +5232,44 @@
 //     },
 //   ];
 
+//   // Use effects
+//   useEffect(() => {
+//     if (user?.tenantToken) {
+//       fetchLocations();
+//     }
+//   }, [user?.tenantToken]);
+
+//   useEffect(() => {
+//     if (selectedLocation) {
+//       fetchFloor(selectedLocation);
+//     }
+//   }, [selectedLocation]);
+
+//   useEffect(() => {
+//     if (formData.floor_id && user?.tenantToken) {
+//       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+//     }
+//   }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+
 //   return (
 //     <>
 //       <PageTitle
 //         breadCrumbItems={[
-//           { label: "My Spots", path: "/room/spot", active: true },
+//           { label: "My Rooms", path: "/room/my-rooms", active: true },
 //         ]}
-//         title="My Spots"
+//         title="My Rooms"
 //       />
 
 //       <Row>
 //         <Col>
 //           <Card>
 //             <Card.Body>
-//               <Row className="mb-2">
-//                 <Col sm={4}>
-//                   <Button
-//                     variant="danger"
-//                     className="waves-effect waves-light"
-//                     onClick={() => {
-//                       setShow(true);
-//                       setSelectedUser(null);
-//                     }}
-//                   >
-//                     <i className="mdi mdi-plus-circle me-1"></i> Add a Spot
-//                   </Button>
-//                 </Col>
-//               </Row>
-
 //               <Card>
-//                 <Card.Body style={{ background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", marginTop: "30px" }}>
+//                 <Card.Body style={{ 
+//                   background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", 
+//                   marginTop: "30px" 
+//                 }}>
+//                   {/* Location Selection */}
 //                   {loadingLocations ? (
 //                     <div className="text-center">
 //                       <Spinner animation="border" role="status">
@@ -391,7 +5279,9 @@
 //                     </div>
 //                   ) : (
 //                     <div>
-//                       <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select a location to view or update the room.</p>
+//                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+//                         Select a location to view or update the room.
+//                       </p>
 //                       <Form.Select
 //                         style={{ marginBottom: "25px", fontSize: "1rem" }}
 //                         value={selectedLocation || ""}
@@ -409,6 +5299,7 @@
 //                     </div>
 //                   )}
 
+//                   {/* Floor Selection */}
 //                   {selectedLocation && (
 //                     <Form.Group className="mb-3" controlId="location_id">
 //                       {loadingFloor ? (
@@ -419,7 +5310,9 @@
 //                         </div>
 //                       ) : (
 //                         <>
-//                           <Form.Label>Select the Floor of the room you want to view.</Form.Label>
+//                           <Form.Label>
+//                             Select the Floor of the room you want to view.
+//                           </Form.Label>
 //                           <Form.Select
 //                             name="floor_id"
 //                             value={formData.floor_id}
@@ -438,67 +5331,179 @@
 //                       )}
 //                     </Form.Group>
 //                   )}
-                
-//                  {formData.floor_id && (
-//                 <>
-//                   {error ? (
-//                     <p className="text-danger">Error: {error}</p>
-//                   ) : loading ? (
-//                     <p>Loading rooms...</p>
-//                   ) : isLoading ? (
-//                     <div className="text-center">
-//                       <Spinner animation="border" role="status">
-//                         <span className="visually-hidden">Deleting...</span>
-//                       </Spinner>{" "}
-//                       Deleting...
-//                     </div>
-//                   ) : (
-//                     <Table2
-//                       columns={columns}
-//                       data={data}
-//                       pageSize={pagination.pageSize}
-//                       isSortable
-//                       pagination
-//                       isSearchable
-//                       tableClass="table-striped dt-responsive nowrap w-100"
-//                       searchBoxClass="my-2"
-//                       paginationProps={{
-//                         currentPage: pagination.currentPage,
-//                         totalPages: pagination.totalPages,
-//                         onPageChange: (page) =>
-//                           setPagination((prev) => ({
-//                             ...prev,
-//                             currentPage: page,
-//                           })),
-//                         onPageSizeChange: (pageSize) =>
-//                           setPagination((prev) => ({ ...prev, pageSize })),
-//                       }}
-//                     />
+
+//                   {/* Room Selection */}
+//                   {formData.floor_id && (
+//                     <Form.Group className="mb-3" controlId="room_id">
+//                       <Form.Label>
+//                         Select a specific room (optional)
+//                       </Form.Label>
+//                       <Form.Select
+//                         name="room_id"
+//                         value={formData.room_id}
+//                         onChange={handleRoomChange}
+//                       >
+//                         <option value="">All Rooms</option>
+//                         {Array.isArray(roomsData) &&
+//                           roomsData.map((room) => (
+//                             <option key={room.id} value={room.id}>
+//                               {room.space_name} (No: {room.space_number})
+//                             </option>
+//                           ))}
+//                       </Form.Select>
+//                     </Form.Group>
 //                   )}
-//                 </>
-//               )}
+
+//                   {/* Rooms Table */}
+//                   {formData.floor_id && (
+//                     <>
+//                       {loading ? (
+//                         <p>Loading rooms...</p>
+//                       ) : isLoading ? (
+//                         <div className="text-center">
+//                           <Spinner animation="border" role="status">
+//                             <span className="visually-hidden">Deleting...</span>
+//                           </Spinner>{" "}
+//                           Deleting...
+//                         </div>
+//                       ) : (
+//                         <>
+//                           <Table2
+//                             columns={columns}
+//                             data={data}
+//                             pageSize={pagination.pageSize}
+//                             isSortable
+//                             pagination
+//                             isSearchable
+//                             tableClass="table-striped dt-responsive nowrap w-100"
+//                             searchBoxClass="my-2"
+//                             paginationProps={{
+//                               currentPage: pagination.currentPage,
+//                               totalPages: pagination.totalPages,
+//                               onPageChange: (page) =>
+//                                 setPagination((prev) => ({
+//                                   ...prev,
+//                                   currentPage: page,
+//                                 })),
+//                               onPageSizeChange: (pageSize) =>
+//                                 setPagination((prev) => ({ ...prev, pageSize })),
+//                             }}
+//                           />
+
+//                           {/* Room Details and Spaces Section */}
+//                           {selectedRoom && (
+//                             <div className="mt-4">
+//                               {/* Room Details Card */}
+//                               {loadingRoomDetails ? (
+//                                 <div className="text-center mb-4">
+//                                   <Spinner animation="border" role="status">
+//                                     <span className="visually-hidden">Loading room details...</span>
+//                                   </Spinner>
+//                                 </div>
+//                               ) : roomDetails ? (
+//                                 <Card className="mb-4">
+//                                   <Card.Header className="d-flex justify-content-between align-items-center">
+//                                     <h5 className="mb-0">Room Details</h5>
+//                                     <Badge bg="info">ID: {roomDetails.id}</Badge>
+//                                   </Card.Header>
+//                                   <Card.Body>
+//                                     <Row>
+//                                       <Col md={6}>
+//                                         <p><strong>Name:</strong> {roomDetails.space_name}</p>
+//                                         <p><strong>Number:</strong> {roomDetails.space_number}</p>
+//                                         <p><strong>Capacity:</strong> {roomDetails.capacity || 'N/A'}</p>
+//                                       </Col>
+//                                       <Col md={6}>
+//                                         <p><strong>Fee:</strong> ${roomDetails.space_fee || '0.00'}</p>
+//                                         <p><strong>Status:</strong> 
+//                                           <Badge bg={roomDetails.status === 'active' ? 'success' : 'secondary'} className="ms-2">
+//                                             {roomDetails.status || 'N/A'}
+//                                           </Badge>
+//                                         </p>
+//                                         <p><strong>Created:</strong> {formatDateTime(roomDetails.created_at)}</p>
+//                                       </Col>
+//                                     </Row>
+//                                     {roomDetails.description && (
+//                                       <div className="mt-3">
+//                                         <strong>Description:</strong>
+//                                         <Card className="mt-1">
+//                                           <Card.Body className="p-2">
+//                                             {roomDetails.description}
+//                                           </Card.Body>
+//                                         </Card>
+//                                       </div>
+//                                     )}
+//                                   </Card.Body>
+//                                 </Card>
+//                               ) : (
+//                                 <Alert variant="warning" className="mb-4">
+//                                   No details available for this room
+//                                 </Alert>
+//                               )}
+
+//                               {/* Spaces Section */}
+//                               <h4 className="mb-3">Available Spaces</h4>
+//                               {loadingRoomDetails ? (
+//                                 <div className="text-center">
+//                                   <Spinner animation="border" role="status">
+//                                     <span className="visually-hidden">Loading spaces...</span>
+//                                   </Spinner>
+//                                 </div>
+//                               ) : spaceCards && spaceCards.length > 0 ? (
+//                                 <>
+//                                   <p className="mb-3">Total spaces: {spaceCards.length}</p>
+//                                   <Row>
+//                                     {spaceCards.map((space) => (
+//                                       <Col key={space.id} md={3} className="mb-3">
+//                                         <Card className="h-100">
+//                                           <Card.Body className="d-flex flex-column">
+//                                             <Card.Title className="d-flex justify-content-between align-items-center">
+//                                               <span>Space {space.space_number}</span>
+//                                               <Badge bg={space.is_available ? "success" : "danger"}>
+//                                                 {space.is_available ? "Available" : "Occupied"}
+//                                               </Badge>
+//                                             </Card.Title>
+//                                             <Card.Text className="flex-grow-1">
+//                                               <div><strong>Number:</strong> {space.space_number}</div>
+//                                               <div><strong>Fee:</strong> ${space.space_fee}</div>
+//                                               <div><strong>Type:</strong> {space.space_type}</div>
+//                                             </Card.Text>
+//                                             <div className="mt-auto">
+//                                               <Button 
+//                                                 variant={space.is_available ? "primary" : "secondary"} 
+//                                                 size="sm"
+//                                                 disabled={!space.is_available}
+//                                                 className="w-100"
+//                                                 onClick={() => handleBookNowClick(space)}
+//                                               >
+//                                                 {space.is_available ? "Book Now" : "Unavailable"}
+//                                               </Button>
+//                                             </div>
+//                                           </Card.Body>
+//                                         </Card>
+//                                       </Col>
+//                                     ))}
+//                                   </Row>
+//                                 </>
+//                               ) : (
+//                                 <Alert variant="info">
+//                                   {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
+//                                 </Alert>
+//                               )}
+//                             </div>
+//                           )}
+//                         </>
+//                       )}
+//                     </>
+//                   )}
 //                 </Card.Body>
 //               </Card>
-
-             
 //             </Card.Body>
 //           </Card>
 //         </Col>
 //       </Row>
 
-//       <SpotRegistrationModal
-//         show={show}
-//         onHide={handleClose}
-//         mySpot={selectedUser}
-//         onSubmit={() =>
-//           fetchSpot(
-//             selectedLocation,
-//             pagination.currentPage,
-//             pagination.pageSize
-//           )
-//         } // Reload users after adding or editing a user
-//       />
-
+//       {/* Popups */}
 //       {popup.isVisible && (
 //         <Popup
 //           message={popup.message}
@@ -513,611 +5518,157 @@
 //         <Popup
 //           message="Are you sure you want to delete this room?"
 //           type="confirm"
-//           onClose={() => setDeletePopup({ isVisible: false, mySpotID: null })}
+//           onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
 //           buttonLabel="Yes"
 //           onAction={confirmDelete}
 //         />
 //       )}
-//     </>
-//   );
-// };
 
-// export default Spots;
-
-
-
-
-
-
-
-
-
-// import React, { useState, useEffect } from 'react';
-// import {
-//   Container,
-//   Row,
-//   Col,
-//   Card,
-//   Button,
-//   Modal,
-//   Form,
-//   Badge,
-//   Spinner,
-//   Alert,
-//   ListGroup
-// } from 'react-bootstrap';
-// import 'bootstrap/dist/css/bootstrap.min.css';
-
-// const SeatBookingSystem = () => {
-//   // State management
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [seatData, setSeatData] = useState({ floor1: [], floor2: [] });
-//   const [activeBookings, setActiveBookings] = useState({});
-//   const [showBookingModal, setShowBookingModal] = useState(false);
-//   const [selectedSeat, setSelectedSeat] = useState(null);
-//   const [formData, setFormData] = useState({
-//     userName: '',
-//     userEmail: '',
-//     bookingDate: new Date().toISOString().split('T')[0],
-//     startTime: '',
-//     duration: '30'
-//   });
-//   const [timeConflict, setTimeConflict] = useState(false);
-
-//   // Fetch seat data from backend
-//   useEffect(() => {
-//     const fetchSeatData = async () => {
-//       try {
-//         setLoading(true);
-//         // Simulating API call with timeout
-//         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-//         // Mock data
-//         const mockData = {
-//           floor1: [
-//             { number: 'A1', status: 'available' },
-//             { number: 'A2', status: 'booked' },
-//             { number: 'A3', status: 'available' },
-//             { number: 'A4', status: 'reserved' },
-//             { number: 'B1', status: 'available' },
-//             { number: 'B2', status: 'available' },
-//             { number: 'B3', status: 'booked' },
-//             { number: 'B4', status: 'available' },
-//             { number: 'C1', status: 'reserved' },
-//             { number: 'C2', status: 'available' },
-//             { number: 'C3', status: 'available' },
-//             // { number: 'C4', status: 'booked' }
-//           ],
-//           floor2: [
-//             { number: 'D1', status: 'available' },
-//             { number: 'D2', status: 'available' },
-//             { number: 'D3', status: 'available' },
-//             { number: 'D4', status: 'reserved' },
-//             { number: 'E1', status: 'booked' },
-//             { number: 'E2', status: 'available' },
-//             { number: 'E3', status: 'available' },
-//             { number: 'E4', status: 'booked' }
-//           ]
-//         };
-        
-//         setSeatData(mockData);
-//         loadBookings();
-//         setLoading(false);
-//       } catch (err) {
-//         setError('Failed to load seat data. Please try again later.');
-//         setLoading(false);
-//         console.error('Error fetching seat data:', err);
-//       }
-//     };
-
-//     fetchSeatData();
-//   }, []);
-
-//   // Load bookings from localStorage
-//   const loadBookings = () => {
-//     try {
-//       const saved = localStorage.getItem('activeBookings');
-//       if (saved) {
-//         const bookingsData = JSON.parse(saved);
-//         const now = Date.now();
-//         const activeBookings = {};
-        
-//         Object.keys(bookingsData).forEach(seatNumber => {
-//           const active = bookingsData[seatNumber].filter(booking => {
-//             return booking.endTimestamp > now;
-//           });
-          
-//           if (active.length > 0) {
-//             activeBookings[seatNumber] = active;
-            
-//             active.forEach(booking => {
-//               const durationMs = booking.endTimestamp - now;
-//               if (durationMs > 0) {
-//                 setTimeout(() => {
-//                   releaseSeatIfExpired(seatNumber);
-//                 }, durationMs);
-//               }
-//             });
-//           }
-//         });
-        
-//         setActiveBookings(activeBookings);
-//       }
-//     } catch (e) {
-//       console.error('Error loading bookings:', e);
-//       localStorage.removeItem('activeBookings');
-//     }
-//   };
-
-//   // Save bookings to localStorage
-//   const saveBookings = (bookings) => {
-//     localStorage.setItem('activeBookings', JSON.stringify(bookings));
-//   };
-
-//   // Handle seat selection
-//   const handleSeatClick = (seat) => {
-//     const status = getSeatStatus(seat);
-//     if (status === 'booked' || status === 'fully-booked') return;
-    
-//     setSelectedSeat(seat);
-//     setFormData({
-//       ...formData,
-//       bookingDate: new Date().toISOString().split('T')[0],
-//       startTime: '',
-//       duration: '30'
-//     });
-//     setTimeConflict(false);
-//     setShowBookingModal(true);
-//   };
-
-//   // Close booking modal
-//   const handleCloseModal = () => {
-//     setShowBookingModal(false);
-//     setSelectedSeat(null);
-//   };
-
-//   // Handle form input changes
-//   const handleInputChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData({
-//       ...formData,
-//       [name]: value
-//     });
-    
-//     if (name === 'bookingDate' || name === 'startTime' || name === 'duration') {
-//       setTimeConflict(false);
-//     }
-//   };
-
-//   // Check if a time slot is available
-//   const isTimeSlotAvailable = (seatNumber, date, startTime, duration) => {
-//     const bookings = activeBookings[seatNumber] || [];
-//     const [startHour, startMinute] = startTime.split(':').map(Number);
-    
-//     const endTime = new Date(0, 0, 0, startHour, startMinute + parseInt(duration));
-//     const endTimeString = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
-    
-//     return !bookings.some(booking => {
-//       if (booking.date !== date) return false;
-      
-//       const bookingStart = booking.startTime;
-//       const bookingEnd = booking.endTime;
-      
-//       return !(endTimeString <= bookingStart || startTime >= bookingEnd);
-//     });
-//   };
-
-//   // Handle form submission
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-    
-//     if (!formData.userName || !formData.userEmail || !formData.startTime || !formData.duration) {
-//       return;
-//     }
-    
-//     if (!isTimeSlotAvailable(
-//       selectedSeat.number,
-//       formData.bookingDate,
-//       formData.startTime,
-//       formData.duration
-//     )) {
-//       setTimeConflict(true);
-//       return;
-//     }
-    
-//     const [startHour, startMinute] = formData.startTime.split(':').map(Number);
-//     const endTime = new Date(0, 0, 0, startHour, startMinute + parseInt(formData.duration));
-//     const endTimeString = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
-    
-//     const bookingData = {
-//       seatNumber: selectedSeat.number,
-//       userName: formData.userName,
-//       userEmail: formData.userEmail,
-//       date: formData.bookingDate,
-//       startTime: formData.startTime,
-//       endTime: endTimeString,
-//       duration: formData.duration,
-//       startTimestamp: getTimestamp(formData.bookingDate, formData.startTime),
-//       endTimestamp: getTimestamp(formData.bookingDate, endTimeString)
-//     };
-    
-//     const updatedBookings = { ...activeBookings };
-//     if (!updatedBookings[selectedSeat.number]) {
-//       updatedBookings[selectedSeat.number] = [];
-//     }
-//     updatedBookings[selectedSeat.number].push(bookingData);
-    
-//     setActiveBookings(updatedBookings);
-//     saveBookings(updatedBookings);
-    
-//     const durationMs = bookingData.endTimestamp - Date.now();
-//     if (durationMs > 0) {
-//       setTimeout(() => {
-//         releaseSeatIfExpired(selectedSeat.number);
-//       }, durationMs);
-//     }
-    
-//     alert(`Booking confirmed for seat ${bookingData.seatNumber} from ${bookingData.startTime} to ${bookingData.endTime} on ${bookingData.date}!`);
-    
-//     setFormData({
-//       userName: '',
-//       userEmail: '',
-//       bookingDate: new Date().toISOString().split('T')[0],
-//       startTime: '',
-//       duration: '30'
-//     });
-//     setShowBookingModal(false);
-//   };
-
-//   // Release seat if booking has expired
-//   const releaseSeatIfExpired = (seatNumber) => {
-//     const now = Date.now();
-//     const updatedBookings = { ...activeBookings };
-    
-//     if (updatedBookings[seatNumber]) {
-//       const active = updatedBookings[seatNumber].filter(booking => booking.endTimestamp > now);
-      
-//       if (active.length === 0) {
-//         delete updatedBookings[seatNumber];
-//       } else {
-//         updatedBookings[seatNumber] = active;
-//       }
-      
-//       setActiveBookings(updatedBookings);
-//       saveBookings(updatedBookings);
-//     }
-//   };
-
-//   // Get timestamp from date and time
-//   const getTimestamp = (dateStr, timeStr) => {
-//     const [year, month, day] = dateStr.split('-').map(Number);
-//     const [hours, minutes] = timeStr.split(':').map(Number);
-//     return new Date(year, month - 1, day, hours, minutes).getTime();
-//   };
-
-//   // Generate time slots for the dropdown
-//   const generateTimeSlots = () => {
-//     const slots = [];
-//     for (let hour = 12; hour < 24; hour++) {
-//       for (let minute = 0; minute < 60; minute += 30) {
-//         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-//         slots.push(timeString);
-//       }
-//     }
-//     return slots;
-//   };
-
-//   // Check if seat is fully booked
-//   const isSeatFullyBooked = (seatNumber) => {
-//     const bookings = activeBookings[seatNumber] || [];
-//     if (bookings.length === 0) return false;
-    
-//     const allSlots = [];
-//     for (let hour = 12; hour < 24; hour++) {
-//       for (let minute = 0; minute < 60; minute += 30) {
-//         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-//         allSlots.push(timeString);
-//       }
-//     }
-    
-//     const today = new Date().toISOString().split('T')[0];
-//     const todayBookings = bookings.filter(b => b.date === today);
-    
-//     const bookedSlots = new Set();
-//     todayBookings.forEach(booking => {
-//       const [startHour, startMinute] = booking.startTime.split(':').map(Number);
-//       const [endHour, endMinute] = booking.endTime.split(':').map(Number);
-      
-//       let currentHour = startHour;
-//       let currentMinute = startMinute;
-      
-//       while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
-//         const slot = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-//         bookedSlots.add(slot);
-        
-//         currentMinute += 30;
-//         if (currentMinute >= 60) {
-//           currentMinute = 0;
-//           currentHour++;
-//         }
-//       }
-//     });
-    
-//     return allSlots.every(slot => bookedSlots.has(slot));
-//   };
-
-//   // Get seat status
-//   const getSeatStatus = (seat) => {
-//     if (isSeatFullyBooked(seat.number)) return 'fully-booked';
-    
-//     const bookings = activeBookings[seat.number] || [];
-//     const now = Date.now();
-    
-//     const isCurrentlyBooked = bookings.some(booking => 
-//       now >= booking.startTimestamp && now < booking.endTimestamp
-//     );
-    
-//     if (isCurrentlyBooked) return 'booked';
-//     return seat.status;
-//   };
-
-//   // Get seat color based on status
-//   const getSeatColor = (status) => {
-//     switch (status) {
-//       case 'available': return 'success';
-//       case 'booked': return 'danger';
-//       case 'reserved': return 'warning';
-//       case 'fully-booked': return 'secondary';
-//       default: return 'light';
-//     }
-//   };
-
-//   // Seat component
-//   const Seat = ({ seat }) => {
-//     const status = getSeatStatus(seat);
-//     const color = getSeatColor(status);
-//     const isFullyBooked = status === 'fully-booked';
-//     const isBooked = status === 'booked';
-    
-//     // Safely get current booking
-//     const currentBooking = isBooked && activeBookings[seat.number] 
-//       ? activeBookings[seat.number].find(b => 
-//           Date.now() >= b.startTimestamp && Date.now() < b.endTimestamp
-//         )
-//       : null;
-    
-//     return (
-//       <Col xs={4} md={3} lg={2} className="mb-3">
-//         <Card
-//           bg={color}
-//           text={color === 'warning' ? 'dark' : 'white'}
-//           className={`h-100 ${isFullyBooked ? '' : 'cursor-pointer'}`}
-//           onClick={() => !isFullyBooked && handleSeatClick(seat)}
+//       {/* Booking Popup */}
+//       {showBookingPopup && selectedSpace && (
+//         <Popup
+//           title={`Book Space ${selectedSpace.space_number}`}
+//           isVisible={showBookingPopup}
+//           onClose={handleBookingClose}
+//           size="lg"
 //         >
-//           <Card.Body className="text-center d-flex flex-column justify-content-center">
-//             <Card.Title>{seat.number}</Card.Title>
-//             <Card.Text className="mb-1">
-//               {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
-//             </Card.Text>
-//             {isBooked && currentBooking && (
-//               <small className="text-light">
-//                 {currentBooking.startTime}-{currentBooking.endTime}
-//               </small>
-//             )}
-//             {isFullyBooked && (
-//               <small className="text-danger fw-bold">No available slots</small>
-//             )}
-//           </Card.Body>
-//         </Card>
-//       </Col>
-//     );
-//   };
-
-//   // Generate available time slots for selected seat and date
-//   const getAvailableTimeSlots = () => {
-//     if (!selectedSeat) return [];
-    
-//     const slots = generateTimeSlots();
-//     const bookings = activeBookings[selectedSeat.number] || [];
-//     const selectedDate = formData.bookingDate;
-    
-//     const bookedSlots = new Set();
-//     bookings.forEach(booking => {
-//       if (booking.date === selectedDate) {
-//         const [startHour, startMinute] = booking.startTime.split(':').map(Number);
-//         const [endHour, endMinute] = booking.endTime.split(':').map(Number);
-        
-//         let currentHour = startHour;
-//         let currentMinute = startMinute;
-        
-//         while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
-//           const slot = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-//           bookedSlots.add(slot);
-          
-//           currentMinute += 30;
-//           if (currentMinute >= 60) {
-//             currentMinute = 0;
-//             currentHour++;
-//           }
-//         }
-//       }
-//     });
-    
-//     return slots.map(slot => ({
-//       time: slot,
-//       available: !bookedSlots.has(slot)
-//     }));
-//   };
-
-//   return (
-//     <Container className="py-4">
-//       <h1 className="text-center mb-4">Workspace Seat Booking</h1>
-      
-//       {/* Legend */}
-//       <ListGroup horizontal className="mb-4 justify-content-center">
-//         <ListGroup.Item className="d-flex align-items-center">
-//           <Badge bg="success" className="me-2">&nbsp;</Badge>
-//           Available
-//         </ListGroup.Item>
-//         <ListGroup.Item className="d-flex align-items-center">
-//           <Badge bg="danger" className="me-2">&nbsp;</Badge>
-//           Booked
-//         </ListGroup.Item>
-//         <ListGroup.Item className="d-flex align-items-center">
-//           <Badge bg="warning" className="me-2">&nbsp;</Badge>
-//           Reserved
-//         </ListGroup.Item>
-//         <ListGroup.Item className="d-flex align-items-center">
-//           <Badge bg="secondary" className="me-2">&nbsp;</Badge>
-//           Fully Booked
-//         </ListGroup.Item>
-//       </ListGroup>
-      
-//       {loading ? (
-//         <div className="text-center py-5">
-//           <Spinner animation="border" role="status">
-//             <span className="visually-hidden">Loading...</span>
-//           </Spinner>
-//           <p className="mt-3">Loading seat availability...</p>
-//         </div>
-//       ) : error ? (
-//         <Alert variant="danger" className="text-center">
-//           {error}
-//         </Alert>
-//       ) : (
-//         <>
-//           {/* Floor 1 */}
-//           <Card className="mb-4">
-//             <Card.Header>
-//               <h5 className="mb-0">Floor 1 - Main Workspace</h5>
-//             </Card.Header>
-//             <Card.Body>
-//               <Row>
-//                 {seatData.floor1.map(seat => (
-//                   <Seat key={`floor1-${seat.number}`} seat={seat} />
-//                 ))}
-//               </Row>
-//             </Card.Body>
-//           </Card>
-          
-//           {/* Floor 2 */}
-//           <Card className="mb-4">
-//             <Card.Header>
-//               <h5 className="mb-0">Floor 2 - Quiet Zone</h5>
-//             </Card.Header>
-//             <Card.Body>
-//               <Row>
-//                 {seatData.floor2.map(seat => (
-//                   <Seat key={`floor2-${seat.number}`} seat={seat} />
-//                 ))}
-//               </Row>
-//             </Card.Body>
-//           </Card>
-//         </>
-//       )}
-      
-//       {/* Booking Modal */}
-//       <Modal show={showBookingModal} onHide={handleCloseModal}>
-//         <Modal.Header closeButton>
-//           <Modal.Title>Book Seat {selectedSeat?.number}</Modal.Title>
-//         </Modal.Header>
-//         <Form onSubmit={handleSubmit}>
-//           <Modal.Body>
-//             <Form.Group className="mb-3">
-//               <Form.Label>Your Name</Form.Label>
-//               <Form.Control
-//                 type="text"
-//                 name="userName"
-//                 value={formData.userName}
-//                 onChange={handleInputChange}
-//                 required
-//               />
-//             </Form.Group>
-            
-//             <Form.Group className="mb-3">
-//               <Form.Label>Email</Form.Label>
-//               <Form.Control
-//                 type="email"
-//                 name="userEmail"
-//                 value={formData.userEmail}
-//                 onChange={handleInputChange}
-//                 required
-//               />
-//             </Form.Group>
-            
-//             <Form.Group className="mb-3">
-//               <Form.Label>Date</Form.Label>
-//               <Form.Control
-//                 type="date"
-//                 name="bookingDate"
-//                 value={formData.bookingDate}
-//                 onChange={handleInputChange}
-//                 min={new Date().toISOString().split('T')[0]}
-//                 required
-//               />
-//             </Form.Group>
-            
-//             <Form.Group className="mb-3">
-//               <Form.Label>Start Time</Form.Label>
-//               <Form.Select
-//                 name="startTime"
-//                 value={formData.startTime}
-//                 onChange={handleInputChange}
-//                 required
-//               >
-//                 <option value="">Select start time</option>
-//                 {getAvailableTimeSlots().map((slot, index) => (
-//                   <option 
-//                     key={`slot-${index}`} 
-//                     value={slot.time}
-//                     disabled={!slot.available}
+//           <Form onSubmit={handleBookingSubmit}>
+//             <Row>
+//               <Col md={12}>
+//                 <Form.Group className="mb-3">
+//                   <Form.Label>Booking Type</Form.Label>
+//                   <Form.Select
+//                     name="type"
+//                     value={bookingFormData.type}
+//                     onChange={handleBookingInputChange}
+//                     required
 //                   >
-//                     {slot.time} {!slot.available && '(Booked)'}
-//                   </option>
-//                 ))}
-//                 {getAvailableTimeSlots().filter(slot => slot.available).length === 0 && (
-//                   <option disabled>No available time slots</option>
-//                 )}
-//               </Form.Select>
-//             </Form.Group>
-            
-//             <Form.Group className="mb-3">
-//               <Form.Label>Duration</Form.Label>
-//               <Form.Select
-//                 name="duration"
-//                 value={formData.duration}
-//                 onChange={handleInputChange}
-//                 required
-//               >
-//                 <option value="">Select duration</option>
-//                 <option value="30">30 minutes</option>
-//                 <option value="60">1 hour</option>
-//                 <option value="90">1.5 hours</option>
-//                 <option value="120">2 hours</option>
-//                 <option value="180">3 hours</option>
-//                 <option value="240">4 hours</option>
-//                 <option value="480">Full day (8 hours)</option>
-//               </Form.Select>
-//             </Form.Group>
-            
-//             {timeConflict && (
-//               <Alert variant="danger" className="mb-3">
-//                 This seat is already booked during the selected time
-//               </Alert>
+//                     <option value="one-off">One-time Booking</option>
+//                     <option value="recurring">Recurring Booking</option>
+//                   </Form.Select>
+//                 </Form.Group>
+//               </Col>
+//             </Row>
+
+//             {bookingFormData.type === "recurring" && (
+//               <Row>
+//                 <Col md={6}>
+//                   <Form.Group className="mb-3">
+//                     <Form.Label>Number of Weeks</Form.Label>
+//                     <Form.Control
+//                       type="number"
+//                       name="number_weeks"
+//                       value={bookingFormData.number_weeks}
+//                       onChange={handleBookingInputChange}
+//                       min="1"
+//                       required={bookingFormData.type === "recurring"}
+//                     />
+//                   </Form.Group>
+//                 </Col>
+//                 <Col md={6}>
+//                   <Form.Group className="mb-3">
+//                     <Form.Label>Number of Months</Form.Label>
+//                     <Form.Control
+//                       type="number"
+//                       name="number_months"
+//                       value={bookingFormData.number_months}
+//                       onChange={handleBookingInputChange}
+//                       min="0"
+//                       required={bookingFormData.type === "recurring"}
+//                     />
+//                   </Form.Group>
+//                 </Col>
+//               </Row>
 //             )}
-//           </Modal.Body>
-//           <Modal.Footer>
-//             <Button variant="secondary" onClick={handleCloseModal}>
-//               Cancel
+
+//             <h5 className="mt-3">Booking Schedule</h5>
+//             {bookingFormData.chosen_days.map((day, index) => (
+//               <div key={index} className="border p-3 mb-3">
+//                 <Row>
+//                   <Col md={4}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>Day of Week</Form.Label>
+//                       <Form.Select
+//                         name={`day-${index}`}
+//                         value={day.day}
+//                         onChange={(e) => handleDayChange(index, 'day', e.target.value)}
+//                         required
+//                       >
+//                         <option value="">Select day</option>
+//                         <option value="monday">Monday</option>
+//                         <option value="tuesday">Tuesday</option>
+//                         <option value="wednesday">Wednesday</option>
+//                         <option value="thursday">Thursday</option>
+//                         <option value="friday">Friday</option>
+//                         <option value="saturday">Saturday</option>
+//                         <option value="sunday">Sunday</option>
+//                       </Form.Select>
+//                     </Form.Group>
+//                   </Col>
+//                   <Col md={4}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>Start Time</Form.Label>
+//                       <Form.Control
+//                         type="datetime-local"
+//                         name={`start_time-${index}`}
+//                         value={day.start_time}
+//                         onChange={(e) => handleDayChange(index, 'start_time', e.target.value)}
+//                         required
+//                       />
+//                     </Form.Group>
+//                   </Col>
+//                   <Col md={4}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>End Time</Form.Label>
+//                       <Form.Control
+//                         type="datetime-local"
+//                         name={`end_time-${index}`}
+//                         value={day.end_time}
+//                         onChange={(e) => handleDayChange(index, 'end_time', e.target.value)}
+//                         required
+//                       />
+//                     </Form.Group>
+//                   </Col>
+//                 </Row>
+//                 {index > 0 && (
+//                   <Button 
+//                     variant="danger" 
+//                     size="sm" 
+//                     onClick={() => removeDay(index)}
+//                     className="mt-2"
+//                   >
+//                     Remove Day
+//                   </Button>
+//                 )}
+//               </div>
+//             ))}
+
+//             <Button 
+//               variant="outline-primary" 
+//               size="sm" 
+//               onClick={addDay}
+//               className="mb-3"
+//             >
+//               Add Another Day
 //             </Button>
-//             <Button variant="primary" type="submit">
-//               Confirm Booking
-//             </Button>
-//           </Modal.Footer>
-//         </Form>
-//       </Modal>
-//     </Container>
+
+//             <div className="d-flex justify-content-end">
+//               <Button variant="secondary" onClick={handleBookingClose} className="me-2">
+//                 Cancel
+//               </Button>
+//               <Button variant="primary" type="submit" disabled={isLoading}>
+//                 {isLoading ? (
+//                   <>
+//                     <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+//                     {' '}Booking...
+//                   </>
+//                 ) : 'Confirm Booking'}
+//               </Button>
+//             </div>
+//           </Form>
+//         </Popup>
+//       )}
+//     </>
 //   );
 // };
 
@@ -1125,907 +5676,3224 @@
 
 
 
+// import React, { useState, useEffect } from "react";
+// import { Link } from "react-router-dom";
+// import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
+// import PageTitle from "../../../components/PageTitle";
+// import { useAuthContext } from "@/context/useAuthContext.jsx";
+// import Popup from "../../../components/Popup/Popup";
+// import Table2 from "../../../components/Table2";
+// import { toast } from "react-toastify";
 
-import React, { useState, useEffect } from 'react';
+// const SeatBookingSystem = () => {
+//   const { user } = useAuthContext();
+//   const tenantToken = user?.tenantToken;
+//   const tenantSlug = user?.tenant;
+
+//   // State variables
+//   const [show, setShow] = useState(false);
+//   const [data, setData] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [loadingLocations, setLoadingLocations] = useState(true);
+//   const [loadingFloor, setLoadingFloor] = useState(false);
+//   const [floorData, setFloorData] = useState([]);
+//   const [roomsData, setRoomsData] = useState([]);
+//   const [selectedRoom, setSelectedRoom] = useState(null);
+//   const [roomDetails, setRoomDetails] = useState(null);
+//   const [spaceCards, setSpaceCards] = useState([]);
+//   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+//   const [selectedUser, setSelectedUser] = useState(null);
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [isError, setIsError] = useState(false);
+//   const [locations, setLocations] = useState([]);
+//   const [selectedLocation, setSelectedLocation] = useState(null);
+//   const [users, setUsers] = useState([]);
+//   const [loadingUsers, setLoadingUsers] = useState(false);
+
+//   // Booking popup states
+//   const [showBookingPopup, setShowBookingPopup] = useState(false);
+//   const [selectedSpace, setSelectedSpace] = useState(null);
+//   const [bookingFormData, setBookingFormData] = useState({
+//     type: "one-off",
+//     chosen_days: [{
+//       day: "",
+//       start_time: "",
+//       end_time: ""
+//     }],
+//     number_weeks: "",
+//     number_months: "",
+//     user_id: ""
+//   });
+
+//   const [popup, setPopup] = useState({
+//     message: "",
+//     type: "",
+//     isVisible: false,
+//     buttonLabel: "",
+//     buttonRoute: "",
+//   });
+
+//   const [deletePopup, setDeletePopup] = useState({
+//     isVisible: false,
+//     myRoomID: null,
+//   });
+
+//   const [pagination, setPagination] = useState({
+//     currentPage: 1,
+//     totalPages: 1,
+//     nextPageUrl: null,
+//     prevPageUrl: null,
+//     pageSize: 10,
+//   });
+
+//   const [formData, setFormData] = useState({
+//     name: "",
+//     location_id: "",
+//     floor_id: "",
+//     room_id: ""
+//   });
+
+//   // Format date time
+//   const formatDateTime = (isoString) => {
+//     const options = {
+//       year: "numeric",
+//       month: "long",
+//       day: "numeric",
+//       hour: "2-digit",
+//       minute: "2-digit",
+//       second: "2-digit",
+//     };
+//     return new Date(isoString).toLocaleDateString("en-US", options);
+//   };
+
+//   // Fetch locations
+//   const fetchLocations = async () => {
+//     setLoadingLocations(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+//         {
+//           headers: { Authorization: `Bearer ${user.tenantToken}` },
+//         }
+//       );
+//       const result = await response.json();
+//       if (response.ok) {
+//         setLocations(result.data.data || []);
+//       } else {
+//         throw new Error(result.message || "Failed to fetch locations.");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoadingLocations(false);
+//     }
+//   };
+
+//   // Fetch users
+//   const fetchUsers = async () => {
+//     setLoadingUsers(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-users`,
+//         {
+//           headers: { Authorization: `Bearer ${user.tenantToken}` },
+//         }
+//       );
+//       const result = await response.json();
+//       if (response.ok) {
+//         setUsers(result.data.data || []);
+//       } else {
+//         throw new Error(result.message || "Failed to fetch users.");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoadingUsers(false);
+//     }
+//   };
+
+//   // Handle location change
+//   const handleLocationChange = (e) => {
+//     const locationId = e.target.value;
+//     setSelectedLocation(locationId);
+//     setFormData((prev) => ({
+//       ...prev,
+//       location_id: locationId,
+//       floor_id: "",
+//       room_id: ""
+//     }));
+//     setFloorData([]);
+//     setRoomsData([]);
+//     setData([]);
+//     setSpaceCards([]);
+//     setRoomDetails(null);
+//   };
+
+//   // Fetch floors for selected location
+//   const fetchFloor = async (locationId) => {
+//     setLoadingFloor(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${user?.tenantToken}`,
+//           },
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+//       if (result && Array.isArray(result.data.data)) {
+//         setFloorData(result.data.data);
+//       } else {
+//         throw new Error("Invalid response format");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoadingFloor(false);
+//     }
+//   };
+
+//   // Fetch rooms for selected floor
+//   const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+//     setLoading(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${user?.tenantToken}`,
+//           },
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+//       if (result && Array.isArray(result)) {
+//         const sortedData = result.sort(
+//           (a, b) =>
+//             new Date(b.updated_at || b.created_at) -
+//             new Date(a.updated_at || a.created_at)
+//         );
+//         setRoomsData(sortedData);
+//         setData(sortedData);
+//         setPagination({
+//           currentPage: result.current_page,
+//           totalPages: result.last_page,
+//           nextPageUrl: result.next_page_url,
+//           prevPageUrl: result.prev_page_url,
+//           pageSize: pageSize,
+//         });
+//       } else {
+//         throw new Error("Invalid response format");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Generate space cards based on space_number
+//   const generateSpaceCards = (spaceNumber) => {
+//     if (!spaceNumber || isNaN(spaceNumber) || spaceNumber <= 0) return [];
+    
+//     const cards = [];
+//     for (let i = 1; i <= spaceNumber; i++) {
+//       cards.push({
+//         id: i,
+//         space_number: i,
+//         is_available: true, // Default to available
+//         space_fee: roomDetails?.space_fee || 0,
+//         space_type: 'Standard'
+//       });
+//     }
+//     return cards;
+//   };
+
+//   // Fetch individual room details and generate space cards
+//   const fetchRoomDetails = async (roomId) => {
+//     if (!roomId) {
+//       setRoomDetails(null);
+//       setSpaceCards([]);
+//       return;
+//     }
+
+//     setLoadingRoomDetails(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${user?.tenantToken}`,
+//           },
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+//       if (result && result.data) {
+//         setRoomDetails(result.data);
+//         // Generate space cards based on space_number
+//         const cards = generateSpaceCards(result.data.space_number);
+//         setSpaceCards(cards);
+//       } else {
+//         throw new Error("Invalid room details format");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoadingRoomDetails(false);
+//     }
+//   };
+
+//   // Handle floor change
+//   const handleFloorChange = (e) => {
+//     const floorId = e.target.value;
+//     setFormData((prev) => ({
+//       ...prev,
+//       floor_id: floorId,
+//       room_id: ""
+//     }));
+//     setSelectedRoom(null);
+//     setSpaceCards([]);
+//     setRoomDetails(null);
+
+//     if (floorId && selectedLocation) {
+//       fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
+//     }
+//   };
+
+//   // Handle room change
+//   const handleRoomChange = async (e) => {
+//     const roomId = e.target.value;
+//     setSelectedRoom(roomId);
+//     setFormData((prev) => ({
+//       ...prev,
+//       room_id: roomId
+//     }));
+
+//     if (roomId) {
+//       const filteredData = roomsData.filter(room => room.id === roomId);
+//       setData(filteredData);
+//       await fetchRoomDetails(roomId);
+//     } else {
+//       setData(roomsData);
+//       setSpaceCards([]);
+//       setRoomDetails(null);
+//     }
+//   };
+
+//   // Handle edit click
+//   const handleEditClick = (myRoom) => {
+//     setSelectedUser(myRoom);
+//     setShow(true);
+//   };
+
+//   // Handle close modal
+//   const handleClose = () => {
+//     setShow(false);
+//     setSelectedUser(null);
+
+//     if (selectedLocation && formData.floor_id) {
+//       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+//     }
+//   };
+
+//   // Handle delete
+//   const handleDelete = async (myRoomID) => {
+//     if (!user?.tenantToken) return;
+
+//     setIsLoading(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,
+//         {
+//           method: "POST",
+//           headers: {
+//             Authorization: `Bearer ${user?.tenantToken}`,
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify({ id: myRoomID }),
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+
+//       setData((prevData) => prevData.filter((myRoom) => myRoom.id !== myRoomID));
+//       setPopup({
+//         message: "Room deleted successfully!",
+//         type: "success",
+//         isVisible: true,
+//       });
+      
+//       if (formData.floor_id && selectedLocation) {
+//         fetchRoom(
+//           selectedLocation,
+//           formData.floor_id,
+//           pagination.currentPage,
+//           pagination.pageSize
+//         );
+//       }
+//     } catch (error) {
+//       toast.error("Failed to delete room!");
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   // Handle delete button click
+//   const handleDeleteButton = (myRoomID) => {
+//     setDeletePopup({
+//       isVisible: true,
+//       myRoomID,
+//     });
+//   };
+
+//   // Confirm delete
+//   const confirmDelete = () => {
+//     const { myRoomID } = deletePopup;
+//     handleDelete(myRoomID);
+//     setDeletePopup({ isVisible: false, myRoomID: null });
+//   };
+
+//   // Handle changes to day fields
+//   const handleDayChange = (index, field, value) => {
+//     const updatedDays = [...bookingFormData.chosen_days];
+//     updatedDays[index][field] = value;
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: updatedDays
+//     }));
+//   };
+
+//   // Add a new day to the booking
+//   const addDay = () => {
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: [
+//         ...prev.chosen_days,
+//         { day: "", start_time: "", end_time: "" }
+//       ]
+//     }));
+//   };
+
+//   // Remove a day from the booking
+//   const removeDay = (index) => {
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: prev.chosen_days.filter((_, i) => i !== index)
+//     }));
+//   };
+
+//   // Handle book now click
+//   const handleBookNowClick = (space) => {
+//     console.log("Book Now clicked for spot ID:", space.id);
+//     setSelectedSpace(space);
+//     setBookingFormData({
+//       type: "one-off",
+//       chosen_days: [{
+//         day: "",
+//         start_time: "",
+//         end_time: ""
+//       }],
+//       number_weeks: "",
+//       number_months: "",
+//       user_id: ""
+//     });
+//     setShowBookingPopup(true);
+//   };
+
+//   const handleBookingClose = () => {
+//     setShowBookingPopup(false);
+//     setSelectedSpace(null);
+//   };
+
+//   const handleBookingInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       [name]: value
+//     }));
+//   };
+
+//   const formatTimeForAPI = (datetimeString) => {
+//     if (!datetimeString) return "";
+//     const date = new Date(datetimeString);
+//     return date.toISOString().replace('T', ' ').substring(0, 19);
+//   };
+
+//   const handleBookingSubmit = async (e) => {
+//     e.preventDefault();
+//     setIsLoading(true);
+    
+//     try {
+//       // Validate chosen days
+//       const hasEmptyFields = bookingFormData.chosen_days.some(day => 
+//         !day.day || !day.start_time || !day.end_time
+//       ) || !bookingFormData.user_id;
+      
+//       if (hasEmptyFields) {
+//         throw new Error("Please fill in all required fields");
+//       }
+
+//       // Validate time ranges
+//       for (const day of bookingFormData.chosen_days) {
+//         if (new Date(day.start_time) >= new Date(day.end_time)) {
+//           throw new Error("End time must be after start time");
+//         }
+//       }
+
+//       // Validate recurring booking fields if needed
+//       if (bookingFormData.type === "recurring") {
+//         if (!bookingFormData.number_weeks && !bookingFormData.number_months) {
+//           throw new Error("Please specify duration for recurring booking");
+//         }
+//       }
+
+//       // Prepare the booking data with the selected user_id
+//       const bookingData = {
+//         spot_id: selectedSpace.id.toString(),
+//         user_id: bookingFormData.user_id,
+//         type: bookingFormData.type,
+//         ...(bookingFormData.type === "recurring" && {
+//           number_weeks: bookingFormData.number_weeks || "0",
+//           number_months: bookingFormData.number_months || "0"
+//         }),
+//         chosen_days: bookingFormData.chosen_days.map(day => ({
+//           day: day.day.toLowerCase(),
+//           start_time: formatTimeForAPI(day.start_time),
+//           end_time: formatTimeForAPI(day.end_time)
+//         }))
+//       };
+
+//       console.log("Submitting booking with data:", bookingData);
+
+//       // Make API call to your specific endpoint
+//       const response = await fetch(
+//         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+//         {
+//           method: "POST",
+//           headers: {
+//             "Authorization": `Bearer ${user?.tenantToken}`,
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify(bookingData),
+//         }
+//       );
+
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         throw new Error(errorData.message || "Failed to book space");
+//       }
+
+//       const result = await response.json();
+//       toast.success(result.message || "Space booked successfully!");
+//       handleBookingClose();
+      
+//       // Refresh the space data
+//       if (selectedRoom) {
+//         await fetchRoomDetails(selectedRoom);
+//       }
+//     } catch (error) {
+//       toast.error(error.message || "Failed to book space");
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   // Table columns
+//   const columns = [
+//     {
+//       Header: "S/N",
+//       accessor: (row, i) => i + 1,
+//       id: "serialNo",
+//       sort: false,
+//     },
+//     {
+//       Header: "Room Name",
+//       accessor: "space_name",
+//       sort: true,
+//     },
+//     {
+//       Header: "Space Number",
+//       accessor: "space_number",
+//       sort: true,
+//     },
+//     {
+//       Header: "Space Fee",
+//       accessor: "space_fee",
+//       sort: true,
+//     },
+//     {
+//       Header: "Created On",
+//       accessor: "created_at",
+//       sort: true,
+//       Cell: ({ row }) => formatDateTime(row.original.created_at),
+//     },
+//     {
+//       Header: "Updated On",
+//       accessor: "updated_at",
+//       sort: true,
+//       Cell: ({ row }) => formatDateTime(row.original.updated_at),
+//     },
+//     {
+//       Header: "Action",
+//       accessor: "action",
+//       sort: false,
+//       Cell: ({ row }) => (
+//         <>
+//           <Link
+//             to="#"
+//             className="action-icon"
+//             onClick={() => handleEditClick(row.original)}
+//           >
+//             <i className="mdi mdi-square-edit-outline"></i>
+//           </Link>
+//           <Link
+//             to="#"
+//             className="action-icon"
+//             onClick={() => handleDeleteButton(row.original.id)}
+//           >
+//             <i className="mdi mdi-delete"></i>
+//           </Link>
+//         </>
+//       ),
+//     },
+//   ];
+
+//   // Use effects
+//   useEffect(() => {
+//     if (user?.tenantToken) {
+//       fetchLocations();
+//       fetchUsers();
+//     }
+//   }, [user?.tenantToken]);
+
+//   useEffect(() => {
+//     if (selectedLocation) {
+//       fetchFloor(selectedLocation);
+//     }
+//   }, [selectedLocation]);
+
+//   useEffect(() => {
+//     if (formData.floor_id && user?.tenantToken) {
+//       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+//     }
+//   }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+
+//   return (
+//     <>
+//       <PageTitle
+//         breadCrumbItems={[
+//           { label: "My Rooms", path: "/room/my-rooms", active: true },
+//         ]}
+//         title="My Rooms"
+//       />
+
+//       <Row>
+//         <Col>
+//           <Card>
+//             <Card.Body>
+//               <Card>
+//                 <Card.Body style={{ 
+//                   background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", 
+//                   marginTop: "30px" 
+//                 }}>
+//                   {/* Location Selection */}
+//                   {loadingLocations ? (
+//                     <div className="text-center">
+//                       <Spinner animation="border" role="status">
+//                         <span className="visually-hidden">Loading...</span>
+//                       </Spinner>{" "}
+//                       Loading your locations...
+//                     </div>
+//                   ) : (
+//                     <div>
+//                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+//                         Select a location to view or update the room.
+//                       </p>
+//                       <Form.Select
+//                         style={{ marginBottom: "25px", fontSize: "1rem" }}
+//                         value={selectedLocation || ""}
+//                         onChange={handleLocationChange}
+//                       >
+//                         <option value="" disabled>
+//                           Select a location
+//                         </option>
+//                         {locations.map((location) => (
+//                           <option key={location.id} value={location.id}>
+//                             {location.name} at {location.state}
+//                           </option>
+//                         ))}
+//                       </Form.Select>
+//                     </div>
+//                   )}
+
+//                   {/* Floor Selection */}
+//                   {selectedLocation && (
+//                     <Form.Group className="mb-3" controlId="location_id">
+//                       {loadingFloor ? (
+//                         <div className="text-center">
+//                           <Spinner animation="border" role="status">
+//                             <span className="visually-hidden">Loading floors/sections...</span>
+//                           </Spinner>
+//                         </div>
+//                       ) : (
+//                         <>
+//                           <Form.Label>
+//                             Select the Floor of the room you want to view.
+//                           </Form.Label>
+//                           <Form.Select
+//                             name="floor_id"
+//                             value={formData.floor_id}
+//                             onChange={handleFloorChange}
+//                             required
+//                           >
+//                             <option value="">Select a Floor/Section</option>
+//                             {Array.isArray(floorData) &&
+//                               floorData.map((floor) => (
+//                                 <option key={floor.id} value={floor.id}>
+//                                   {floor.name}
+//                                 </option>
+//                               ))}
+//                           </Form.Select>
+//                         </>
+//                       )}
+//                     </Form.Group>
+//                   )}
+
+//                   {/* Room Selection */}
+//                   {formData.floor_id && (
+//                     <Form.Group className="mb-3" controlId="room_id">
+//                       <Form.Label>
+//                         Select a specific room (optional)
+//                       </Form.Label>
+//                       <Form.Select
+//                         name="room_id"
+//                         value={formData.room_id}
+//                         onChange={handleRoomChange}
+//                       >
+//                         <option value="">All Rooms</option>
+//                         {Array.isArray(roomsData) &&
+//                           roomsData.map((room) => (
+//                             <option key={room.id} value={room.id}>
+//                               {room.space_name} (No: {room.space_number})
+//                             </option>
+//                           ))}
+//                       </Form.Select>
+//                     </Form.Group>
+//                   )}
+
+//                   {/* Rooms Table */}
+//                   {formData.floor_id && (
+//                     <>
+//                       {loading ? (
+//                         <p>Loading rooms...</p>
+//                       ) : isLoading ? (
+//                         <div className="text-center">
+//                           <Spinner animation="border" role="status">
+//                             <span className="visually-hidden">Deleting...</span>
+//                           </Spinner>{" "}
+//                           Deleting...
+//                         </div>
+//                       ) : (
+//                         <>
+//                           <Table2
+//                             columns={columns}
+//                             data={data}
+//                             pageSize={pagination.pageSize}
+//                             isSortable
+//                             pagination
+//                             isSearchable
+//                             tableClass="table-striped dt-responsive nowrap w-100"
+//                             searchBoxClass="my-2"
+//                             paginationProps={{
+//                               currentPage: pagination.currentPage,
+//                               totalPages: pagination.totalPages,
+//                               onPageChange: (page) =>
+//                                 setPagination((prev) => ({
+//                                   ...prev,
+//                                   currentPage: page,
+//                                 })),
+//                               onPageSizeChange: (pageSize) =>
+//                                 setPagination((prev) => ({ ...prev, pageSize })),
+//                             }}
+//                           />
+
+//                           {/* Room Details and Spaces Section */}
+//                           {selectedRoom && (
+//                             <div className="mt-4">
+//                               {/* Room Details Card */}
+//                               {loadingRoomDetails ? (
+//                                 <div className="text-center mb-4">
+//                                   <Spinner animation="border" role="status">
+//                                     <span className="visually-hidden">Loading room details...</span>
+//                                   </Spinner>
+//                                 </div>
+//                               ) : roomDetails ? (
+//                                 <Card className="mb-4">
+//                                   <Card.Header className="d-flex justify-content-between align-items-center">
+//                                     <h5 className="mb-0">Room Details</h5>
+//                                     <Badge bg="info">ID: {roomDetails.id}</Badge>
+//                                   </Card.Header>
+//                                   <Card.Body>
+//                                     <Row>
+//                                       <Col md={6}>
+//                                         <p><strong>Name:</strong> {roomDetails.space_name}</p>
+//                                         <p><strong>Number:</strong> {roomDetails.space_number}</p>
+//                                         <p><strong>Capacity:</strong> {roomDetails.capacity || 'N/A'}</p>
+//                                       </Col>
+//                                       <Col md={6}>
+//                                         <p><strong>Fee:</strong> ${roomDetails.space_fee || '0.00'}</p>
+//                                         <p><strong>Status:</strong> 
+//                                           <Badge bg={roomDetails.status === 'active' ? 'success' : 'secondary'} className="ms-2">
+//                                             {roomDetails.status || 'N/A'}
+//                                           </Badge>
+//                                         </p>
+//                                         <p><strong>Created:</strong> {formatDateTime(roomDetails.created_at)}</p>
+//                                       </Col>
+//                                     </Row>
+//                                     {roomDetails.description && (
+//                                       <div className="mt-3">
+//                                         <strong>Description:</strong>
+//                                         <Card className="mt-1">
+//                                           <Card.Body className="p-2">
+//                                             {roomDetails.description}
+//                                           </Card.Body>
+//                                         </Card>
+//                                       </div>
+//                                     )}
+//                                   </Card.Body>
+//                                 </Card>
+//                               ) : (
+//                                 <Alert variant="warning" className="mb-4">
+//                                   No details available for this room
+//                                 </Alert>
+//                               )}
+
+//                               {/* Spaces Section */}
+//                               <h4 className="mb-3">Available Spaces</h4>
+//                               {loadingRoomDetails ? (
+//                                 <div className="text-center">
+//                                   <Spinner animation="border" role="status">
+//                                     <span className="visually-hidden">Loading spaces...</span>
+//                                   </Spinner>
+//                                 </div>
+//                               ) : spaceCards && spaceCards.length > 0 ? (
+//                                 <>
+//                                   <p className="mb-3">Total spaces: {spaceCards.length}</p>
+//                                   <Row>
+//                                     {spaceCards.map((space) => (
+//                                       <Col key={space.id} md={3} className="mb-3">
+//                                         <Card className="h-100">
+//                                           <Card.Body className="d-flex flex-column">
+//                                             <Card.Title className="d-flex justify-content-between align-items-center">
+//                                               <span>Space {space.space_number}</span>
+//                                               <Badge bg={space.is_available ? "success" : "danger"}>
+//                                                 {space.is_available ? "Available" : "Occupied"}
+//                                               </Badge>
+//                                             </Card.Title>
+//                                             <Card.Text className="flex-grow-1">
+//                                               <div><strong>Number:</strong> {space.space_number}</div>
+//                                               <div><strong>Fee:</strong> ${space.space_fee}</div>
+//                                               <div><strong>Type:</strong> {space.space_type}</div>
+//                                             </Card.Text>
+//                                             <div className="mt-auto">
+//                                               <Button 
+//                                                 variant={space.is_available ? "primary" : "secondary"} 
+//                                                 size="sm"
+//                                                 disabled={!space.is_available}
+//                                                 className="w-100"
+//                                                 onClick={() => handleBookNowClick(space)}
+//                                               >
+//                                                 {space.is_available ? "Book Now" : "Unavailable"}
+//                                               </Button>
+//                                             </div>
+//                                           </Card.Body>
+//                                         </Card>
+//                                       </Col>
+//                                     ))}
+//                                   </Row>
+//                                 </>
+//                               ) : (
+//                                 <Alert variant="info">
+//                                   {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
+//                                 </Alert>
+//                               )}
+//                             </div>
+//                           )}
+//                         </>
+//                       )}
+//                     </>
+//                   )}
+//                 </Card.Body>
+//               </Card>
+//             </Card.Body>
+//           </Card>
+//         </Col>
+//       </Row>
+
+//       {/* Popups */}
+//       {popup.isVisible && (
+//         <Popup
+//           message={popup.message}
+//           type={popup.type}
+//           onClose={() => setPopup({ ...popup, isVisible: false })}
+//           buttonLabel={popup.buttonLabel}
+//           buttonRoute={popup.buttonRoute}
+//         />
+//       )}
+
+//       {deletePopup.isVisible && (
+//         <Popup
+//           message="Are you sure you want to delete this room?"
+//           type="confirm"
+//           onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+//           buttonLabel="Yes"
+//           onAction={confirmDelete}
+//         />
+//       )}
+
+//       {/* Booking Popup */}
+//       {showBookingPopup && selectedSpace && (
+//         <Popup
+//           title={`Book Space ${selectedSpace.space_number}`}
+//           isVisible={showBookingPopup}
+//           onClose={handleBookingClose}
+//           size="lg"
+//         >
+//           <Form onSubmit={handleBookingSubmit}>
+//             <Row>
+//               <Col md={12}>
+//                 <Form.Group className="mb-3">
+//                   <Form.Label>Booking Type</Form.Label>
+//                   <Form.Select
+//                     name="type"
+//                     value={bookingFormData.type}
+//                     onChange={handleBookingInputChange}
+//                     required
+//                   >
+//                     <option value="one-off">One-time Booking</option>
+//                     <option value="recurring">Recurring Booking</option>
+//                   </Form.Select>
+//                 </Form.Group>
+//               </Col>
+//             </Row>
+
+//             <Row>
+//               <Col md={12}>
+//                 <Form.Group className="mb-3">
+//                   <Form.Label>Select User</Form.Label>
+//                   {loadingUsers ? (
+//                     <Spinner animation="border" size="sm" />
+//                   ) : (
+//                     <Form.Select
+//                       name="user_id"
+//                       value={bookingFormData.user_id}
+//                       onChange={handleBookingInputChange}
+//                       required
+//                     >
+//                       <option value="">Select a user</option>
+//                       {users.map((user) => (
+//                         <option key={user.id} value={user.id}>
+//                           {user.first_name} {user.last_name} ({user.email})
+//                         </option>
+//                       ))}
+//                     </Form.Select>
+//                   )}
+//                 </Form.Group>
+//               </Col>
+//             </Row>
+
+//             {bookingFormData.type === "recurring" && (
+//               <Row>
+//                 <Col md={6}>
+//                   <Form.Group className="mb-3">
+//                     <Form.Label>Number of Weeks</Form.Label>
+//                     <Form.Control
+//                       type="number"
+//                       name="number_weeks"
+//                       value={bookingFormData.number_weeks}
+//                       onChange={handleBookingInputChange}
+//                       min="1"
+//                       required={bookingFormData.type === "recurring"}
+//                     />
+//                   </Form.Group>
+//                 </Col>
+//                 <Col md={6}>
+//                   <Form.Group className="mb-3">
+//                     <Form.Label>Number of Months</Form.Label>
+//                     <Form.Control
+//                       type="number"
+//                       name="number_months"
+//                       value={bookingFormData.number_months}
+//                       onChange={handleBookingInputChange}
+//                       min="0"
+//                       required={bookingFormData.type === "recurring"}
+//                     />
+//                   </Form.Group>
+//                 </Col>
+//               </Row>
+//             )}
+
+//             <h5 className="mt-3">Booking Schedule</h5>
+//             {bookingFormData.chosen_days.map((day, index) => (
+//               <div key={index} className="border p-3 mb-3">
+//                 <Row>
+//                   <Col md={4}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>Day of Week</Form.Label>
+//                       <Form.Select
+//                         name={`day-${index}`}
+//                         value={day.day}
+//                         onChange={(e) => handleDayChange(index, 'day', e.target.value)}
+//                         required
+//                       >
+//                         <option value="">Select day</option>
+//                         <option value="monday">Monday</option>
+//                         <option value="tuesday">Tuesday</option>
+//                         <option value="wednesday">Wednesday</option>
+//                         <option value="thursday">Thursday</option>
+//                         <option value="friday">Friday</option>
+//                         <option value="saturday">Saturday</option>
+//                         <option value="sunday">Sunday</option>
+//                       </Form.Select>
+//                     </Form.Group>
+//                   </Col>
+//                   <Col md={4}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>Start Time</Form.Label>
+//                       <Form.Control
+//                         type="datetime-local"
+//                         name={`start_time-${index}`}
+//                         value={day.start_time}
+//                         onChange={(e) => handleDayChange(index, 'start_time', e.target.value)}
+//                         required
+//                       />
+//                     </Form.Group>
+//                   </Col>
+//                   <Col md={4}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>End Time</Form.Label>
+//                       <Form.Control
+//                         type="datetime-local"
+//                         name={`end_time-${index}`}
+//                         value={day.end_time}
+//                         onChange={(e) => handleDayChange(index, 'end_time', e.target.value)}
+//                         required
+//                       />
+//                     </Form.Group>
+//                   </Col>
+//                 </Row>
+//                 {index > 0 && (
+//                   <Button 
+//                     variant="danger" 
+//                     size="sm" 
+//                     onClick={() => removeDay(index)}
+//                     className="mt-2"
+//                   >
+//                     Remove Day
+//                   </Button>
+//                 )}
+//               </div>
+//             ))}
+
+//             <Button 
+//               variant="outline-primary" 
+//               size="sm" 
+//               onClick={addDay}
+//               className="mb-3"
+//             >
+//               Add Another Day
+//             </Button>
+
+//             <div className="d-flex justify-content-end">
+//               <Button variant="secondary" onClick={handleBookingClose} className="me-2">
+//                 Cancel
+//               </Button>
+//               <Button variant="primary" type="submit" disabled={isLoading}>
+//                 {isLoading ? (
+//                   <>
+//                     <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+//                     {' '}Booking...
+//                   </>
+//                 ) : 'Confirm Booking'}
+//               </Button>
+//             </div>
+//           </Form>
+//         </Popup>
+//       )}
+//     </>
+//   );
+// };
+
+// export default SeatBookingSystem;
+
+
+
+// import React, { useState, useEffect } from "react";
+// import { Link } from "react-router-dom";
+// import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
+// import PageTitle from "../../../components/PageTitle";
+// import { useAuthContext } from "@/context/useAuthContext.jsx";
+// import Popup from "../../../components/Popup/Popup";
+// import Table2 from "../../../components/Table2";
+// import { toast } from "react-toastify";
+
+// const SeatBookingSystem = () => {
+//   const { user } = useAuthContext();
+//   const tenantToken = user?.tenantToken;
+//   const tenantSlug = user?.tenant;
+
+//   // State variables
+//   const [show, setShow] = useState(false);
+//   const [data, setData] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [loadingLocations, setLoadingLocations] = useState(true);
+//   const [loadingFloor, setLoadingFloor] = useState(false);
+//   const [floorData, setFloorData] = useState([]);
+//   const [roomsData, setRoomsData] = useState([]);
+//   const [selectedRoom, setSelectedRoom] = useState(null);
+//   const [roomDetails, setRoomDetails] = useState(null);
+//   const [spaceCards, setSpaceCards] = useState([]);
+//   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+//   const [selectedUser, setSelectedUser] = useState(null);
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [isError, setIsError] = useState(false);
+//   const [locations, setLocations] = useState([]);
+//   const [selectedLocation, setSelectedLocation] = useState(null);
+//   const [users, setUsers] = useState([]);
+//   const [loadingUsers, setLoadingUsers] = useState(false);
+
+//   // Booking popup states
+//   const [showBookingPopup, setShowBookingPopup] = useState(false);
+//   const [selectedSpace, setSelectedSpace] = useState(null);
+//   const [bookingFormData, setBookingFormData] = useState({
+//     type: "one-off",
+//     chosen_days: [{
+//       day: "",
+//       start_time: "",
+//       end_time: ""
+//     }],
+//     number_weeks: "0",
+//     number_months: "0",
+//     user_id: ""
+//   });
+
+//   const [popup, setPopup] = useState({
+//     message: "",
+//     type: "",
+//     isVisible: false,
+//     buttonLabel: "",
+//     buttonRoute: "",
+//   });
+
+//   const [deletePopup, setDeletePopup] = useState({
+//     isVisible: false,
+//     myRoomID: null,
+//   });
+
+//   const [pagination, setPagination] = useState({
+//     currentPage: 1,
+//     totalPages: 1,
+//     nextPageUrl: null,
+//     prevPageUrl: null,
+//     pageSize: 10,
+//   });
+
+//   const [formData, setFormData] = useState({
+//     name: "",
+//     location_id: "",
+//     floor_id: "",
+//     room_id: ""
+//   });
+
+//   // Format date time
+//   const formatDateTime = (isoString) => {
+//     const options = {
+//       year: "numeric",
+//       month: "long",
+//       day: "numeric",
+//       hour: "2-digit",
+//       minute: "2-digit",
+//       second: "2-digit",
+//     };
+//     return new Date(isoString).toLocaleDateString("en-US", options);
+//   };
+
+//   // Fetch locations
+//   const fetchLocations = async () => {
+//     setLoadingLocations(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+//         {
+//           headers: { Authorization: `Bearer ${user.tenantToken}` },
+//         }
+//       );
+//       const result = await response.json();
+//       if (response.ok) {
+//         setLocations(result.data.data || []);
+//       } else {
+//         throw new Error(result.message || "Failed to fetch locations.");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoadingLocations(false);
+//     }
+//   };
+
+//   // Fetch users
+//   const fetchUsers = async () => {
+//     setLoadingUsers(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-users`,
+//         {
+//           headers: { Authorization: `Bearer ${user.tenantToken}` },
+//         }
+//       );
+//       const result = await response.json();
+//       if (response.ok) {
+//         setUsers(result.data.data || []);
+//       } else {
+//         throw new Error(result.message || "Failed to fetch users.");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoadingUsers(false);
+//     }
+//   };
+
+//   // Handle location change
+//   const handleLocationChange = (e) => {
+//     const locationId = e.target.value;
+//     setSelectedLocation(locationId);
+//     setFormData((prev) => ({
+//       ...prev,
+//       location_id: locationId,
+//       floor_id: "",
+//       room_id: ""
+//     }));
+//     setFloorData([]);
+//     setRoomsData([]);
+//     setData([]);
+//     setSpaceCards([]);
+//     setRoomDetails(null);
+//   };
+
+//   // Fetch floors for selected location
+//   const fetchFloor = async (locationId) => {
+//     setLoadingFloor(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${user?.tenantToken}`,
+//           },
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+//       if (result && Array.isArray(result.data.data)) {
+//         setFloorData(result.data.data);
+//       } else {
+//         throw new Error("Invalid response format");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoadingFloor(false);
+//     }
+//   };
+
+//   // Fetch rooms for selected floor
+//   const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+//     setLoading(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${user?.tenantToken}`,
+//           },
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+//       if (result && Array.isArray(result)) {
+//         const sortedData = result.sort(
+//           (a, b) =>
+//             new Date(b.updated_at || b.created_at) -
+//             new Date(a.updated_at || a.created_at)
+//         );
+//         setRoomsData(sortedData);
+//         setData(sortedData);
+//         setPagination({
+//           currentPage: result.current_page,
+//           totalPages: result.last_page,
+//           nextPageUrl: result.next_page_url,
+//           prevPageUrl: result.prev_page_url,
+//           pageSize: pageSize,
+//         });
+//       } else {
+//         throw new Error("Invalid response format");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Generate space cards based on space_number
+//   const generateSpaceCards = (spaceNumber) => {
+//     if (!spaceNumber || isNaN(spaceNumber) || spaceNumber <= 0) return [];
+    
+//     const cards = [];
+//     for (let i = 1; i <= spaceNumber; i++) {
+//       cards.push({
+//         id: i,
+//         space_number: i,
+//         is_available: true, // Default to available
+//         space_fee: roomDetails?.space_fee || 0,
+//         space_type: 'Standard'
+//       });
+//     }
+//     return cards;
+//   };
+
+//   // Fetch individual room details and generate space cards
+//   const fetchRoomDetails = async (roomId) => {
+//     if (!roomId) {
+//       setRoomDetails(null);
+//       setSpaceCards([]);
+//       return;
+//     }
+
+//     setLoadingRoomDetails(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${user?.tenantToken}`,
+//           },
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+//       if (result && result.data) {
+//         setRoomDetails(result.data);
+//         // Generate space cards based on space_number
+//         const cards = generateSpaceCards(result.data.space_number);
+//         setSpaceCards(cards);
+//       } else {
+//         throw new Error("Invalid room details format");
+//       }
+//     } catch (error) {
+//       toast.error(error.message);
+//     } finally {
+//       setLoadingRoomDetails(false);
+//     }
+//   };
+
+//   // Handle floor change
+//   const handleFloorChange = (e) => {
+//     const floorId = e.target.value;
+//     setFormData((prev) => ({
+//       ...prev,
+//       floor_id: floorId,
+//       room_id: ""
+//     }));
+//     setSelectedRoom(null);
+//     setSpaceCards([]);
+//     setRoomDetails(null);
+
+//     if (floorId && selectedLocation) {
+//       fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
+//     }
+//   };
+
+//   // Handle room change
+//   const handleRoomChange = async (e) => {
+//     const roomId = e.target.value;
+//     setSelectedRoom(roomId);
+//     setFormData((prev) => ({
+//       ...prev,
+//       room_id: roomId
+//     }));
+
+//     if (roomId) {
+//       const filteredData = roomsData.filter(room => room.id === roomId);
+//       setData(filteredData);
+//       await fetchRoomDetails(roomId);
+//     } else {
+//       setData(roomsData);
+//       setSpaceCards([]);
+//       setRoomDetails(null);
+//     }
+//   };
+
+//   // Handle edit click
+//   const handleEditClick = (myRoom) => {
+//     setSelectedUser(myRoom);
+//     setShow(true);
+//   };
+
+//   // Handle close modal
+//   const handleClose = () => {
+//     setShow(false);
+//     setSelectedUser(null);
+
+//     if (selectedLocation && formData.floor_id) {
+//       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+//     }
+//   };
+
+//   // Handle delete
+//   const handleDelete = async (myRoomID) => {
+//     if (!user?.tenantToken) return;
+
+//     setIsLoading(true);
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,
+//         {
+//           method: "POST",
+//           headers: {
+//             Authorization: `Bearer ${user?.tenantToken}`,
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify({ id: myRoomID }),
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+
+//       setData((prevData) => prevData.filter((myRoom) => myRoom.id !== myRoomID));
+//       setPopup({
+//         message: "Room deleted successfully!",
+//         type: "success",
+//         isVisible: true,
+//       });
+      
+//       if (formData.floor_id && selectedLocation) {
+//         fetchRoom(
+//           selectedLocation,
+//           formData.floor_id,
+//           pagination.currentPage,
+//           pagination.pageSize
+//         );
+//       }
+//     } catch (error) {
+//       toast.error("Failed to delete room!");
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   // Handle delete button click
+//   const handleDeleteButton = (myRoomID) => {
+//     setDeletePopup({
+//       isVisible: true,
+//       myRoomID,
+//     });
+//   };
+
+//   // Confirm delete
+//   const confirmDelete = () => {
+//     const { myRoomID } = deletePopup;
+//     handleDelete(myRoomID);
+//     setDeletePopup({ isVisible: false, myRoomID: null });
+//   };
+
+//   // Handle changes to day fields
+//   const handleDayChange = (index, field, value) => {
+//     const updatedDays = [...bookingFormData.chosen_days];
+//     updatedDays[index][field] = value;
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: updatedDays
+//     }));
+//   };
+
+//   // Add a new day to the booking
+//   const addDay = () => {
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: [
+//         ...prev.chosen_days,
+//         { day: "", start_time: "", end_time: "" }
+//       ]
+//     }));
+//   };
+
+//   // Remove a day from the booking
+//   const removeDay = (index) => {
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: prev.chosen_days.filter((_, i) => i !== index)
+//     }));
+//   };
+
+//   // Handle book now click
+//   const handleBookNowClick = (space) => {
+//     console.log("Book Now clicked for spot ID:", space.id);
+//     setSelectedSpace(space);
+//     setBookingFormData({
+//       type: "one-off",
+//       chosen_days: [{
+//         day: "",
+//         start_time: "",
+//         end_time: ""
+//       }],
+//       number_weeks: "0",
+//       number_months: "0",
+//       user_id: ""
+//     });
+//     setShowBookingPopup(true);
+//   };
+
+//   const handleBookingClose = () => {
+//     setShowBookingPopup(false);
+//     setSelectedSpace(null);
+//   };
+
+//   const handleBookingInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       [name]: value
+//     }));
+//   };
+
+//   const formatTimeForAPI = (datetimeString) => {
+//     if (!datetimeString) return "";
+//     const date = new Date(datetimeString);
+//     return date.toISOString().replace('T', ' ').substring(0, 19);
+//   };
+
+//   const handleBookingSubmit = async (e) => {
+//     e.preventDefault();
+//     setIsLoading(true);
+    
+//     try {
+//       // Validate chosen days
+//       const hasEmptyFields = bookingFormData.chosen_days.some(day => 
+//         !day.day || !day.start_time || !day.end_time
+//       ) || !bookingFormData.user_id || !bookingFormData.number_weeks || !bookingFormData.number_months;
+      
+//       if (hasEmptyFields) {
+//         throw new Error("Please fill in all required fields");
+//       }
+
+//       // Validate time ranges
+//       for (const day of bookingFormData.chosen_days) {
+//         if (new Date(day.start_time) >= new Date(day.end_time)) {
+//           throw new Error("End time must be after start time");
+//         }
+//       }
+
+//       // Prepare the booking data with the selected user_id
+//       const bookingData = {
+//         spot_id: selectedSpace.id.toString(),
+//         user_id: bookingFormData.user_id,
+//         type: bookingFormData.type,
+//         number_weeks: bookingFormData.number_weeks,
+//         number_months: bookingFormData.number_months,
+//         chosen_days: bookingFormData.chosen_days.map(day => ({
+//           day: day.day.toLowerCase(),
+//           start_time: formatTimeForAPI(day.start_time),
+//           end_time: formatTimeForAPI(day.end_time)
+//         }))
+//       };
+
+//       console.log("Submitting booking with data:", bookingData);
+
+//       // Make API call to your specific endpoint
+//       const response = await fetch(
+//         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+//         {
+//           method: "POST",
+//           headers: {
+//             "Authorization": `Bearer ${user?.tenantToken}`,
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify(bookingData),
+//         }
+//       );
+
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         throw new Error(errorData.message || "Failed to book space");
+//       }
+
+//       const result = await response.json();
+//       toast.success(result.message || "Space booked successfully!");
+//       handleBookingClose();
+      
+//       // Refresh the space data
+//       if (selectedRoom) {
+//         await fetchRoomDetails(selectedRoom);
+//       }
+//     } catch (error) {
+//       toast.error(error.message || "Failed to book space");
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   // Table columns
+//   const columns = [
+//     {
+//       Header: "S/N",
+//       accessor: (row, i) => i + 1,
+//       id: "serialNo",
+//       sort: false,
+//     },
+//     {
+//       Header: "Room Name",
+//       accessor: "space_name",
+//       sort: true,
+//     },
+//     {
+//       Header: "Space Number",
+//       accessor: "space_number",
+//       sort: true,
+//     },
+//     {
+//       Header: "Space Fee",
+//       accessor: "space_fee",
+//       sort: true,
+//     },
+//     {
+//       Header: "Created On",
+//       accessor: "created_at",
+//       sort: true,
+//       Cell: ({ row }) => formatDateTime(row.original.created_at),
+//     },
+//     {
+//       Header: "Updated On",
+//       accessor: "updated_at",
+//       sort: true,
+//       Cell: ({ row }) => formatDateTime(row.original.updated_at),
+//     },
+//     {
+//       Header: "Action",
+//       accessor: "action",
+//       sort: false,
+//       Cell: ({ row }) => (
+//         <>
+//           <Link
+//             to="#"
+//             className="action-icon"
+//             onClick={() => handleEditClick(row.original)}
+//           >
+//             <i className="mdi mdi-square-edit-outline"></i>
+//           </Link>
+//           <Link
+//             to="#"
+//             className="action-icon"
+//             onClick={() => handleDeleteButton(row.original.id)}
+//           >
+//             <i className="mdi mdi-delete"></i>
+//           </Link>
+//         </>
+//       ),
+//     },
+//   ];
+
+//   // Use effects
+//   useEffect(() => {
+//     if (user?.tenantToken) {
+//       fetchLocations();
+//       fetchUsers();
+//     }
+//   }, [user?.tenantToken]);
+
+//   useEffect(() => {
+//     if (selectedLocation) {
+//       fetchFloor(selectedLocation);
+//     }
+//   }, [selectedLocation]);
+
+//   useEffect(() => {
+//     if (formData.floor_id && user?.tenantToken) {
+//       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+//     }
+//   }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+
+//   return (
+//     <>
+//       <PageTitle
+//         breadCrumbItems={[
+//           { label: "My Rooms", path: "/room/my-rooms", active: true },
+//         ]}
+//         title="My Rooms"
+//       />
+
+//       <Row>
+//         <Col>
+//           <Card>
+//             <Card.Body>
+//               <Card>
+//                 <Card.Body style={{ 
+//                   background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", 
+//                   marginTop: "30px" 
+//                 }}>
+//                   {/* Location Selection */}
+//                   {loadingLocations ? (
+//                     <div className="text-center">
+//                       <Spinner animation="border" role="status">
+//                         <span className="visually-hidden">Loading...</span>
+//                       </Spinner>{" "}
+//                       Loading your locations...
+//                     </div>
+//                   ) : (
+//                     <div>
+//                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+//                         Select a location to view or update the room.
+//                       </p>
+//                       <Form.Select
+//                         style={{ marginBottom: "25px", fontSize: "1rem" }}
+//                         value={selectedLocation || ""}
+//                         onChange={handleLocationChange}
+//                       >
+//                         <option value="" disabled>
+//                           Select a location
+//                         </option>
+//                         {locations.map((location) => (
+//                           <option key={location.id} value={location.id}>
+//                             {location.name} at {location.state}
+//                           </option>
+//                         ))}
+//                       </Form.Select>
+//                     </div>
+//                   )}
+
+//                   {/* Floor Selection */}
+//                   {selectedLocation && (
+//                     <Form.Group className="mb-3" controlId="location_id">
+//                       {loadingFloor ? (
+//                         <div className="text-center">
+//                           <Spinner animation="border" role="status">
+//                             <span className="visually-hidden">Loading floors/sections...</span>
+//                           </Spinner>
+//                         </div>
+//                       ) : (
+//                         <>
+//                           <Form.Label>
+//                             Select the Floor of the room you want to view.
+//                           </Form.Label>
+//                           <Form.Select
+//                             name="floor_id"
+//                             value={formData.floor_id}
+//                             onChange={handleFloorChange}
+//                             required
+//                           >
+//                             <option value="">Select a Floor/Section</option>
+//                             {Array.isArray(floorData) &&
+//                               floorData.map((floor) => (
+//                                 <option key={floor.id} value={floor.id}>
+//                                   {floor.name}
+//                                 </option>
+//                               ))}
+//                           </Form.Select>
+//                         </>
+//                       )}
+//                     </Form.Group>
+//                   )}
+
+//                   {/* Room Selection */}
+//                   {formData.floor_id && (
+//                     <Form.Group className="mb-3" controlId="room_id">
+//                       <Form.Label>
+//                         Select a specific room (optional)
+//                       </Form.Label>
+//                       <Form.Select
+//                         name="room_id"
+//                         value={formData.room_id}
+//                         onChange={handleRoomChange}
+//                       >
+//                         <option value="">All Rooms</option>
+//                         {Array.isArray(roomsData) &&
+//                           roomsData.map((room) => (
+//                             <option key={room.id} value={room.id}>
+//                               {room.space_name} (No: {room.space_number})
+//                             </option>
+//                           ))}
+//                       </Form.Select>
+//                     </Form.Group>
+//                   )}
+
+//                   {/* Rooms Table */}
+//                   {formData.floor_id && (
+//                     <>
+//                       {loading ? (
+//                         <p>Loading rooms...</p>
+//                       ) : isLoading ? (
+//                         <div className="text-center">
+//                           <Spinner animation="border" role="status">
+//                             <span className="visually-hidden">Deleting...</span>
+//                           </Spinner>{" "}
+//                           Deleting...
+//                         </div>
+//                       ) : (
+//                         <>
+//                           <Table2
+//                             columns={columns}
+//                             data={data}
+//                             pageSize={pagination.pageSize}
+//                             isSortable
+//                             pagination
+//                             isSearchable
+//                             tableClass="table-striped dt-responsive nowrap w-100"
+//                             searchBoxClass="my-2"
+//                             paginationProps={{
+//                               currentPage: pagination.currentPage,
+//                               totalPages: pagination.totalPages,
+//                               onPageChange: (page) =>
+//                                 setPagination((prev) => ({
+//                                   ...prev,
+//                                   currentPage: page,
+//                                 })),
+//                               onPageSizeChange: (pageSize) =>
+//                                 setPagination((prev) => ({ ...prev, pageSize })),
+//                             }}
+//                           />
+
+//                           {/* Room Details and Spaces Section */}
+//                           {selectedRoom && (
+//                             <div className="mt-4">
+//                               {/* Room Details Card */}
+//                               {loadingRoomDetails ? (
+//                                 <div className="text-center mb-4">
+//                                   <Spinner animation="border" role="status">
+//                                     <span className="visually-hidden">Loading room details...</span>
+//                                   </Spinner>
+//                                 </div>
+//                               ) : roomDetails ? (
+//                                 <Card className="mb-4">
+//                                   <Card.Header className="d-flex justify-content-between align-items-center">
+//                                     <h5 className="mb-0">Room Details</h5>
+//                                     <Badge bg="info">ID: {roomDetails.id}</Badge>
+//                                   </Card.Header>
+//                                   <Card.Body>
+//                                     <Row>
+//                                       <Col md={6}>
+//                                         <p><strong>Name:</strong> {roomDetails.space_name}</p>
+//                                         <p><strong>Number:</strong> {roomDetails.space_number}</p>
+//                                         <p><strong>Capacity:</strong> {roomDetails.capacity || 'N/A'}</p>
+//                                       </Col>
+//                                       <Col md={6}>
+//                                         <p><strong>Fee:</strong> ${roomDetails.space_fee || '0.00'}</p>
+//                                         <p><strong>Status:</strong> 
+//                                           <Badge bg={roomDetails.status === 'active' ? 'success' : 'secondary'} className="ms-2">
+//                                             {roomDetails.status || 'N/A'}
+//                                           </Badge>
+//                                         </p>
+//                                         <p><strong>Created:</strong> {formatDateTime(roomDetails.created_at)}</p>
+//                                       </Col>
+//                                     </Row>
+//                                     {roomDetails.description && (
+//                                       <div className="mt-3">
+//                                         <strong>Description:</strong>
+//                                         <Card className="mt-1">
+//                                           <Card.Body className="p-2">
+//                                             {roomDetails.description}
+//                                           </Card.Body>
+//                                         </Card>
+//                                       </div>
+//                                     )}
+//                                   </Card.Body>
+//                                 </Card>
+//                               ) : (
+//                                 <Alert variant="warning" className="mb-4">
+//                                   No details available for this room
+//                                 </Alert>
+//                               )}
+
+//                               {/* Spaces Section */}
+//                               <h4 className="mb-3">Available Spaces</h4>
+//                               {loadingRoomDetails ? (
+//                                 <div className="text-center">
+//                                   <Spinner animation="border" role="status">
+//                                     <span className="visually-hidden">Loading spaces...</span>
+//                                   </Spinner>
+//                                 </div>
+//                               ) : spaceCards && spaceCards.length > 0 ? (
+//                                 <>
+//                                   <p className="mb-3">Total spaces: {spaceCards.length}</p>
+//                                   <Row>
+//                                     {spaceCards.map((space) => (
+//                                       <Col key={space.id} md={3} className="mb-3">
+//                                         <Card className="h-100">
+//                                           <Card.Body className="d-flex flex-column">
+//                                             <Card.Title className="d-flex justify-content-between align-items-center">
+//                                               <span>Space {space.space_number}</span>
+//                                               <Badge bg={space.is_available ? "success" : "danger"}>
+//                                                 {space.is_available ? "Available" : "Occupied"}
+//                                               </Badge>
+//                                             </Card.Title>
+//                                             <Card.Text className="flex-grow-1">
+//                                               <div><strong>Number:</strong> {space.space_number}</div>
+//                                               <div><strong>Fee:</strong> ${space.space_fee}</div>
+//                                               <div><strong>Type:</strong> {space.space_type}</div>
+//                                             </Card.Text>
+//                                             <div className="mt-auto">
+//                                               <Button 
+//                                                 variant={space.is_available ? "primary" : "secondary"} 
+//                                                 size="sm"
+//                                                 disabled={!space.is_available}
+//                                                 className="w-100"
+//                                                 onClick={() => handleBookNowClick(space)}
+//                                               >
+//                                                 {space.is_available ? "Book Now" : "Unavailable"}
+//                                               </Button>
+//                                             </div>
+//                                           </Card.Body>
+//                                         </Card>
+//                                       </Col>
+//                                     ))}
+//                                   </Row>
+//                                 </>
+//                               ) : (
+//                                 <Alert variant="info">
+//                                   {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
+//                                 </Alert>
+//                               )}
+//                             </div>
+//                           )}
+//                         </>
+//                       )}
+//                     </>
+//                   )}
+//                 </Card.Body>
+//               </Card>
+//             </Card.Body>
+//           </Card>
+//         </Col>
+//       </Row>
+
+//       {/* Popups */}
+//       {popup.isVisible && (
+//         <Popup
+//           message={popup.message}
+//           type={popup.type}
+//           onClose={() => setPopup({ ...popup, isVisible: false })}
+//           buttonLabel={popup.buttonLabel}
+//           buttonRoute={popup.buttonRoute}
+//         />
+//       )}
+
+//       {deletePopup.isVisible && (
+//         <Popup
+//           message="Are you sure you want to delete this room?"
+//           type="confirm"
+//           onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+//           buttonLabel="Yes"
+//           onAction={confirmDelete}
+//         />
+//       )}
+
+//       {/* Booking Popup */}
+//       {showBookingPopup && selectedSpace && (
+//         <Popup
+//           title={`Book Space ${selectedSpace.space_number}`}
+//           isVisible={showBookingPopup}
+//           onClose={handleBookingClose}
+//           size="lg"
+//         >
+//           <Form onSubmit={handleBookingSubmit}>
+//             <Row>
+//               <Col md={12}>
+//                 <Form.Group className="mb-3">
+//                   <Form.Label>Booking Type</Form.Label>
+//                   <Form.Select
+//                     name="type"
+//                     value={bookingFormData.type}
+//                     onChange={handleBookingInputChange}
+//                     required
+//                   >
+//                     <option value="one-off">One-time Booking</option>
+//                     <option value="recurring">Recurring Booking</option>
+//                   </Form.Select>
+//                 </Form.Group>
+//               </Col>
+//             </Row>
+
+//             <Row>
+//               <Col md={12}>
+//                 <Form.Group className="mb-3">
+//                   <Form.Label>Select User</Form.Label>
+//                   {loadingUsers ? (
+//                     <Spinner animation="border" size="sm" />
+//                   ) : (
+//                     <Form.Select
+//                       name="user_id"
+//                       value={bookingFormData.user_id}
+//                       onChange={handleBookingInputChange}
+//                       required
+//                     >
+//                       <option value="">Select a user</option>
+//                       {users.map((user) => (
+//                         <option key={user.id} value={user.id}>
+//                           {user.first_name} {user.last_name} ({user.email})
+//                         </option>
+//                       ))}
+//                     </Form.Select>
+//                   )}
+//                 </Form.Group>
+//               </Col>
+//             </Row>
+
+//             <Row>
+//               <Col md={6}>
+//                 <Form.Group className="mb-3">
+//                   <Form.Label>Number of Weeks</Form.Label>
+//                   {/* <Form.Text className="text-muted">
+//                     For one-off bookings, this typically represents the duration of your booking.
+//                   </Form.Text> */}
+//                   <Form.Control
+//                     type="number"
+//                     name="number_weeks"
+//                     value={bookingFormData.number_weeks}
+//                     onChange={handleBookingInputChange}
+//                     min="1"
+//                     required
+//                   />
+//                 </Form.Group>
+//               </Col>
+//               <Col md={6}>
+//                 <Form.Group className="mb-3">
+//                   <Form.Label>Number of Months</Form.Label>
+//                   {/* <Form.Text className="text-muted">
+//                     For longer bookings, specify the number of months (in addition to weeks).
+//                   </Form.Text> */}
+//                   <Form.Control
+//                     type="number"
+//                     name="number_months"
+//                     value={bookingFormData.number_months}
+//                     onChange={handleBookingInputChange}
+//                     min="0"
+//                     required
+//                   />
+//                 </Form.Group>
+//               </Col>
+//             </Row>
+
+//             <h5 className="mt-3">Booking Schedule</h5>
+//             {bookingFormData.chosen_days.map((day, index) => (
+//               <div key={index} className="border p-3 mb-3">
+//                 <Row>
+//                   <Col md={4}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>Day of Week</Form.Label>
+//                       <Form.Select
+//                         name={`day-${index}`}
+//                         value={day.day}
+//                         onChange={(e) => handleDayChange(index, 'day', e.target.value)}
+//                         required
+//                       >
+//                         <option value="">Select day</option>
+//                         <option value="monday">Monday</option>
+//                         <option value="tuesday">Tuesday</option>
+//                         <option value="wednesday">Wednesday</option>
+//                         <option value="thursday">Thursday</option>
+//                         <option value="friday">Friday</option>
+//                         <option value="saturday">Saturday</option>
+//                         <option value="sunday">Sunday</option>
+//                       </Form.Select>
+//                     </Form.Group>
+//                   </Col>
+//                   <Col md={4}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>Start Time</Form.Label>
+//                       <Form.Control
+//                         type="datetime-local"
+//                         name={`start_time-${index}`}
+//                         value={day.start_time}
+//                         onChange={(e) => handleDayChange(index, 'start_time', e.target.value)}
+//                         required
+//                       />
+//                     </Form.Group>
+//                   </Col>
+//                   <Col md={4}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>End Time</Form.Label>
+//                       <Form.Control
+//                         type="datetime-local"
+//                         name={`end_time-${index}`}
+//                         value={day.end_time}
+//                         onChange={(e) => handleDayChange(index, 'end_time', e.target.value)}
+//                         required
+//                       />
+//                     </Form.Group>
+//                   </Col>
+//                 </Row>
+//                 {index > 0 && (
+//                   <Button 
+//                     variant="danger" 
+//                     size="sm" 
+//                     onClick={() => removeDay(index)}
+//                     className="mt-2"
+//                   >
+//                     Remove Day
+//                   </Button>
+//                 )}
+//               </div>
+//             ))}
+
+//             <Button 
+//               variant="outline-primary" 
+//               size="sm" 
+//               onClick={addDay}
+//               className="mb-3"
+//             >
+//               Add Another Day
+//             </Button>
+
+//             <div className="d-flex justify-content-end">
+//               <Button variant="secondary" onClick={handleBookingClose} className="me-2">
+//                 Cancel
+//               </Button>
+//               <Button variant="primary" type="submit" disabled={isLoading}>
+//                 {isLoading ? (
+//                   <>
+//                     <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+//                     {' '}Booking...
+//                   </>
+//                 ) : 'Confirm Booking'}
+//               </Button>
+//             </div>
+//           </Form>
+//         </Popup>
+//       )}
+//     </>
+//   );
+// };
+
+// export default SeatBookingSystem;
+
+
+
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
+import PageTitle from "../../../components/PageTitle";
+import { useAuthContext } from "@/context/useAuthContext.jsx";
+import Popup from "../../../components/Popup/Popup";
+import Table2 from "../../../components/Table2";
+import { toast } from "react-toastify";
 
 const SeatBookingSystem = () => {
-  // State management
+  const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken;
+  const tenantSlug = user?.tenant;
+
+  // State variables
+  const [show, setShow] = useState(false);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [seatData, setSeatData] = useState({ floor1: [], floor2: [] });
-  const [activeBookings, setActiveBookings] = useState({});
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [selectedSeat, setSelectedSeat] = useState(null);
-  const [formData, setFormData] = useState({
-    userName: '',
-    userEmail: '',
-    bookingDate: new Date().toISOString().split('T')[0],
-    startTime: '',
-    duration: '30'
+  const [loadingLocations, setLoadingLocations] = useState(true);
+  const [loadingFloor, setLoadingFloor] = useState(false);
+  const [floorData, setFloorData] = useState([]);
+  const [roomsData, setRoomsData] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [roomDetails, setRoomDetails] = useState(null);
+  const [spaceCards, setSpaceCards] = useState([]);
+  const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [locations, setLocations] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  // Booking popup states
+  const [showBookingPopup, setShowBookingPopup] = useState(false);
+  const [selectedSpace, setSelectedSpace] = useState(null);
+  const [bookingFormData, setBookingFormData] = useState({
+    type: "one-off",
+    chosen_days: [{
+      day: "",
+      start_time: "",
+      end_time: ""
+    }],
+    number_weeks: "0",
+    number_months: "0",
+    user_id: ""
   });
-  const [timeConflict, setTimeConflict] = useState(false);
 
-  // Styles
-  const styles = {
-    container: {
-      maxWidth: '1200px',
-      margin: '0 auto',
-      padding: '20px',
-      backgroundColor: '#f5f5f5',
-      minHeight: '100vh'
-    },
-    header: {
-      textAlign: 'center',
-      color: '#333',
-      marginBottom: '30px',
-      fontSize: '2rem'
-    },
-    legendContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-      gap: '20px',
-      marginBottom: '30px',
-      flexWrap: 'wrap'
-    },
-    legendItem: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      fontSize: '0.9rem'
-    },
-    legendColor: {
-      width: '20px',
-      height: '20px',
-      borderRadius: '4px',
-      border: '1px solid #ddd'
-    },
-    floorPlan: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '30px'
-    },
-    floor: {
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '20px',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-    },
-    floorHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '20px',
-      paddingBottom: '10px',
-      borderBottom: '1px solid #eee'
-    },
-    floorTitle: {
-      fontSize: '1.3rem',
-      fontWeight: '600',
-      color: '#444',
-      margin: 0
-    },
-    seatMap: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-      gap: '15px'
-    },
-    seat: {
-      width: '100%',
-      aspectRatio: '1',
-      borderRadius: '8px',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      position: 'relative',
-      border: '2px solid transparent'
-    },
-    seatAvailable: {
-      backgroundColor: '#e8f5e9',
-      borderColor: '#81c784',
-      color: '#2e7d32'
-    },
-    seatBooked: {
-      backgroundColor: '#ffebee',
-      borderColor: '#e57373',
-      color: '#c62828'
-    },
-    seatReserved: {
-      backgroundColor: '#fff8e1',
-      borderColor: '#ffd54f',
-      color: '#ff8f00'
-    },
-    seatFullyBooked: {
-      backgroundColor: '#f5f5f5',
-      borderColor: '#9e9e9e',
-      color: '#616161',
-      cursor: 'not-allowed'
-    },
-    seatSelected: {
-      backgroundColor: '#e3f2fd',
-      borderColor: '#64b5f6',
-      color: '#1565c0',
-      transform: 'scale(1.05)'
-    },
-    seatNumber: {
-      fontWeight: 'bold',
-      fontSize: '1.1rem',
-      marginBottom: '4px'
-    },
-    seatStatus: {
-      fontSize: '0.75rem',
-      textTransform: 'uppercase',
-      marginBottom: '2px'
-    },
-    bookingTime: {
-      fontSize: '0.65rem',
-      color: 'rgba(0,0,0,0.6)'
-    },
-    fullyBookedLabel: {
-      fontSize: '0.7rem',
-      color: '#d32f2f',
-      fontWeight: 'bold',
-      marginTop: '4px'
-    },
-    modalOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000,
-      padding: '20px'
-    },
-    modalContent: {
-      backgroundColor: 'white',
-      padding: '25px',
-      borderRadius: '10px',
-      width: '100%',
-      maxWidth: '500px',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-      maxHeight: '90vh',
-      overflowY: 'auto'
-    },
-    modalHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '20px',
-      paddingBottom: '15px',
-      borderBottom: '1px solid #eee'
-    },
-    modalTitle: {
-      fontSize: '1.4rem',
-      color: '#333',
-      margin: 0,
-      fontWeight: '600'
-    },
-    closeButton: {
-      background: 'none',
-      border: 'none',
-      fontSize: '1.8rem',
-      cursor: 'pointer',
-      color: '#777',
-      lineHeight: 1,
-      padding: '0 5px'
-    },
-    formGroup: {
-      marginBottom: '18px'
-    },
-    label: {
-      display: 'block',
-      marginBottom: '8px',
-      fontWeight: '500',
-      color: '#555',
-      fontSize: '0.95rem'
-    },
-    input: {
-      width: '100%',
-      padding: '10px 12px',
-      border: '1px solid #ddd',
-      borderRadius: '6px',
-      fontSize: '1rem',
-      transition: 'border-color 0.2s',
-      boxSizing: 'border-box'
-    },
-    inputFocus: {
-      outline: 'none',
-      borderColor: '#4285f4',
-      boxShadow: '0 0 0 2px rgba(66,133,244,0.2)'
-    },
-    formActions: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      gap: '12px',
-      marginTop: '25px',
-      paddingTop: '15px',
-      borderTop: '1px solid #eee'
-    },
-    button: {
-      padding: '10px 20px',
-      border: 'none',
-      borderRadius: '6px',
-      cursor: 'pointer',
-      fontWeight: '500',
-      transition: 'all 0.2s',
-      fontSize: '0.95rem'
-    },
-    primaryButton: {
-      backgroundColor: '#4285f4',
-      color: 'white'
-    },
-    primaryButtonHover: {
-      backgroundColor: '#3367d6'
-    },
-    secondaryButton: {
-      backgroundColor: '#f1f1f1',
-      color: '#333'
-    },
-    secondaryButtonHover: {
-      backgroundColor: '#e0e0e0'
-    },
-    conflictMessage: {
-      color: '#d32f2f',
-      fontSize: '0.85rem',
-      marginTop: '8px',
-      padding: '8px 12px',
-      backgroundColor: '#ffebee',
-      borderRadius: '4px',
-      display: 'inline-block'
-    },
-    loadingContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 20px',
-      textAlign: 'center'
-    },
-    spinner: {
-      width: '40px',
-      height: '40px',
-      border: '4px solid rgba(0,0,0,0.1)',
-      borderLeftColor: '#4285f4',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite',
-      marginBottom: '20px'
-    },
-    errorMessage: {
-      color: '#d32f2f',
-      backgroundColor: '#ffebee',
-      padding: '20px',
-      borderRadius: '8px',
-      textAlign: 'center',
-      maxWidth: '600px',
-      margin: '0 auto',
-      fontSize: '1rem'
-    },
-    select: {
-      appearance: 'none',
-      backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23999%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")',
-      backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'right 12px center',
-      backgroundSize: '12px'
-    }
+  const [popup, setPopup] = useState({
+    message: "",
+    type: "",
+    isVisible: false,
+    buttonLabel: "",
+    buttonRoute: "",
+  });
+
+  const [deletePopup, setDeletePopup] = useState({
+    isVisible: false,
+    myRoomID: null,
+  });
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    nextPageUrl: null,
+    prevPageUrl: null,
+    pageSize: 10,
+  });
+
+  const [formData, setFormData] = useState({
+    name: "",
+    location_id: "",
+    floor_id: "",
+    room_id: ""
+  });
+
+  // Format date time
+  const formatDateTime = (isoString) => {
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    };
+    return new Date(isoString).toLocaleDateString("en-US", options);
   };
 
-  // Animation for spinner
-  const spinnerStyle = `
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  `;
-
-  // Fetch seat data from backend
-  useEffect(() => {
-    const fetchSeatData = async () => {
-      try {
-        setLoading(true);
-        // Simulating API call with timeout
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock data
-        const mockData = {
-          floor1: [
-            { number: 'A1', status: 'available' },
-            { number: 'A2', status: 'booked' },
-            { number: 'A3', status: 'available' },
-            { number: 'A4', status: 'reserved' },
-            { number: 'B1', status: 'available' },
-            { number: 'B2', status: 'available' },
-            { number: 'B3', status: 'booked' },
-            { number: 'B4', status: 'available' },
-            { number: 'C1', status: 'reserved' },
-            { number: 'C2', status: 'available' },
-            { number: 'C3', status: 'available' },
-            { number: 'C4', status: 'booked' }
-          ],
-          floor2: [
-            { number: 'D1', status: 'available' },
-            { number: 'D2', status: 'available' },
-            { number: 'D3', status: 'available' },
-            { number: 'D4', status: 'reserved' },
-            { number: 'E1', status: 'booked' },
-            { number: 'E2', status: 'available' },
-            { number: 'E3', status: 'available' },
-            { number: 'E4', status: 'booked' }
-          ]
-        };
-        
-        setSeatData(mockData);
-        loadBookings();
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load seat data. Please try again later.');
-        setLoading(false);
-        console.error('Error fetching seat data:', err);
-      }
-    };
-
-    fetchSeatData();
-  }, []);
-
-  // Load bookings from localStorage
-  const loadBookings = () => {
+  // Fetch locations
+  const fetchLocations = async () => {
+    setLoadingLocations(true);
     try {
-      const saved = localStorage.getItem('activeBookings');
-      if (saved) {
-        const bookingsData = JSON.parse(saved);
-        const now = Date.now();
-        const activeBookings = {};
-        
-        Object.keys(bookingsData).forEach(seatNumber => {
-          const active = bookingsData[seatNumber].filter(booking => {
-            return booking.endTimestamp > now;
-          });
-          
-          if (active.length > 0) {
-            activeBookings[seatNumber] = active;
-            
-            active.forEach(booking => {
-              const durationMs = booking.endTimestamp - now;
-              if (durationMs > 0) {
-                setTimeout(() => {
-                  releaseSeatIfExpired(seatNumber);
-                }, durationMs);
-              }
-            });
-          }
-        });
-        
-        setActiveBookings(activeBookings);
-      }
-    } catch (e) {
-      console.error('Error loading bookings:', e);
-      localStorage.removeItem('activeBookings');
-    }
-  };
-
-  // Save bookings to localStorage
-  const saveBookings = (bookings) => {
-    localStorage.setItem('activeBookings', JSON.stringify(bookings));
-  };
-
-  // Handle seat selection
-  const handleSeatClick = (seat) => {
-    const status = getSeatStatus(seat);
-    if (status === 'booked' || status === 'fully-booked') return;
-    
-    setSelectedSeat(seat);
-    setFormData({
-      ...formData,
-      bookingDate: new Date().toISOString().split('T')[0],
-      startTime: '',
-      duration: '30'
-    });
-    setTimeConflict(false);
-    setShowBookingModal(true);
-  };
-
-  // Close booking modal
-  const handleCloseModal = () => {
-    setShowBookingModal(false);
-    setSelectedSeat(null);
-  };
-
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-    
-    if (name === 'bookingDate' || name === 'startTime' || name === 'duration') {
-      setTimeConflict(false);
-    }
-  };
-
-  // Check if a time slot is available
-  const isTimeSlotAvailable = (seatNumber, date, startTime, duration) => {
-    const bookings = activeBookings[seatNumber] || [];
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    
-    const endTime = new Date(0, 0, 0, startHour, startMinute + parseInt(duration));
-    const endTimeString = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
-    
-    return !bookings.some(booking => {
-      if (booking.date !== date) return false;
-      
-      const bookingStart = booking.startTime;
-      const bookingEnd = booking.endTime;
-      
-      return !(endTimeString <= bookingStart || startTime >= bookingEnd);
-    });
-  };
-
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (!formData.userName || !formData.userEmail || !formData.startTime || !formData.duration) {
-      return;
-    }
-    
-    if (!isTimeSlotAvailable(
-      selectedSeat.number,
-      formData.bookingDate,
-      formData.startTime,
-      formData.duration
-    )) {
-      setTimeConflict(true);
-      return;
-    }
-    
-    const [startHour, startMinute] = formData.startTime.split(':').map(Number);
-    const endTime = new Date(0, 0, 0, startHour, startMinute + parseInt(formData.duration));
-    const endTimeString = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
-    
-    const bookingData = {
-      seatNumber: selectedSeat.number,
-      userName: formData.userName,
-      userEmail: formData.userEmail,
-      date: formData.bookingDate,
-      startTime: formData.startTime,
-      endTime: endTimeString,
-      duration: formData.duration,
-      startTimestamp: getTimestamp(formData.bookingDate, formData.startTime),
-      endTimestamp: getTimestamp(formData.bookingDate, endTimeString)
-    };
-    
-    const updatedBookings = { ...activeBookings };
-    if (!updatedBookings[selectedSeat.number]) {
-      updatedBookings[selectedSeat.number] = [];
-    }
-    updatedBookings[selectedSeat.number].push(bookingData);
-    
-    setActiveBookings(updatedBookings);
-    saveBookings(updatedBookings);
-    
-    const durationMs = bookingData.endTimestamp - Date.now();
-    if (durationMs > 0) {
-      setTimeout(() => {
-        releaseSeatIfExpired(selectedSeat.number);
-      }, durationMs);
-    }
-    
-    alert(`Booking confirmed for seat ${bookingData.seatNumber} from ${bookingData.startTime} to ${bookingData.endTime} on ${bookingData.date}!`);
-    
-    setFormData({
-      userName: '',
-      userEmail: '',
-      bookingDate: new Date().toISOString().split('T')[0],
-      startTime: '',
-      duration: '30'
-    });
-    setShowBookingModal(false);
-  };
-
-  // Release seat if booking has expired
-  const releaseSeatIfExpired = (seatNumber) => {
-    const now = Date.now();
-    const updatedBookings = { ...activeBookings };
-    
-    if (updatedBookings[seatNumber]) {
-      const active = updatedBookings[seatNumber].filter(booking => booking.endTimestamp > now);
-      
-      if (active.length === 0) {
-        delete updatedBookings[seatNumber];
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+        {
+          headers: { Authorization: `Bearer ${user.tenantToken}` },
+        }
+      );
+      const result = await response.json();
+      if (response.ok) {
+        setLocations(result.data.data || []);
       } else {
-        updatedBookings[seatNumber] = active;
+        throw new Error(result.message || "Failed to fetch locations.");
       }
-      
-      setActiveBookings(updatedBookings);
-      saveBookings(updatedBookings);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoadingLocations(false);
     }
   };
 
-  // Get timestamp from date and time
-  const getTimestamp = (dateStr, timeStr) => {
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return new Date(year, month - 1, day, hours, minutes).getTime();
-  };
-
-  // Generate time slots for the dropdown
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 12; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        slots.push(timeString);
-      }
-    }
-    return slots;
-  };
-
-  // Check if seat is fully booked
-  const isSeatFullyBooked = (seatNumber) => {
-    const bookings = activeBookings[seatNumber] || [];
-    if (bookings.length === 0) return false;
-    
-    const allSlots = [];
-    for (let hour = 12; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        allSlots.push(timeString);
-      }
-    }
-    
-    const today = new Date().toISOString().split('T')[0];
-    const todayBookings = bookings.filter(b => b.date === today);
-    
-    const bookedSlots = new Set();
-    todayBookings.forEach(booking => {
-      const [startHour, startMinute] = booking.startTime.split(':').map(Number);
-      const [endHour, endMinute] = booking.endTime.split(':').map(Number);
-      
-      let currentHour = startHour;
-      let currentMinute = startMinute;
-      
-      while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
-        const slot = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-        bookedSlots.add(slot);
-        
-        currentMinute += 30;
-        if (currentMinute >= 60) {
-          currentMinute = 0;
-          currentHour++;
+  // Fetch users
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-users`,
+        {
+          headers: { Authorization: `Bearer ${user.tenantToken}` },
         }
+      );
+      const result = await response.json();
+      if (response.ok) {
+        setUsers(result.data.data || []);
+      } else {
+        throw new Error(result.message || "Failed to fetch users.");
       }
-    });
-    
-    return allSlots.every(slot => bookedSlots.has(slot));
-  };
-
-  // Get seat status
-  const getSeatStatus = (seat) => {
-    if (isSeatFullyBooked(seat.number)) return 'fully-booked';
-    
-    const bookings = activeBookings[seat.number] || [];
-    const now = Date.now();
-    
-    const isCurrentlyBooked = bookings.some(booking => 
-      now >= booking.startTimestamp && now < booking.endTimestamp
-    );
-    
-    if (isCurrentlyBooked) return 'booked';
-    return seat.status;
-  };
-
-  // Get seat style based on status
-  const getSeatStyle = (status, isSelected = false) => {
-    const baseStyle = { ...styles.seat };
-    
-    if (isSelected) {
-      return { ...baseStyle, ...styles.seatSelected };
-    }
-    
-    switch (status) {
-      case 'available': 
-        return { ...baseStyle, ...styles.seatAvailable };
-      case 'booked': 
-        return { ...baseStyle, ...styles.seatBooked };
-      case 'reserved': 
-        return { ...baseStyle, ...styles.seatReserved };
-      case 'fully-booked': 
-        return { ...baseStyle, ...styles.seatFullyBooked };
-      default: 
-        return baseStyle;
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoadingUsers(false);
     }
   };
 
-  // Seat component
-  const Seat = ({ seat }) => {
-    const status = getSeatStatus(seat);
-    const isSelected = selectedSeat?.number === seat.number && showBookingModal;
-    const seatStyle = getSeatStyle(status, isSelected);
-    const isFullyBooked = status === 'fully-booked';
-    const isBooked = status === 'booked';
-    
-    // Safely get current booking
-    const currentBooking = isBooked && activeBookings[seat.number] 
-      ? activeBookings[seat.number].find(b => 
-          Date.now() >= b.startTimestamp && Date.now() < b.endTimestamp
-        )
-      : null;
-    
-    return (
-      <div 
-        style={seatStyle} 
-        onClick={() => !isFullyBooked && handleSeatClick(seat)}
-        onMouseEnter={(e) => !isFullyBooked && (e.currentTarget.style.transform = 'scale(1.05)')}
-        onMouseLeave={(e) => !isFullyBooked && (e.currentTarget.style.transform = 'scale(1)')}
-      >
-        <div style={styles.seatNumber}>{seat.number}</div>
-        <div style={styles.seatStatus}>
-          {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
-        </div>
-        {isBooked && currentBooking && (
-          <div style={styles.bookingTime}>
-            {currentBooking.startTime}-{currentBooking.endTime}
-          </div>
-        )}
-        {isFullyBooked && (
-          <div style={styles.fullyBookedLabel}>No available slots</div>
-        )}
-      </div>
-    );
+  // Handle location change
+  const handleLocationChange = (e) => {
+    const locationId = e.target.value;
+    setSelectedLocation(locationId);
+    setFormData((prev) => ({
+      ...prev,
+      location_id: locationId,
+      floor_id: "",
+      room_id: ""
+    }));
+    setFloorData([]);
+    setRoomsData([]);
+    setData([]);
+    setSpaceCards([]);
+    setRoomDetails(null);
   };
 
-  // Generate available time slots for selected seat and date
-  const getAvailableTimeSlots = () => {
-    if (!selectedSeat) return [];
-    
-    const slots = generateTimeSlots();
-    const bookings = activeBookings[selectedSeat.number] || [];
-    const selectedDate = formData.bookingDate;
-    
-    const bookedSlots = new Set();
-    bookings.forEach(booking => {
-      if (booking.date === selectedDate) {
-        const [startHour, startMinute] = booking.startTime.split(':').map(Number);
-        const [endHour, endMinute] = booking.endTime.split(':').map(Number);
-        
-        let currentHour = startHour;
-        let currentMinute = startMinute;
-        
-        while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
-          const slot = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-          bookedSlots.add(slot);
-          
-          currentMinute += 30;
-          if (currentMinute >= 60) {
-            currentMinute = 0;
-            currentHour++;
-          }
+  // Fetch floors for selected location
+  const fetchFloor = async (locationId) => {
+    setLoadingFloor(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${user?.tenantToken}`,
+          },
         }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    });
+
+      const result = await response.json();
+      if (result && Array.isArray(result.data.data)) {
+        setFloorData(result.data.data);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoadingFloor(false);
+    }
+  };
+
+  // Fetch rooms for selected floor
+  const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${user?.tenantToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result && Array.isArray(result)) {
+        const sortedData = result.sort(
+          (a, b) =>
+            new Date(b.updated_at || b.created_at) -
+            new Date(a.updated_at || a.created_at)
+        );
+        setRoomsData(sortedData);
+        setData(sortedData);
+        setPagination({
+          currentPage: result.current_page,
+          totalPages: result.last_page,
+          nextPageUrl: result.next_page_url,
+          prevPageUrl: result.prev_page_url,
+          pageSize: pageSize,
+        });
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Generate space cards based on space_number
+  const generateSpaceCards = (spaceNumber) => {
+    if (!spaceNumber || isNaN(spaceNumber) || spaceNumber <= 0) return [];
     
-    return slots.map(slot => ({
-      time: slot,
-      available: !bookedSlots.has(slot)
+    const cards = [];
+    for (let i = 1; i <= spaceNumber; i++) {
+      cards.push({
+        id: i,
+        space_number: i,
+        is_available: true, // Default to available
+        space_fee: roomDetails?.space_fee || 0,
+        space_type: 'Standard'
+      });
+    }
+    return cards;
+  };
+
+  // Fetch individual room details and generate space cards
+  const fetchRoomDetails = async (roomId) => {
+    if (!roomId) {
+      setRoomDetails(null);
+      setSpaceCards([]);
+      return;
+    }
+
+    setLoadingRoomDetails(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${user?.tenantToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result && result.data) {
+        setRoomDetails(result.data);
+        // Generate space cards based on space_number
+        const cards = generateSpaceCards(result.data.space_number);
+        setSpaceCards(cards);
+      } else {
+        throw new Error("Invalid room details format");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoadingRoomDetails(false);
+    }
+  };
+
+  // Handle floor change
+  const handleFloorChange = (e) => {
+    const floorId = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      floor_id: floorId,
+      room_id: ""
+    }));
+    setSelectedRoom(null);
+    setSpaceCards([]);
+    setRoomDetails(null);
+
+    if (floorId && selectedLocation) {
+      fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
+    }
+  };
+
+  // Handle room change
+  const handleRoomChange = async (e) => {
+    const roomId = e.target.value;
+    setSelectedRoom(roomId);
+    setFormData((prev) => ({
+      ...prev,
+      room_id: roomId
+    }));
+
+    if (roomId) {
+      const filteredData = roomsData.filter(room => room.id === roomId);
+      setData(filteredData);
+      await fetchRoomDetails(roomId);
+    } else {
+      setData(roomsData);
+      setSpaceCards([]);
+      setRoomDetails(null);
+    }
+  };
+
+  // Handle edit click
+  const handleEditClick = (myRoom) => {
+    setSelectedUser(myRoom);
+    setShow(true);
+  };
+
+  // Handle close modal
+  const handleClose = () => {
+    setShow(false);
+    setSelectedUser(null);
+
+    if (selectedLocation && formData.floor_id) {
+      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async (myRoomID) => {
+    if (!user?.tenantToken) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${user?.tenantToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id: myRoomID }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      setData((prevData) => prevData.filter((myRoom) => myRoom.id !== myRoomID));
+      setPopup({
+        message: "Room deleted successfully!",
+        type: "success",
+        isVisible: true,
+      });
+      
+      if (formData.floor_id && selectedLocation) {
+        fetchRoom(
+          selectedLocation,
+          formData.floor_id,
+          pagination.currentPage,
+          pagination.pageSize
+        );
+      }
+    } catch (error) {
+      toast.error("Failed to delete room!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle delete button click
+  const handleDeleteButton = (myRoomID) => {
+    setDeletePopup({
+      isVisible: true,
+      myRoomID,
+    });
+  };
+
+  // Confirm delete
+  const confirmDelete = () => {
+    const { myRoomID } = deletePopup;
+    handleDelete(myRoomID);
+    setDeletePopup({ isVisible: false, myRoomID: null });
+  };
+
+  // Handle changes to day fields
+  const handleDayChange = (index, field, value) => {
+    const updatedDays = [...bookingFormData.chosen_days];
+    updatedDays[index][field] = value;
+    setBookingFormData(prev => ({
+      ...prev,
+      chosen_days: updatedDays
     }));
   };
 
+  // Add a new day to the booking
+  const addDay = () => {
+    setBookingFormData(prev => ({
+      ...prev,
+      chosen_days: [
+        ...prev.chosen_days,
+        { day: "", start_time: "", end_time: "" }
+      ]
+    }));
+  };
+
+  // Remove a day from the booking
+  const removeDay = (index) => {
+    setBookingFormData(prev => ({
+      ...prev,
+      chosen_days: prev.chosen_days.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Handle book now click
+  const handleBookNowClick = (space) => {
+    console.log("Book Now clicked for spot ID:", space.id);
+    setSelectedSpace(space);
+    setBookingFormData({
+      type: "one-off",
+      chosen_days: [{
+        day: "",
+        start_time: "",
+        end_time: ""
+      }],
+      number_weeks: "0",
+      number_months: "0",
+      user_id: ""
+    });
+    setShowBookingPopup(true);
+  };
+
+  const handleBookingClose = () => {
+    setShowBookingPopup(false);
+    setSelectedSpace(null);
+  };
+
+  const handleBookingInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    setBookingFormData(prev => {
+      // If booking type is changing to "one-off", reset weeks and months to 0
+      if (name === "type" && value === "one-off") {
+        return {
+          ...prev,
+          type: value,
+          number_weeks: "0",
+          number_months: "0"
+        };
+      }
+      
+      // Otherwise, just update the changed field
+      return {
+        ...prev,
+        [name]: value
+      };
+    });
+  };
+
+  const formatTimeForAPI = (datetimeString) => {
+    if (!datetimeString) return "";
+    const date = new Date(datetimeString);
+    return date.toISOString().replace('T', ' ').substring(0, 19);
+  };
+
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      // Validate chosen days
+      const hasEmptyFields = bookingFormData.chosen_days.some(day => 
+        !day.day || !day.start_time || !day.end_time
+      ) || !bookingFormData.user_id;
+      
+      if (hasEmptyFields) {
+        throw new Error("Please fill in all required fields");
+      }
+
+      // Validate time ranges
+      for (const day of bookingFormData.chosen_days) {
+        if (new Date(day.start_time) >= new Date(day.end_time)) {
+          throw new Error("End time must be after start time");
+        }
+      }
+
+      // Validate recurring booking fields if needed
+      if (bookingFormData.type === "recurring") {
+        if (!bookingFormData.number_weeks && !bookingFormData.number_months) {
+          throw new Error("Please specify duration for recurring booking");
+        }
+      }
+
+      // Prepare the booking data with the selected user_id
+      const bookingData = {
+        spot_id: selectedSpace.id.toString(),
+        user_id: bookingFormData.user_id,
+        type: bookingFormData.type,
+        number_weeks: bookingFormData.number_weeks || "0",
+        number_months: bookingFormData.number_months || "0",
+        chosen_days: bookingFormData.chosen_days.map(day => ({
+          day: day.day.toLowerCase(),
+          start_time: formatTimeForAPI(day.start_time),
+          end_time: formatTimeForAPI(day.end_time)
+        }))
+      };
+
+      console.log("Submitting booking with data:", bookingData);
+
+      // Make API call to your specific endpoint
+      const response = await fetch(
+        "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${user?.tenantToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookingData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to book space");
+      }
+
+      const result = await response.json();
+      toast.success(result.message || "Space booked successfully!");
+      handleBookingClose();
+      
+      // Refresh the space data
+      if (selectedRoom) {
+        await fetchRoomDetails(selectedRoom);
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to book space");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Table columns
+  const columns = [
+    {
+      Header: "S/N",
+      accessor: (row, i) => i + 1,
+      id: "serialNo",
+      sort: false,
+    },
+    {
+      Header: "Room Name",
+      accessor: "space_name",
+      sort: true,
+    },
+    {
+      Header: "Space Number",
+      accessor: "space_number",
+      sort: true,
+    },
+    {
+      Header: "Space Fee",
+      accessor: "space_fee",
+      sort: true,
+    },
+    {
+      Header: "Created On",
+      accessor: "created_at",
+      sort: true,
+      Cell: ({ row }) => formatDateTime(row.original.created_at),
+    },
+    {
+      Header: "Updated On",
+      accessor: "updated_at",
+      sort: true,
+      Cell: ({ row }) => formatDateTime(row.original.updated_at),
+    },
+    {
+      Header: "Action",
+      accessor: "action",
+      sort: false,
+      Cell: ({ row }) => (
+        <>
+          <Link
+            to="#"
+            className="action-icon"
+            onClick={() => handleEditClick(row.original)}
+          >
+            <i className="mdi mdi-square-edit-outline"></i>
+          </Link>
+          <Link
+            to="#"
+            className="action-icon"
+            onClick={() => handleDeleteButton(row.original.id)}
+          >
+            <i className="mdi mdi-delete"></i>
+          </Link>
+        </>
+      ),
+    },
+  ];
+
+  // Use effects
+  useEffect(() => {
+    if (user?.tenantToken) {
+      fetchLocations();
+      fetchUsers();
+    }
+  }, [user?.tenantToken]);
+
+  useEffect(() => {
+    if (selectedLocation) {
+      fetchFloor(selectedLocation);
+    }
+  }, [selectedLocation]);
+
+  useEffect(() => {
+    if (formData.floor_id && user?.tenantToken) {
+      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+    }
+  }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+
   return (
-    <div style={styles.container}>
-      <style>{spinnerStyle}</style>
-      
-      <h1 style={styles.header}>Workspace Seat Booking</h1>
-      
-      {/* Legend */}
-      <div style={styles.legendContainer}>
-        <div style={styles.legendItem}>
-          <div style={{ ...styles.legendColor, backgroundColor: '#e8f5e9', borderColor: '#81c784' }}></div>
-          <span>Available</span>
-        </div>
-        <div style={styles.legendItem}>
-          <div style={{ ...styles.legendColor, backgroundColor: '#ffebee', borderColor: '#e57373' }}></div>
-          <span>Booked</span>
-        </div>
-        <div style={styles.legendItem}>
-          <div style={{ ...styles.legendColor, backgroundColor: '#fff8e1', borderColor: '#ffd54f' }}></div>
-          <span>Reserved</span>
-        </div>
-        <div style={styles.legendItem}>
-          <div style={{ ...styles.legendColor, backgroundColor: '#e3f2fd', borderColor: '#64b5f6' }}></div>
-          <span>Selected</span>
-        </div>
-      </div>
-      
-      {loading ? (
-        <div style={styles.loadingContainer}>
-          <div style={styles.spinner}></div>
-          <p style={{ marginTop: '10px', fontSize: '1.1rem' }}>Loading seat availability...</p>
-        </div>
-      ) : error ? (
-        <div style={styles.errorMessage}>
-          {error}
-        </div>
-      ) : (
-        <div style={styles.floorPlan}>
-          {/* Floor 1 */}
-          <div style={styles.floor}>
-            <div style={styles.floorHeader}>
-              <h2 style={styles.floorTitle}>Floor 1 - Main Workspace</h2>
-            </div>
-            <div style={styles.seatMap}>
-              {seatData.floor1.map(seat => (
-                <Seat key={`floor1-${seat.number}`} seat={seat} />
-              ))}
-            </div>
-          </div>
-          
-          {/* Floor 2 */}
-          <div style={styles.floor}>
-            <div style={styles.floorHeader}>
-              <h2 style={styles.floorTitle}>Floor 2 - Quiet Zone</h2>
-            </div>
-            <div style={styles.seatMap}>
-              {seatData.floor2.map(seat => (
-                <Seat key={`floor2-${seat.number}`} seat={seat} />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Booking Modal */}
-      {showBookingModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalContent}>
-            <div style={styles.modalHeader}>
-              <h2 style={styles.modalTitle}>Book Seat {selectedSeat?.number}</h2>
-              <button 
-                style={styles.closeButton} 
-                onClick={handleCloseModal}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#333'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#777'}
-              >
-                &times;
-              </button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Your Name</label>
-                <input
-                  type="text"
-                  name="userName"
-                  value={formData.userName}
-                  onChange={handleInputChange}
-                  required
-                  style={{ ...styles.input, ...styles.inputFocus }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#4285f4'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}
-                />
-              </div>
-              
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Email</label>
-                <input
-                  type="email"
-                  name="userEmail"
-                  value={formData.userEmail}
-                  onChange={handleInputChange}
-                  required
-                  style={{ ...styles.input, ...styles.inputFocus }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#4285f4'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}
-                />
-              </div>
-              
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Date</label>
-                <input
-                  type="date"
-                  name="bookingDate"
-                  value={formData.bookingDate}
-                  onChange={handleInputChange}
-                  min={new Date().toISOString().split('T')[0]}
-                  required
-                  style={{ ...styles.input, ...styles.inputFocus }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#4285f4'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}
-                />
-              </div>
-              
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Start Time</label>
-                <select
-                  name="startTime"
-                  value={formData.startTime}
-                  onChange={handleInputChange}
-                  required
-                  style={{ ...styles.input, ...styles.select, ...styles.inputFocus }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#4285f4'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}
-                >
-                  <option value="">Select start time</option>
-                  {getAvailableTimeSlots().map((slot, index) => (
-                    <option 
-                      key={`slot-${index}`} 
-                      value={slot.time}
-                      disabled={!slot.available}
-                    >
-                      {slot.time} {!slot.available && '(Booked)'}
-                    </option>
-                  ))}
-                  {getAvailableTimeSlots().filter(slot => slot.available).length === 0 && (
-                    <option disabled>No available time slots</option>
+    <>
+      <PageTitle
+        breadCrumbItems={[
+          { label: "My Rooms", path: "/room/my-rooms", active: true },
+        ]}
+        title="My Rooms"
+      />
+
+      <Row>
+        <Col>
+          <Card>
+            <Card.Body>
+              <Card>
+                <Card.Body style={{ 
+                  background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", 
+                  marginTop: "30px" 
+                }}>
+                  {/* Location Selection */}
+                  {loadingLocations ? (
+                    <div className="text-center">
+                      <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </Spinner>{" "}
+                      Loading your locations...
+                    </div>
+                  ) : (
+                    <div>
+                      <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+                        Select a location to view or update the room.
+                      </p>
+                      <Form.Select
+                        style={{ marginBottom: "25px", fontSize: "1rem" }}
+                        value={selectedLocation || ""}
+                        onChange={handleLocationChange}
+                      >
+                        <option value="" disabled>
+                          Select a location
+                        </option>
+                        {locations.map((location) => (
+                          <option key={location.id} value={location.id}>
+                            {location.name} at {location.state}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </div>
                   )}
-                </select>
-              </div>
-              
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Duration</label>
-                <select
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleInputChange}
-                  required
-                  style={{ ...styles.input, ...styles.select, ...styles.inputFocus }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#4285f4'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}
-                >
-                  <option value="">Select duration</option>
-                  <option value="30">30 minutes</option>
-                  <option value="60">1 hour</option>
-                  <option value="90">1.5 hours</option>
-                  <option value="120">2 hours</option>
-                  <option value="180">3 hours</option>
-                  <option value="240">4 hours</option>
-                  <option value="480">Full day (8 hours)</option>
-                </select>
-              </div>
-              
-              {timeConflict && (
-                <div style={styles.conflictMessage}>
-                  This seat is already booked during the selected time
-                </div>
-              )}
-              
-              <div style={styles.formActions}>
-                <button 
-                  type="button" 
-                  style={{ 
-                    ...styles.button, 
-                    ...styles.secondaryButton,
-                    ':hover': styles.secondaryButtonHover
-                  }} 
-                  onClick={handleCloseModal}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f1f1f1'}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  style={{ 
-                    ...styles.button, 
-                    ...styles.primaryButton,
-                    ':hover': styles.primaryButtonHover
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3367d6'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4285f4'}
-                >
-                  Confirm Booking
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+
+                  {/* Floor Selection */}
+                  {selectedLocation && (
+                    <Form.Group className="mb-3" controlId="location_id">
+                      {loadingFloor ? (
+                        <div className="text-center">
+                          <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Loading floors/sections...</span>
+                          </Spinner>
+                        </div>
+                      ) : (
+                        <>
+                          <Form.Label>
+                            Select the Floor of the room you want to view.
+                          </Form.Label>
+                          <Form.Select
+                            name="floor_id"
+                            value={formData.floor_id}
+                            onChange={handleFloorChange}
+                            required
+                          >
+                            <option value="">Select a Floor/Section</option>
+                            {Array.isArray(floorData) &&
+                              floorData.map((floor) => (
+                                <option key={floor.id} value={floor.id}>
+                                  {floor.name}
+                                </option>
+                              ))}
+                          </Form.Select>
+                        </>
+                      )}
+                    </Form.Group>
+                  )}
+
+                  {/* Room Selection */}
+                  {formData.floor_id && (
+                    <Form.Group className="mb-3" controlId="room_id">
+                      <Form.Label>
+                        Select a specific room (optional)
+                      </Form.Label>
+                      <Form.Select
+                        name="room_id"
+                        value={formData.room_id}
+                        onChange={handleRoomChange}
+                      >
+                        <option value="">All Rooms</option>
+                        {Array.isArray(roomsData) &&
+                          roomsData.map((room) => (
+                            <option key={room.id} value={room.id}>
+                              {room.space_name} (No: {room.space_number})
+                            </option>
+                          ))}
+                      </Form.Select>
+                    </Form.Group>
+                  )}
+
+                  {/* Rooms Table */}
+                  {formData.floor_id && (
+                    <>
+                      {loading ? (
+                        <p>Loading rooms...</p>
+                      ) : isLoading ? (
+                        <div className="text-center">
+                          <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Deleting...</span>
+                          </Spinner>{" "}
+                          Deleting...
+                        </div>
+                      ) : (
+                        <>
+                          <Table2
+                            columns={columns}
+                            data={data}
+                            pageSize={pagination.pageSize}
+                            isSortable
+                            pagination
+                            isSearchable
+                            tableClass="table-striped dt-responsive nowrap w-100"
+                            searchBoxClass="my-2"
+                            paginationProps={{
+                              currentPage: pagination.currentPage,
+                              totalPages: pagination.totalPages,
+                              onPageChange: (page) =>
+                                setPagination((prev) => ({
+                                  ...prev,
+                                  currentPage: page,
+                                })),
+                              onPageSizeChange: (pageSize) =>
+                                setPagination((prev) => ({ ...prev, pageSize })),
+                            }}
+                          />
+
+                          {/* Room Details and Spaces Section */}
+                          {selectedRoom && (
+                            <div className="mt-4">
+                              {/* Room Details Card */}
+                              {loadingRoomDetails ? (
+                                <div className="text-center mb-4">
+                                  <Spinner animation="border" role="status">
+                                    <span className="visually-hidden">Loading room details...</span>
+                                  </Spinner>
+                                </div>
+                              ) : roomDetails ? (
+                                <Card className="mb-4">
+                                  <Card.Header className="d-flex justify-content-between align-items-center">
+                                    <h5 className="mb-0">Room Details</h5>
+                                    <Badge bg="info">ID: {roomDetails.id}</Badge>
+                                  </Card.Header>
+                                  <Card.Body>
+                                    <Row>
+                                      <Col md={6}>
+                                        <p><strong>Name:</strong> {roomDetails.space_name}</p>
+                                        <p><strong>Number:</strong> {roomDetails.space_number}</p>
+                                        <p><strong>Capacity:</strong> {roomDetails.capacity || 'N/A'}</p>
+                                      </Col>
+                                      <Col md={6}>
+                                        <p><strong>Fee:</strong> ${roomDetails.space_fee || '0.00'}</p>
+                                        <p><strong>Status:</strong> 
+                                          <Badge bg={roomDetails.status === 'active' ? 'success' : 'secondary'} className="ms-2">
+                                            {roomDetails.status || 'N/A'}
+                                          </Badge>
+                                        </p>
+                                        <p><strong>Created:</strong> {formatDateTime(roomDetails.created_at)}</p>
+                                      </Col>
+                                    </Row>
+                                    {roomDetails.description && (
+                                      <div className="mt-3">
+                                        <strong>Description:</strong>
+                                        <Card className="mt-1">
+                                          <Card.Body className="p-2">
+                                            {roomDetails.description}
+                                          </Card.Body>
+                                        </Card>
+                                      </div>
+                                    )}
+                                  </Card.Body>
+                                </Card>
+                              ) : (
+                                <Alert variant="warning" className="mb-4">
+                                  No details available for this room
+                                </Alert>
+                              )}
+
+                              {/* Spaces Section */}
+                              <h4 className="mb-3">Available Spaces</h4>
+                              {loadingRoomDetails ? (
+                                <div className="text-center">
+                                  <Spinner animation="border" role="status">
+                                    <span className="visually-hidden">Loading spaces...</span>
+                                  </Spinner>
+                                </div>
+                              ) : spaceCards && spaceCards.length > 0 ? (
+                                <>
+                                  <p className="mb-3">Total spaces: {spaceCards.length}</p>
+                                  <Row>
+                                    {spaceCards.map((space) => (
+                                      <Col key={space.id} md={3} className="mb-3">
+                                        <Card className="h-100">
+                                          <Card.Body className="d-flex flex-column">
+                                            <Card.Title className="d-flex justify-content-between align-items-center">
+                                              <span>Space {space.space_number}</span>
+                                              <Badge bg={space.is_available ? "success" : "danger"}>
+                                                {space.is_available ? "Available" : "Occupied"}
+                                              </Badge>
+                                            </Card.Title>
+                                            <Card.Text className="flex-grow-1">
+                                              <div><strong>Number:</strong> {space.space_number}</div>
+                                              <div><strong>Fee:</strong> ${space.space_fee}</div>
+                                              <div><strong>Type:</strong> {space.space_type}</div>
+                                            </Card.Text>
+                                            <div className="mt-auto">
+                                              <Button 
+                                                variant={space.is_available ? "primary" : "secondary"} 
+                                                size="sm"
+                                                disabled={!space.is_available}
+                                                className="w-100"
+                                                onClick={() => handleBookNowClick(space)}
+                                              >
+                                                {space.is_available ? "Book Now" : "Unavailable"}
+                                              </Button>
+                                            </div>
+                                          </Card.Body>
+                                        </Card>
+                                      </Col>
+                                    ))}
+                                  </Row>
+                                </>
+                              ) : (
+                                <Alert variant="info">
+                                  {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
+                                </Alert>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+                </Card.Body>
+              </Card>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Popups */}
+      {popup.isVisible && (
+        <Popup
+          message={popup.message}
+          type={popup.type}
+          onClose={() => setPopup({ ...popup, isVisible: false })}
+          buttonLabel={popup.buttonLabel}
+          buttonRoute={popup.buttonRoute}
+        />
       )}
-    </div>
+
+      {deletePopup.isVisible && (
+        <Popup
+          message="Are you sure you want to delete this room?"
+          type="confirm"
+          onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+          buttonLabel="Yes"
+          onAction={confirmDelete}
+        />
+      )}
+
+      {/* Booking Popup */}
+      {showBookingPopup && selectedSpace && (
+        <Popup
+          title={`Book Space ${selectedSpace.space_number}`}
+          isVisible={showBookingPopup}
+          onClose={handleBookingClose}
+          size="lg"
+        >
+          <Form onSubmit={handleBookingSubmit}>
+            <Row>
+              <Col md={12}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Booking Type</Form.Label>
+                  <Form.Select
+                    name="type"
+                    value={bookingFormData.type}
+                    onChange={handleBookingInputChange}
+                    required
+                  >
+                    <option value="one-off">One-time Booking</option>
+                    <option value="recurring">Recurring Booking</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={12}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Select User</Form.Label>
+                  {loadingUsers ? (
+                    <Spinner animation="border" size="sm" />
+                  ) : (
+                    <Form.Select
+                      name="user_id"
+                      value={bookingFormData.user_id}
+                      onChange={handleBookingInputChange}
+                      required
+                    >
+                      <option value="">Select a user</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.first_name} {user.last_name} ({user.email})
+                        </option>
+                      ))}
+                    </Form.Select>
+                  )}
+                </Form.Group>
+              </Col>
+            </Row>
+
+            {bookingFormData.type === "recurring" && (
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Number of Weeks</Form.Label>
+                    <Form.Control
+                      type="number"
+                      name="number_weeks"
+                      value={bookingFormData.number_weeks}
+                      onChange={handleBookingInputChange}
+                      min="1"
+                      disabled={bookingFormData.type === "one-off"}
+                      required={bookingFormData.type === "recurring"}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Number of Months</Form.Label>
+                    <Form.Control
+                      type="number"
+                      name="number_months"
+                      value={bookingFormData.number_months}
+                      onChange={handleBookingInputChange}
+                      min="0"
+                      disabled={bookingFormData.type === "one-off"}
+                      required={bookingFormData.type === "recurring"}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+            )}
+
+            <h5 className="mt-3">Booking Schedule</h5>
+            {bookingFormData.chosen_days.map((day, index) => (
+              <div key={index} className="border p-3 mb-3">
+                <Row>
+                  <Col md={4}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Day of Week</Form.Label>
+                      <Form.Select
+                        name={`day-${index}`}
+                        value={day.day}
+                        onChange={(e) => handleDayChange(index, 'day', e.target.value)}
+                        required
+                      >
+                        <option value="">Select day</option>
+                        <option value="monday">Monday</option>
+                        <option value="tuesday">Tuesday</option>
+                        <option value="wednesday">Wednesday</option>
+                        <option value="thursday">Thursday</option>
+                        <option value="friday">Friday</option>
+                        <option value="saturday">Saturday</option>
+                        <option value="sunday">Sunday</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={4}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Start Time</Form.Label>
+                      <Form.Control
+                        type="datetime-local"
+                        name={`start_time-${index}`}
+                        value={day.start_time}
+                        onChange={(e) => handleDayChange(index, 'start_time', e.target.value)}
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={4}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>End Time</Form.Label>
+                      <Form.Control
+                        type="datetime-local"
+                        name={`end_time-${index}`}
+                        value={day.end_time}
+                        onChange={(e) => handleDayChange(index, 'end_time', e.target.value)}
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+                {index > 0 && (
+                  <Button 
+                    variant="danger" 
+                    size="sm" 
+                    onClick={() => removeDay(index)}
+                    className="mt-2"
+                  >
+                    Remove Day
+                  </Button>
+                )}
+              </div>
+            ))}
+
+            <Button 
+              variant="outline-primary" 
+              size="sm" 
+              onClick={addDay}
+              className="mb-3"
+            >
+              Add Another Day
+            </Button>
+
+            <div className="d-flex justify-content-end">
+              <Button variant="secondary" onClick={handleBookingClose} className="me-2">
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                    {' '}Booking...
+                  </>
+                ) : 'Confirm Booking'}
+              </Button>
+            </div>
+          </Form>
+        </Popup>
+      )}
+    </>
   );
 };
 

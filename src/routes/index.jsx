@@ -81,6 +81,7 @@ const Category = React.lazy(() => import("../pages/Room/Category"))
 const Rooms = React.lazy(() => import("../pages/Room/roomManager"))
 const Spot = React.lazy(() => import('../pages/Room/spot'))
 const OperatingTimes = React.lazy(() => import('../pages/Settings/operatingTimes'))
+const SetAccount = React.lazy(() => import('../pages/Settings/SetAccount'))
 const CreateNotification = React.lazy(() => import('../pages/Settings/notifications'))
 const ManageTeams = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeams'))
 const ManageTeamMembers = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeamMembers'))
@@ -403,21 +404,27 @@ const workspacesRoutes = {
       route: PrivateRoute
     },
     {
-      path: "/settings/create-notifications",
+      path: "/create-notifications",
       name: "Create Notifications",
       element: <CreateNotification />,
       route: PrivateRoute
     },
     {
-      path: "/settings/manage-teams",
+      path: "/manage-teams",
       name: "Manage Teams",
       element: <ManageTeams />,
       route: PrivateRoute
     },
     {
-      path: "/settings/team-members",
+      path: "/team-members",
       name: "Manage Team Members",
       element: <ManageTeamMembers />,
+      route: PrivateRoute
+    },
+     {
+      path: "/settings/set-account",
+      name: "Set Bank Account",
+      element: <SetAccount />,
       route: PrivateRoute
     },
     {
@@ -1061,15 +1068,7 @@ const authRoutes = [
     element: <SignInSignUp />,
     route: Route
   },
- {
-  path: "/:tenantSlug",
-  name: "Visitor",
-  route: Route,
-  roles: ["Admin"],
-  icon: "airplay",
-  element: <Visitor />,
-  header: "Apps"
-},
+ 
   {
     path: "/:tenantSlug/auth/lock-screen",
     name: "Tenants Lock Screen",
@@ -1134,6 +1133,15 @@ const otherPublicRoutes = [
     element: <Landing />,
     route: Route
   },
+  {
+  path: "/:tenantSlug/home",
+  name: "Visitor",
+  route: Route,
+  roles: ["Admin"],
+  icon: "airplay",
+  element: <Visitor />,
+  header: "Apps"
+},
   {
     path: "/maintenance",
     name: "Maintenance",

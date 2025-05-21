@@ -35,6 +35,7 @@ import {
   FiWatch,
 } from "react-icons/fi";
 
+
 const MENU_ITEMS = [
   {
     key: "navigation",
@@ -55,10 +56,17 @@ const MENU_ITEMS = [
   },
   {
     key: "workspaces-accounts",
-    label: "My Workspace Account",
+    label: "User Management",
     isTitle: false,
     icon: FiUsers,
     children: [
+       {
+        key: "my-roles",
+        label: "My Roles & Permissions",
+        // url: "/dashboard-4",
+        url: "/workspaceAccount/roles",
+        parentKey: "workspaces-accounts",
+      },
       {
         key: "workspace-user",
         label: "My Users",
@@ -66,13 +74,7 @@ const MENU_ITEMS = [
         url: "/workspaceAccount/users",
         parentKey: "workspaces-accounts",
       },
-      {
-        key: "my-roles",
-        label: "My Roles & Permissions",
-        // url: "/dashboard-4",
-        url: "/workspaceAccount/roles",
-        parentKey: "workspaces-accounts",
-      },
+     
     ],
   },
   {
@@ -119,6 +121,35 @@ const MENU_ITEMS = [
       
     ],
   },
+   {
+    key: "team-management",
+    label: "Team Management",
+    isTitle: false,
+    icon: FiUserPlus,
+    children: [
+      {
+        key: "team-manager",
+        label: "Manage Teams",
+        url: "/manage-teams",
+        parentKey: "team-management",
+      },
+      {
+        key: "team-members",
+        label: "Manage Team Members",
+        url: "/team-members",
+        parentKey: "team-management",
+      },
+    ],
+  },
+
+    {
+    key: "create-notifications",
+    label: "Create Notifications",
+    isTitle: false,
+    icon: FiFolderPlus,
+    url: "/create-notifications",
+  },
+  
 
    {
     key: "booking-management",
@@ -140,37 +171,26 @@ const MENU_ITEMS = [
     icon: FiClock,
     url: "/settings/operating-time",
   },
+  {
+    key: "set-account",
+    label: "Set Bank Account",
+    isTitle: false,
+    icon: FiBriefcase ,
+    url: "/settings/set-account",
+  },
+{
+    key: "invoices",
+    label: "Invoices",
+    isTitle: false,
+    icon: FiFileText ,
+    url: "/invoices",
+  },
+  
     
-  {
-    key: "create-notifications",
-    label: "Create Notifications",
-    isTitle: false,
-    icon: FiFolderPlus,
-    url: "/settings/create-notifications",
-  },
 
 
-  {
-    key: "team-management",
-    label: "Team Management",
-    isTitle: false,
-    icon: FiUserPlus,
-    children: [
-      {
-        key: "team-manager",
-        label: "Manage Teams",
-        url: "/settings/manage-teams",
-        parentKey: "team-management",
-      },
-      {
-        key: "team-members",
-        label: "Manage Team Members",
-        url: "/settings/team-members",
-        parentKey: "team-management",
-      },
-    ],
-  },
 
+ 
   
 
   ];

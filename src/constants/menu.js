@@ -61,19 +61,20 @@ const MENU_ITEMS = [
     icon: FiUsers,
     children: [
        {
+        key: "workspace-user",
+        label: "My Admins & Users",
+       
+        url: "/workspaceAccount/users",
+        parentKey: "workspaces-accounts",
+      },
+       {
         key: "my-roles",
         label: "My Roles & Permissions",
         // url: "/dashboard-4",
         url: "/workspaceAccount/roles",
         parentKey: "workspaces-accounts",
       },
-      {
-        key: "workspace-user",
-        label: "My Users",
-       
-        url: "/workspaceAccount/users",
-        parentKey: "workspaces-accounts",
-      },
+     
      
     ],
   },
@@ -183,7 +184,7 @@ const MENU_ITEMS = [
     label: "Invoices",
     isTitle: false,
     icon: FiFileText ,
-    url: "/invoices",
+    url: "/settings/invoices",
   },
   
     

@@ -449,11 +449,11 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               backgroundColor:
                 isLoading || loadingLocations || loadingFloor || loadingCategory
                   ? "#d3d3d3"
-                  : "#FE0002", // Use primary color or disabled color
+                  : "#fe0002", // Use primary color or disabled color
               borderColor:
                 isLoading || loadingLocations || loadingFloor || loadingCategory
                   ? "#d3d3d3"
-                  : "#FE0002", // Match border color
+                  : "#fe0002", // Match border color
             }}
             type="submit"
             className="w-100"

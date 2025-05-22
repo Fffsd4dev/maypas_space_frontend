@@ -750,9 +750,78 @@ const SeatBookingSystem = () => {
                         </div>
                       ) : (
                         <>
+                          {/* <Table2
+                            columns={columns}
+                            data={data}
+                            pageSize={pagination.pageSize}
+                            isSortable
+                            pagination
+                            isSearchable
+                            tableClass="table-striped dt-responsive nowrap w-100"
+                            searchBoxClass="my-2"
+                            paginationProps={{
+                              currentPage: pagination.currentPage,
+                              totalPages: pagination.totalPages,
+                              onPageChange: (page) =>
+                                setPagination((prev) => ({
+                                  ...prev,
+                                  currentPage: page,
+                                })),
+                              onPageSizeChange: (pageSize) =>
+                                setPagination((prev) => ({ ...prev, pageSize })),
+                            }}
+                          /> */}
+
                           {/* Room Details and Spaces Section */}
                           {selectedRoom && (
                             <div className="mt-4">
+                              {/* Room Details Card */}
+                              {/* {loadingRoomDetails ? (
+                                <div className="text-center mb-4">
+                                  <Spinner animation="border" role="status">
+                                    <span className="visually-hidden">Loading room details...</span>
+                                  </Spinner>
+                                </div>
+                              ) : roomDetails ? (
+                                <Card className="mb-4">
+                                  <Card.Header className="d-flex justify-content-between align-items-center">
+                                    <h5 className="mb-0">Room Details</h5>
+                                    <Badge bg="info">ID: {roomDetails.id}</Badge>
+                                  </Card.Header>
+                                  <Card.Body>
+                                    <Row>
+                                      <Col md={6}>
+                                        <p><strong>Name:</strong> {roomDetails.space_name}</p>
+                                        <p><strong>Number:</strong> {roomDetails.space_number}</p>
+                                        <p><strong>Capacity:</strong> {roomDetails.capacity || 'N/A'}</p>
+                                      </Col>
+                                      <Col md={6}>
+                                        <p><strong>Fee:</strong> ${roomDetails.space_fee || '0.00'}</p>
+                                        <p><strong>Status:</strong> 
+                                          <Badge bg={roomDetails.status === 'active' ? 'success' : 'secondary'} className="ms-2">
+                                            {roomDetails.status || 'N/A'}
+                                          </Badge>
+                                        </p>
+                                        <p><strong>Created:</strong> {formatDateTime(roomDetails.created_at)}</p>
+                                      </Col>
+                                    </Row>
+                                    {roomDetails.description && (
+                                      <div className="mt-3">
+                                        <strong>Description:</strong>
+                                        <Card className="mt-1">
+                                          <Card.Body className="p-2">
+                                            {roomDetails.description}
+                                          </Card.Body>
+                                        </Card>
+                                      </div>
+                                    )}
+                                  </Card.Body>
+                                </Card>
+                              ) : (
+                                <Alert variant="warning" className="mb-4">
+                                  No details available for this room
+                                </Alert>
+                              )} */}
 
                               {/* Spaces Section */}
                               <h4 className="mb-3">Available Spaces</h4>

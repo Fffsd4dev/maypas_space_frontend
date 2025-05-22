@@ -154,6 +154,7 @@ const Rooms = () => {
           },
         }
       );
+      console.log('response for api', response)
 
       if (!response.ok) {
         throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);

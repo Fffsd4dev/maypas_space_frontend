@@ -309,6 +309,11 @@ const Rooms = () => {
       sort: true,
     },
     {
+      Header: "Category",
+      accessor: "category.category",
+      sort: true,
+    },
+    {
       Header: "Created On",
       accessor: "created_at",
       sort: true,

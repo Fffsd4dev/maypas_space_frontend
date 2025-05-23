@@ -38,65 +38,29 @@ const WorkspaceRoles = () => {
     prevPageUrl: null,
     pageSize: 5,
   });
-    const formatDateTime = (isoString) => {
-      const options = {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      };
-      return new Date(isoString).toLocaleDateString("en-US", options);
+  const formatDateTime = (isoString) => {
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     };
-      const [rowLoading, setRowLoading] = useState(null); // State for row loading
-    
-      const handleRowClick = async (id, event) => {
-        // Prevent row click if the event target is an action icon
-        if (event.target.closest(".action-icon")) return;
+    return new Date(isoString).toLocaleDateString("en-US", options);
+  };
+  const [rowLoading, setRowLoading] = useState(null); // State for row loading
 
-        setRowLoading(id); // Set the row loading state
-        try {
-          const response = await fetch(
-            `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/usertype/user-type/${id}`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${user?.tenantToken}`,
-              },
-            }
-          );
-    
-          if (!response.ok) {
-            throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
-          }
-    
-          const result = await response.json();
-          console.log("Fetched role details:", result);
-    
-          const newWindow = window.open(`/role-details/${id}`, "_blank");
-          if (newWindow) {
-            newWindow.onload = () => {
-              newWindow.role = result.data;
-            };
-          } else {
-            console.error(
-              "Failed to open new window. It might be blocked by the browser."
-            );
-          }
-        } catch (error) {
-          console.error("Error fetching Subscription Plan details:", error);
-        } finally {
-          setRowLoading(null); // Reset the row loading state
-        }
-      };
-    
-  const fetchData = async (page = 1, pageSize = 5) => {
-    setLoading(true);
-    setError(null);
+  const handleRowClick = async (id, event) => {
+    // Prevent row click if the event target is an action icon
+    if (event.target.closest(".action-icon")) return;
+
+    setRowLoading(id); // Set the row loading state
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/usertype/list-user-types?page=${page}&per_page=${pageSize}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlugg}/usertype/user-type/${id}`,
         {
           method: "GET",
           headers: {
@@ -106,7 +70,51 @@ const WorkspaceRoles = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
+      }
+
+      const result = await response.json();
+      console.log("Fetched role details:", result);
+
+      const newWindow = window.open(`/role-details/${id}`, "_blank");
+      if (newWindow) {
+        newWindow.onload = () => {
+          newWindow.role = result.data;
+        };
+      } else {
+        console.error(
+          "Failed to open new window. It might be blocked by the browser."
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching Subscription Plan details:", error);
+    } finally {
+      setRowLoading(null); // Reset the row loading state
+    }
+  };
+
+  const fetchData = async (page = 1, pageSize = 5) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlugg}/usertype/list-user-types?page=${page}&per_page=${pageSize}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${user?.tenantToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       const result = await response.json();
@@ -157,7 +165,9 @@ const WorkspaceRoles = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/usertype/delete`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlugg}/usertype/delete`,
         {
           method: "POST",
           headers: {
@@ -169,12 +179,12 @@ const WorkspaceRoles = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
-      setData((prevData) =>
-        prevData.filter((role) => role.id !== roleID)
-      );
+      setData((prevData) => prevData.filter((role) => role.id !== roleID));
       setPopup({
         message: "Role deleted successfully!",
         type: "success",
@@ -263,7 +273,9 @@ const WorkspaceRoles = () => {
   return (
     <>
       <PageTitle
-        breadCrumbItems={[{ label: "Roles", path: "/account/roles", active: true }]}
+        breadCrumbItems={[
+          { label: "Roles", path: "/account/roles", active: true },
+        ]}
         title="Roles"
       />
 
@@ -308,15 +320,25 @@ const WorkspaceRoles = () => {
                   tableClass="table-striped dt-responsive nowrap w-100"
                   searchBoxClass="my-2"
                   getRowProps={(row) => ({
-                    style: { cursor: "pointer" },
+                    style: {
+                      cursor: "pointer",
+                      opacity: rowLoading === row.original.id ? 0.4 : 1, // visually indicate loading
+
+                      transition: "opacity 0.3s ease",
+                      position: "relative",
+                      display:
+                        rowLoading === row.original.id ? "hidden" : "table-row",
+                    },
                     onClick: (event) => handleRowClick(row.original.id, event),
                   })}
                   rowLoading={rowLoading} // Pass the row loading state
                   paginationProps={{
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
-                    onPageChange: (page) => setPagination((prev) => ({ ...prev, currentPage: page })),
-                    onPageSizeChange: (pageSize) => setPagination((prev) => ({ ...prev, pageSize })),
+                    onPageChange: (page) =>
+                      setPagination((prev) => ({ ...prev, currentPage: page })),
+                    onPageSizeChange: (pageSize) =>
+                      setPagination((prev) => ({ ...prev, pageSize })),
                   }}
                 />
               )}

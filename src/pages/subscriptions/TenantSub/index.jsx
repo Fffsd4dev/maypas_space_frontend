@@ -322,7 +322,14 @@ const TenantSub = () => {
                     tableClass="table-wrap table-striped"
                     searchBoxClass="my-2"
                     getRowProps={(row) => ({
-                      style: { cursor: 'pointer' },
+                      style: { cursor: 'pointer',
+                        opacity: rowLoading === row.original.id ? 0.4 : 1, // visually indicate loading
+
+                      transition: "opacity 0.3s ease",
+                      position: "relative",
+                      display:
+                        rowLoading === row.original.id ? "hidden" : "table-row",
+                       },
                       onClick: () => handleRowClick(row.original.id)
                     })}
                     rowLoading={rowLoading} // Pass the row loading state

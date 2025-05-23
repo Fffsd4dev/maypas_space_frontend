@@ -163,7 +163,7 @@ const Invoices = () => {
     } catch (error) {
       toast.error(error.message);
       setIsError(true);
-        } finally {
+    } finally {
       setLoadingLocations(false);
     }
   };
@@ -471,7 +471,7 @@ const Invoices = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Invoices", path: "/Settings/set-account", active: true },
+          { label: "Invoices", path: "/Settings/invoices", active: true },
         ]}
         title="Invoices"
       />
@@ -505,25 +505,31 @@ const Invoices = () => {
                         Closing Invoice...
                       </div>
                     ) : (
+                    
                       <Table2
-                        columns={columns}
-                        data={data}
-                        pageSize={5}
-                        pagination
-                        isSortable
-                        isSearchable
-                        sizePerPageList={sizePerPageList}
-                        tableClass="table-striped dt-responsive nowrap w-100"
-                        searchBoxClass="my-2"
-                        getRowProps={(row) => ({
-                          style: { cursor: "pointer",  
-                            backgroundColor: row.original.space_payment[0].payment_status?.toString().toLowerCase() === "completed" ? "#E8F5E9" : "inherit", },
-                          onClick: (event) =>
-                            handleRowClick(row.original.id, event),
-                        })}
-                        rowLoading={rowLoading}
-
-                        //   paginationProps={{
+  columns={columns}
+  data={data}
+  pageSize={5}
+  pagination
+  isSortable
+  isSearchable
+  sizePerPageList={sizePerPageList}
+  tableClass="table-striped dt-responsive nowrap w-100"
+  searchBoxClass="my-2"
+  getRowProps={(row) => ({
+    style: { 
+      cursor: "pointer",
+      backgroundColor: row.original.space_payment[0].payment_status?.toString().toLowerCase() === "completed" ? "#E8F5E9" : "inherit",
+      opacity: rowLoading === row.original.id ? 0.4 : 1, // visually indicate loading
+      
+      transition: "opacity 0.3s ease",
+      position: "relative",
+      display: rowLoading === row.original.id ? "hidden" : "table-row",
+    },
+    onClick: (event) =>
+      handleRowClick(row.original.id, event),
+  })}
+  //   paginationProps={{
                         //     currentPage: pagination.currentPage,
                         //     totalPages: pagination.totalPages,
                         //     onPageChange: (page) =>
@@ -534,7 +540,8 @@ const Invoices = () => {
                         //     onPageSizeChange: (pageSize) =>
                         //       setPagination((prev) => ({ ...prev, pageSize })),
                         //   }}
-                      />
+  rowLoading={rowLoading}
+/>
                     )}
                   </>
                 </Card.Body>

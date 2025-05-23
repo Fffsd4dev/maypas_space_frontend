@@ -123,12 +123,12 @@ const Invoices = () => {
       }
 
       const result = await response.json();
-      console.log("Fetched role details:", result);
+      console.log("Fetched invoice details:", result);
 
-      const newWindow = window.open(`/role-details/${id}`, "_blank");
+      const newWindow = window.open(`/invoice-details/${id}`, "_blank");
       if (newWindow) {
         newWindow.onload = () => {
-          newWindow.role = result.data;
+          newWindow.invoice = result.data;
         };
       } else {
         console.error(
@@ -186,15 +186,17 @@ const Invoices = () => {
         }
       );
 
-      if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
-      }
+     
 
       const result = await response.json();
       console.log(result);
 
+       if (!response.ok) {
+        throw new Error( result?.message || 
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
+      }
+      
       if (Array.isArray(result.invoices)) {
         // Sort the data by space_payment[0].created_at or created_at
         const sortedData = result.invoices.sort(
@@ -211,10 +213,12 @@ const Invoices = () => {
         //   currentPage: page,
         //   totalPages: Math.ceil(result.length / pageSize),
         // }));
-      } else {
-        throw new Error("Invalid response format");
+      } 
+      else {
+        throw new Error(result?.message || "Invalid response format" );
       }
     } catch (error) {
+      console.error(error)
       toast.error(error.message);
       setError(error.message);
     } finally {
@@ -467,7 +471,7 @@ const Invoices = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Invoices", path: "/Settings/set-account", active: true },
+          { label: "Invoices", path: "/Settings/invoices", active: true },
         ]}
         title="Invoices"
       />
@@ -501,25 +505,31 @@ const Invoices = () => {
                         Closing Invoice...
                       </div>
                     ) : (
+                    
                       <Table2
-                        columns={columns}
-                        data={data}
-                        pageSize={5}
-                        pagination
-                        isSortable
-                        isSearchable
-                        sizePerPageList={sizePerPageList}
-                        tableClass="table-striped dt-responsive nowrap w-100"
-                        searchBoxClass="my-2"
-                        getRowProps={(row) => ({
-                          style: { cursor: "pointer",  
-                            backgroundColor: row.original.space_payment[0].payment_status?.toString().toLowerCase() === "completed" ? "#E8F5E9" : "inherit", },
-                          onClick: (event) =>
-                            handleRowClick(row.original.id, event),
-                        })}
-                        rowLoading={rowLoading}
-
-                        //   paginationProps={{
+  columns={columns}
+  data={data}
+  pageSize={5}
+  pagination
+  isSortable
+  isSearchable
+  sizePerPageList={sizePerPageList}
+  tableClass="table-striped dt-responsive nowrap w-100"
+  searchBoxClass="my-2"
+  getRowProps={(row) => ({
+    style: { 
+      cursor: "pointer",
+      backgroundColor: row.original.space_payment[0].payment_status?.toString().toLowerCase() === "completed" ? "#E8F5E9" : "inherit",
+      opacity: rowLoading === row.original.id ? 0.4 : 1, // visually indicate loading
+      
+      transition: "opacity 0.3s ease",
+      position: "relative",
+      display: rowLoading === row.original.id ? "hidden" : "table-row",
+    },
+    onClick: (event) =>
+      handleRowClick(row.original.id, event),
+  })}
+  //   paginationProps={{
                         //     currentPage: pagination.currentPage,
                         //     totalPages: pagination.totalPages,
                         //     onPageChange: (page) =>
@@ -530,7 +540,8 @@ const Invoices = () => {
                         //     onPageSizeChange: (pageSize) =>
                         //       setPagination((prev) => ({ ...prev, pageSize })),
                         //   }}
-                      />
+  rowLoading={rowLoading}
+/>
                     )}
                   </>
                 </Card.Body>

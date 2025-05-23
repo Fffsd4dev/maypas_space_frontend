@@ -17,6 +17,7 @@ import RoleDetails from "../pages/MyWorkspaceAccount/WorkspaceRoles/RoleDetails"
 import { useParams } from "react-router-dom";
 
 import Error404Alt from "../pages/error/Error404Alt";
+import InvoiceDetails from "../pages/Settings/invoices/InvoiceDetails";
 
 const AllRoutes = props => {
   const { isAuthenticated } = useAuthContext();
@@ -65,6 +66,7 @@ const AllRoutes = props => {
         <Route path="/subscription-details/:id" element={<SubscriptionDetails />} />
         <Route path="/plan-details/:id" element={<PlanDetails />} />
         <Route path="/role-details/:id" element={<RoleDetails />} />
+        <Route path="/invoice-details/:id" element={<InvoiceDetails />} />
 
         {publicProtectedFlattenRoutes.map((route, idx) => (
           <Route path={route.path} element={<DefaultLayout {...props} tenantSlug={tenantSlug}>{route.element}</DefaultLayout>} key={idx} />

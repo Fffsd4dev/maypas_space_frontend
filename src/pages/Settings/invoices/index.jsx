@@ -123,12 +123,12 @@ const Invoices = () => {
       }
 
       const result = await response.json();
-      console.log("Fetched role details:", result);
+      console.log("Fetched invoice details:", result);
 
-      const newWindow = window.open(`/role-details/${id}`, "_blank");
+      const newWindow = window.open(`/invoice-details/${id}`, "_blank");
       if (newWindow) {
         newWindow.onload = () => {
-          newWindow.role = result.data;
+          newWindow.invoice = result.data;
         };
       } else {
         console.error(
@@ -163,7 +163,7 @@ const Invoices = () => {
     } catch (error) {
       toast.error(error.message);
       setIsError(true);
-    } finally {
+        } finally {
       setLoadingLocations(false);
     }
   };
@@ -186,15 +186,17 @@ const Invoices = () => {
         }
       );
 
-      if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
-      }
+     
 
       const result = await response.json();
       console.log(result);
 
+       if (!response.ok) {
+        throw new Error( result?.message || 
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
+      }
+      
       if (Array.isArray(result.invoices)) {
         // Sort the data by space_payment[0].created_at or created_at
         const sortedData = result.invoices.sort(
@@ -211,10 +213,12 @@ const Invoices = () => {
         //   currentPage: page,
         //   totalPages: Math.ceil(result.length / pageSize),
         // }));
-      } else {
-        throw new Error("Invalid response format");
+      } 
+      else {
+        throw new Error(result?.message || "Invalid response format" );
       }
     } catch (error) {
+      console.error(error)
       toast.error(error.message);
       setError(error.message);
     } finally {

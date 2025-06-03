@@ -1,16 +1,20 @@
 import { Row, Col, Breadcrumb } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
+import { useParams } from "react-router-dom";
 
-/**
- * PageTitle
- */
 const PageTitle = (props) => {
   const { user } = useAuthContext();
-  const tenantSlug = user?.tenant;
-  const TenantSlug = tenantSlug
-  ? tenantSlug.charAt(0).toUpperCase() + tenantSlug.slice(1).toLowerCase()
-  : ""; // Convert tenantSlug to Sentence Case
-  const isTenant = !!tenantSlug; // Check if the user is a tenant
+  const { tenantSlug: tenantUrlSlug } = useParams();
+
+  // Prefer user.tenant but fall back to URL param
+  const tenantSlug = user?.tenant || tenantUrlSlug;
+
+  const tenantDisplayName = tenantSlug
+    ? tenantSlug.charAt(0).toUpperCase() + tenantSlug.slice(1).toLowerCase()
+    : "";
+
+  const hasTenant = !!tenantSlug;
+  const hasToken = !!user?.token;
 
   return (
     <Row>
@@ -19,9 +23,17 @@ const PageTitle = (props) => {
           <div className="page-title-right">
             <Breadcrumb className="m-0">
               <Breadcrumb.Item
-                href={isTenant ? `/${tenantSlug}/dashboard-1` : "/dashboard-3"}
+                href={
+                  hasTenant
+                    ? `/${tenantSlug}/${hasToken ? "dashboard-1" : "home"}`
+                    : "/dashboard-3"
+                }
               >
-                {isTenant ? `${TenantSlug} Booking` : "MayPas Booking"}
+                {hasTenant
+                  ? `${tenantDisplayName} Booking`
+                  : hasToken
+                  ? "MayPas Booking"
+                  : "Booking"}
               </Breadcrumb.Item>
 
               {(props["breadCrumbItems"] || []).map((item, index) => {

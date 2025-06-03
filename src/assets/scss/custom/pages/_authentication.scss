@@ -61,6 +61,35 @@ body {
   }
 }
 
+.auth-fluid-visitor {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  flex-direction: row;
+  align-items: stretch;
+  background: url("/src/assets/images//vis.jpg") center;
+  background-size: cover;
+
+  .auth-fluid-form-box {
+    max-width: 480px;
+    border-radius: 0;
+    z-index: 2;
+    padding: 3rem;
+    background-color: $card-bg;
+    position: relative;
+    width: 100%;
+  }
+
+  .auth-fluid-left {
+    padding: 6rem 3rem;
+    flex: 1;
+    position: relative;
+    color: $white;
+    background-color: rgba($black, 0.3);
+  }
+}
+
 .auth-brand {
   margin-bottom: 2rem;
 }

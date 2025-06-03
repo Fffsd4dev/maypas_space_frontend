@@ -13,12 +13,15 @@ const Login = React.lazy(() => import("../pages/auth/Login"));
 const Logout = React.lazy(() => import("../pages/auth/Logout"));
 const Confirm = React.lazy(() => import("../pages/auth/Confirm"));
 const ForgetPassword = React.lazy(() => import("../pages/auth/ForgetPassword"));
+const ConfirmNewPassword = React.lazy(() => import("../pages/auth/ConfirmNewPassword"));
+const ConfirmNewPassword2 = React.lazy(() => import("../pages/auth2/ConfirmNewPassword2"));
 const Register = React.lazy(() => import("../pages/auth/Register"));
 const SignInSignUp = React.lazy(() => import("../pages/auth/SignInSignUp"));
 const LockScreen = React.lazy(() => import("../pages/auth/LockScreen"));
 
 // auth2
 const Login2 = React.lazy(() => import("../pages/auth2/Login2"));
+const VisitorLogin = React.lazy(() => import("../pages/auth-visitor/VisitorLogin"));
 const Logout2 = React.lazy(() => import("../pages/auth2/Logout2"));
 const Register2 = React.lazy(() => import("../pages/auth2/Register2"));
 const Confirm2 = React.lazy(() => import("../pages/auth2/Confirm2"));
@@ -1070,6 +1073,18 @@ const authRoutes = [
     route: Route
   },
   {
+  path: "/:tenantSlug/auth/confirmNewPassword",
+  name: "Confirm New Password",
+  element: <ConfirmNewPassword />,
+  route: Route
+},
+ {
+  path: "/auth/confirmNewPassword2",
+  name: "Confirm New Password",
+  element: <ConfirmNewPassword2 />,
+  route: Route
+},
+  {
     path: "/:tenantSlug/auth/signin-signup",
     name: "Tenants SignIn-SignUp",
     element: <SignInSignUp />,
@@ -1092,6 +1107,12 @@ const authRoutes = [
     path: "/auth/login2",
     name: "Login2",
     element: <Login2 />,
+    route: Route
+  },
+    {
+    path: "/:tenantSlug/auth/visitorLogin",
+    name: "Visitor Login",
+    element: <VisitorLogin />,
     route: Route
   },
   {

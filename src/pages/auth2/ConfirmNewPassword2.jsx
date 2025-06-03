@@ -8,11 +8,12 @@ import { useParams } from "react-router-dom";
 // components
 
 import AuthLayout from "./AuthLayout";
-import useLogin from "@/hooks/useLogin.js";
+import useLogin2 from "@/hooks/useLogin2.js";
 import { Controller } from "react-hook-form";
 import Feedback from "react-bootstrap/esm/Feedback";
 import { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import useConfirmNewPassword2 from "@/hooks/useConfirmNewPassword2.js";
 
 /* bottom links */
 const BottomLink = () => {
@@ -23,22 +24,7 @@ const BottomLink = () => {
     const { tenantSlug } = useParams();
   
   return <Row className="mt-3">
-            <Col className="text-center">
-            {/* <p className="text-white-50">
-                    {t("Don't have an account?")}{" "}
-                    <Link to={"/auth/register"} className="text-white ms-1">
-                        <b>{t("Sign Up")}</b>
-                    </Link>
-                </p> */}
-                <p className="text-white-50">
-                
-                    <Link to={`/${tenantSlug}/auth/forget-password`} className="text-white ms-1">
-                        {t("Forgot your password?")}
-                    </Link>
-               
-                    
-                </p>
-            </Col>
+            
         </Row>;
 };
 
@@ -69,7 +55,7 @@ const SocialLinks = () => {
             </ul>
         </>;
 };
-const Login = () => {
+const ConfirmNewPassword2 = () => {
 
   const { tenantSlug } = useParams();
 
@@ -77,20 +63,23 @@ const Login = () => {
     t
   } = useTranslation();
   const {
-    login,
+    confirmNewPassword,
     control,
     popup,
     setPopup,
     loading
-  } = useLogin();
+  } = useConfirmNewPassword2();
 
   
 
   const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showOtp, setShowOtp] = useState(false);
+
   return <>
             <AuthLayout helpText={t("Enter your email address and password to access admin panel.")} bottomLinks={<BottomLink />}>
 
-                <form onSubmit={login}>
+                <form onSubmit={confirmNewPassword}>
 
                     <div className="mb-3">
                         <Controller name="email" control={control} render={({
@@ -105,13 +94,36 @@ const Login = () => {
                                 </FormGroup>} />
                     </div>
 
+
+
+                       <div className="mb-3">
+                        <Controller name="otp" control={control} render={({
+            field,
+            fieldState
+          }) => <FormGroup>
+                                    <FormLabel htmlFor="otp">
+                                        {t("Enter the OTP sent to your email")}
+                                    </FormLabel>
+
+                                    <div className="position-relative">
+                                        <FormControl id="otp" type={showOtp ? 'text' : 'password'} {...field} isInvalid={Boolean(fieldState.error?.message)} />
+                                        {fieldState.error?.message && <Feedback type="invalid" className="text-danger">{fieldState.error?.message}</Feedback>}
+                                        <span className="d-flex position-absolute top-50 end-0 translate-middle-y p-0 pe-2 me-2" onClick={() => setShowOtp(!showOtp)}>
+                                      {!fieldState.error && (showOtp ? <FiEye height={18} width={18} className="cursor-pointer" /> : <FiEyeOff height={18} width={18} className="cursor-pointer" />)}
+                                    </span>
+                                    </div>
+                                </FormGroup>} />
+                    </div>
+
+
+
                     <div className="mb-3">
                         <Controller name="password" control={control} render={({
             field,
             fieldState
           }) => <FormGroup>
                                     <FormLabel htmlFor="password">
-                                        {t("Password")}
+                                        {t("New Password")}
                                     </FormLabel>
 
                                     <div className="position-relative">
@@ -119,6 +131,27 @@ const Login = () => {
                                         {fieldState.error?.message && <Feedback type="invalid" className="text-danger">{fieldState.error?.message}</Feedback>}
                                         <span className="d-flex position-absolute top-50 end-0 translate-middle-y p-0 pe-2 me-2" onClick={() => setShowPassword(!showPassword)}>
                                       {!fieldState.error && (showPassword ? <FiEye height={18} width={18} className="cursor-pointer" /> : <FiEyeOff height={18} width={18} className="cursor-pointer" />)}
+                                    </span>
+                                    </div>
+                                </FormGroup>} />
+                    </div>
+
+                     
+                     
+                      <div className="mb-3">
+                        <Controller name="password_confirmation" control={control} render={({
+            field,
+            fieldState
+          }) => <FormGroup>
+                                    <FormLabel htmlFor="password_confirmation">
+                                        {t("Confirm Password")}
+                                    </FormLabel>
+
+                                    <div className="position-relative">
+                                        <FormControl id="password_confirmation" type={showConfirmPassword ? 'text' : 'password'} {...field} isInvalid={Boolean(fieldState.error?.message)} />
+                                        {fieldState.error?.message && <Feedback type="invalid" className="text-danger">{fieldState.error?.message}</Feedback>}
+                                        <span className="d-flex position-absolute top-50 end-0 translate-middle-y p-0 pe-2 me-2" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                      {!fieldState.error && (showConfirmPassword ? <FiEye height={18} width={18} className="cursor-pointer" /> : <FiEyeOff height={18} width={18} className="cursor-pointer" />)}
                                     </span>
                                     </div>
                                 </FormGroup>} />
@@ -135,7 +168,7 @@ const Login = () => {
       aria-hidden="true"
     />
   ) : (
-    t("Log In")
+    t("Confirm New Password")
   )}
 </Button>
                     </div>
@@ -160,4 +193,4 @@ const Login = () => {
             )}
         </>;
 };
-export default Login;
+export default ConfirmNewPassword2;

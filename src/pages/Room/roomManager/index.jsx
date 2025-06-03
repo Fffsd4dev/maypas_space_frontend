@@ -300,25 +300,31 @@ const Rooms = () => {
       sort: true,
     },
     {
-      Header: "Space Number",
-      accessor: "space_number",
-      sort: true,
-    },
-    {
-      Header: "Space Fee",
-      accessor: "space_fee",
-      sort: true,
-    },
-    {
       Header: "Category",
       accessor: "category.category",
       sort: true,
     },
     {
-      Header: "Created On",
-      accessor: "created_at",
+      Header: "Space Number",
+      accessor: "space_number",
       sort: true,
-      Cell: ({ row }) => formatDateTime(row.original.created_at),
+    },  
+    
+    
+   {
+      Header: "Fee/Space",
+      accessor: "space_fee",
+      sort: true,
+    },
+    {
+      Header: "Space Discount (%)",
+      accessor: "space_discount",
+      sort: true,
+    },
+    {
+      Header: "Min. Time for a Space Discount",
+      accessor: "min_space_discount_time",
+      sort: true,
     },
     {
       Header: "Updated On",

@@ -109,7 +109,7 @@ const InvoiceDetails = () => {
         <div className="d-flex justify-content-between">
           <div>
             <h5 className="mb-1">Billed To:</h5>
-            <p className="mb-0">{invoice.first_name || invoice.last_name}</p>
+            <p className="mb-0">{invoice?.user?.first_name} { invoice?.user?.last_name}</p>
             <p className="mb-0">{invoice.email}</p>
             <p>{invoice.phone_number}</p>
           </div>
@@ -135,7 +135,7 @@ const InvoiceDetails = () => {
           {(invoice?.schedule || []).map((item, index) => (
             <tr key={index}>
               <td>{<b>Days & Time: <br/> NA</b>}</td>
-              <td>Reserved spot</td>
+              <td>Reserved spot - </td>
           <td>{Number(invoice.amount) || 'N/A' }</td>
           
             </tr>

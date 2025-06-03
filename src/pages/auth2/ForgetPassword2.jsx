@@ -1,48 +1,97 @@
-import { Button } from "react-bootstrap";
+import { Button, Row, Col, FormGroup, FormLabel, FormControl, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import classNames from "classnames";
+import Popup from "../../components/Popup/Popup";
+import { useParams } from "react-router-dom";
+
 
 // components
 import { VerticalForm, FormInput } from "@/components";
 import AuthLayout from "./AuthLayout";
+import useRequestOtp2 from "@/hooks/useRequestOtp2.js";
+import { Controller } from "react-hook-form";
+import Feedback from "react-bootstrap/esm/Feedback";
+import { useState } from "react";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
-/* bottom links */
+
+/* bottom link */
 const BottomLink = () => {
   const {
     t
   } = useTranslation();
-  return <footer className="footer footer-alt">
-            <p className="text-muted">
-                {t("Back to")}{" "}
-                <Link to={"/auth/login2"} className="text-muted ms-1">
-                    <b>{t("Log in")}</b>
-                </Link>
-            </p>
-        </footer>;
+  return <Row className="mt-3">
+            <Col className="text-center">
+                <p className="text-black-50">
+                    {t("Back to")}{" "}
+                    <Link to={"/auth/login2"} className="text-black ms-1">
+                        <b>{t("Log in")}</b>
+                    </Link>
+                </p>
+            </Col>
+        </Row>;
 };
 const ForgetPassword2 = () => {
   const {
     t
   } = useTranslation();
+   const {
+      requestOtp,
+      control,
+      popup,
+      setPopup,
+      loading
+    } = useRequestOtp2();
   return <>
-            <AuthLayout bottomLinks={<BottomLink />}>
-                <h4 className="mt-0">{t("Recover Password")}</h4>
-                <p className="text-muted mb-4">
-                    {t("Enter your email address and we'll send you an email with instructions to reset your password")}
-                </p>
+            <AuthLayout helpText={t("Enter your email address and we'll send you an email with instructions to reset your password.")} bottomLinks={<BottomLink />}>
+              <form onSubmit={requestOtp}>
+            
+                                <div className="mb-3">
+                                    <Controller name="email" control={control} render={({
+                        field,
+                        fieldState
+                      }) => <FormGroup>
+                                                <FormLabel htmlFor="email">
+                                                    {t("Email")}
+                                                </FormLabel>
+                                                <FormControl id="email" {...field} isInvalid={Boolean(fieldState.error?.message)} />
+                                                {fieldState.error?.message && <Feedback type="invalid" className="text-danger">{fieldState.error?.message}</Feedback>}
+                                            </FormGroup>} />
+                                </div>
+            
+                              
+            
+                                <div className="text-center d-grid">
+                                <Button variant="primary" type="submit" disabled={loading}>
+              {loading ? (
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+              ) : (
+                t("Reset Password")
+              )}
+            </Button>
+                                </div>
+                            </form>
 
 
-                <VerticalForm onSubmit={() => {}}>
-                    <FormInput label={t("Username")} type="text" name="username" placeholder={t("Enter your Username")} containerClass={"mb-3"} />
-
-                    <div className="mb-0 text-center d-grid">
-                        <Button variant="primary" type="submit">
-                            {t("Reset Password")}
-                        </Button>
-                    </div>
-                </VerticalForm>
 
             </AuthLayout>
+
+             {popup.isVisible && (
+                            <Popup
+                                message={popup.message}
+                                type={popup.type}
+                                onClose={() => setPopup({ ...popup, isVisible: false })}
+                                buttonLabel={popup.buttonLabel}
+                                buttonRoute={popup.buttonRoute}
+                            />
+                        )}
         </>;
 };
 export default ForgetPassword2;

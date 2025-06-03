@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import classNames from "classnames";
 import Popup from "../../components/Popup/Popup";
 import { useParams } from "react-router-dom";
-import useLogin2 from "@/hooks/useLogin2.js";
+import useVisitorLogin from "@/hooks/useVisitorLogin.js";
 import { Controller } from "react-hook-form";
 import Feedback from "react-bootstrap/esm/Feedback";
 import { useState } from "react";
@@ -25,14 +25,6 @@ const BottomLink = () => {
           <b>{t("Sign Up")}</b>
         </Link>
       </p> */}
-       <p className="text-black-50">
-                      
-                          <Link to={`/auth/forget-password2`} className="text-black ms-1">
-                              {t("Forgot your password?")}
-                          </Link>
-                     
-                          
-                      </p>
     </footer>
   );
 };
@@ -80,9 +72,9 @@ const SocialLinks = () => {
     </>
   );
 };
-const Login2 = () => {
+const VisitorLogin = () => {
   const { t } = useTranslation();
-  const { login, control, popup, setPopup, loading } = useLogin2();
+  const { login, control, popup, setPopup, loading } = useVisitorLogin();
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -191,4 +183,4 @@ const Login2 = () => {
     </>
   );
 };
-export default Login2;
+export default VisitorLogin;

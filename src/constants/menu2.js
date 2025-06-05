@@ -35,7 +35,7 @@ const MENU_ITEMS = [
   {
     key: "ds-dashboard-3",
     label: "Dashboard",
-    url: "/dashboard",
+    url: "/ownwerDashboard",
     isTitle: false,
     icon: FiAirplay,
     badge: {

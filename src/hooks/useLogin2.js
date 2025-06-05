@@ -33,7 +33,7 @@ const useLogin2 = () => {
   });
   const redirectUser = () => {
     const redirectLink = searchParams.get('redirectTo');
-    if (redirectLink) navigate(redirectLink);else navigate('/dashboard-3');
+    if (redirectLink) navigate(redirectLink);else navigate('/dashboard');
   };
 
   const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
@@ -74,7 +74,7 @@ const useLogin2 = () => {
           type: "success",
           isVisible: true,
           buttonLabel: "Proceed to the Owners Dashboard",
-          buttonRoute: "/dashboard-3",
+          buttonRoute: "/dashboard",
       });
 
         redirectUser();

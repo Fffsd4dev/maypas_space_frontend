@@ -32,11 +32,11 @@ const AllRoutes = props => {
       // Ensure tenant routes do not use VerticalLayout2
       return VerticalLayout;
     }
-    if (path.includes("/dashboard-3") || path.includes("/account") || path.includes("/CreateSubscription") || path.includes("/TenantSub")) {
+    if (path.includes("/dashboard") || path.includes("/account") || path.includes("/CreateSubscription") || path.includes("/TenantSub")) {
       // Ensure owner's routes use VerticalLayout2
       return VerticalLayout2;
     }
-    if (path.includes("/dashboard-1") || path.includes("/workspaceAccount") || path.includes("/dashboard-4")|| path.includes("/facility") || path.includes("/location") ||  path.includes("/room")) {
+    if (path.includes("/tenantDashboard") || path.includes("/workspaceAccount") || path.includes("/dashboard-4")|| path.includes("/facility") || path.includes("/location") ||  path.includes("/room")) {
       return VerticalLayout;
     }
     let layoutCls = TwoColumnLayout;

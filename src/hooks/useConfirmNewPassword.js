@@ -31,7 +31,7 @@ const useConfirmNewPassword = () => {
   });
   const redirectUser = () => {
     const redirectLink = searchParams.get('redirectTo');
-    if (redirectLink) navigate(redirectLink); else navigate(`/${tenantSlug}/dashboard-1`);
+    if (redirectLink) navigate(redirectLink); else navigate(`/${tenantSlug}/tenantDashboard`);
   };
 
   const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
@@ -64,7 +64,7 @@ const useConfirmNewPassword = () => {
           type: "success",
           isVisible: true,
           buttonLabel: "Proceed to Login",
-          buttonRoute: `/${tenantSlug}/login`,
+          buttonRoute: `/${tenantSlug}/auth/login`,
         });
 
         // redirectUser();

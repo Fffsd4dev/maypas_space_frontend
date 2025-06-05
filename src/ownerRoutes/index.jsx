@@ -180,10 +180,10 @@ const dashboardRoutes = {
   children: [{
     path: "/",
     name: "Root",
-    element: <Navigate to="/dashboard-1" />,
+    element: <Navigate to="/tenantDashboard" />,
     route: PrivateRoute
   }, {
-    path: "/dashboard-1",
+    path: "/tenantDashboard",
     name: "Dashboard 1",
     element: <Dashboard1 />,
     route: PrivateRoute

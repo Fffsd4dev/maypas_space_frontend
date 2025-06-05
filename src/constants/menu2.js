@@ -34,8 +34,8 @@ const MENU_ITEMS = [
   },
   {
     key: "ds-dashboard-3",
-    label: "Dashboaaaard 3",
-    url: "/dashboard-3",
+    label: "Dashboard",
+    url: "/dashboard",
     isTitle: false,
     icon: FiAirplay,
     badge: {
@@ -947,9 +947,9 @@ const TWO_COl_MENU_ITEMS = [
     isTitle: true,
     children: [
       {
-        key: "ds-dashboard-1",
+        key: "ds-tenantDashboard",
         label: "Dashboard 1",
-        url: "/dashboard-1",
+        url: "/Dashboard-1",
         parentKey: "dashboard",
       },
       {

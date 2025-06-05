@@ -62,8 +62,8 @@ const WorkspaceRegistrationModal = ({ show, onHide, workspace, onSubmit }) => {
             if (!user?.token) throw new Error("Authorization token is missing.");
 
             const url = workspace
-                ? `https://trial.maypasworkspace.com/api/system-admin/update-workspace/${workspace.id}`
-                : "https://trial.maypasworkspace.com/api/system-admin/register-workspace";
+                ? `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/update-workspace/${workspace.id}`
+                : `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/register-workspace`;
 
             const method = workspace ? "POST" : "POST";
             const response = await fetch(url, {

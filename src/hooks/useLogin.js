@@ -26,7 +26,7 @@ const useLogin = () => {
   });
   const redirectUser = () => {
     const redirectLink = searchParams.get('redirectTo');
-    if (redirectLink) navigate(redirectLink); else navigate(`/${tenantSlug}/dashboard-1`);
+    if (redirectLink) navigate(redirectLink); else navigate(`/${tenantSlug}/tenantDashboard`);
   };
 
   const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
@@ -59,7 +59,7 @@ const useLogin = () => {
           type: "success",
           isVisible: true,
           buttonLabel: "Proceed to the Admin Dashboard",
-          buttonRoute: `/${tenantSlug}/dashboard-1`,
+          buttonRoute: `/${tenantSlug}/tenantDashboard`,
         });
 
         redirectUser();

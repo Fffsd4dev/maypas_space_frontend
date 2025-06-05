@@ -34,7 +34,7 @@ const MENU_ITEMS = [
   },
   {
     key: "ds-dashboard-3",
-    label: "Dashboaaaard 3",
+    label: "Dashboard",
     url: "/dashboard-3",
     isTitle: false,
     icon: FiAirplay,
@@ -947,9 +947,9 @@ const TWO_COl_MENU_ITEMS = [
     isTitle: true,
     children: [
       {
-        key: "ds-dashboard-1",
+        key: "ds-tenantDashboard",
         label: "Dashboard 1",
-        url: "/dashboard-1",
+        url: "/tenantDashboard",
         parentKey: "dashboard",
       },
       {

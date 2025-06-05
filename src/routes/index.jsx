@@ -203,8 +203,8 @@ const dashboardRoutes = {
   header: "Navigation",
   children: [
     {
-      path: "/:tenantSlug/dashboard-1",
-      name: "Dashboard 1",
+      path: "/:tenantSlug/tenantDashboard",
+      name: "Dashboard ",
       element: <Dashboard1 />,
       route: PrivateRoute,
       roles: ["Tenant"]
@@ -217,7 +217,7 @@ const dashboardRoutes = {
       roles: ["Owner"]
     },
     {
-      path: "/dashboard-3",
+      path: "/dashboard",
       name: "Dashboard 3",
       element: <Dashboard3 />,
       route: PrivateRoute,

@@ -44,10 +44,10 @@ const MENU_ITEMS = [
   },
   {
     key: "dashboard",
-    label: "Dashboard",
+    label: "My Dashboard",
     isTitle: false,
     icon: FiAirplay,
-    url: "/:tenantSlug/dashboard-1",
+    url: "/:tenantSlug/tenantDashboard",
     badge: {
       variant: "success",
      
@@ -204,9 +204,9 @@ const HORIZONTAL_MENU_ITEMS = [
     isTitle: true,
     children: [
       {
-        key: "ds-dashboard-1",
+        key: "ds-tenantDashboard",
         label: "Dashboard 1",
-        url: "/dashboard-1",
+        url: "/tenantDashboard",
         parentKey: "dashboard",
       },
       {
@@ -1039,7 +1039,7 @@ const TWO_COl_MENU_ITEMS = [
       {
         key: "ds-dashboard-1",
         label: "Dashboard 1",
-        url: "/dashboard-1",
+        url: "/tenantDashboard",
         parentKey: "dashboard",
       },
       {

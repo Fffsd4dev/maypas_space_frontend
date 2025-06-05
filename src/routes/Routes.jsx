@@ -36,7 +36,7 @@ const AllRoutes = props => {
       // Ensure owner's routes use VerticalLayout2
       return VerticalLayout2;
     }
-    if (path.includes("/dashboard-1") || path.includes("/workspaceAccount") || path.includes("/dashboard-4")|| path.includes("/facility") || path.includes("/location") ||  path.includes("/room")) {
+    if (path.includes("/tenantDashboard") || path.includes("/workspaceAccount") || path.includes("/dashboard-4")|| path.includes("/facility") || path.includes("/location") ||  path.includes("/room")) {
       return VerticalLayout;
     }
     let layoutCls = TwoColumnLayout;

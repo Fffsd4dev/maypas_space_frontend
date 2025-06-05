@@ -24,7 +24,7 @@ const Dashboard3 = () => {
     }]} title={"Dashboard 3"} />
 
       <Statistics />
-      <Row>
+      {/* <Row>
         <Col xl={6}>
           <RevenueChart />
         </Col>
@@ -42,7 +42,7 @@ const Dashboard3 = () => {
         <Col lg={12} xl={4}>
           <ChatList messages={chatMessages} />
         </Col>
-      </Row>
+      </Row> */}
     </>;
 };
 export default Dashboard3;

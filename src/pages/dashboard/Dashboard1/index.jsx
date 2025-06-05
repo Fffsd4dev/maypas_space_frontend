@@ -46,22 +46,22 @@ const Dashboard1 = () => {
 
       <Statistics />
 
-      <Row>
+      {/* <Row>
         <Col lg={4}>
           <RevenueChart />
         </Col>
         <Col lg={8}>
           <SalesAnalyticsChart />
         </Col>
-      </Row>
+      </Row> */}
 
       <Row>
-        <Col xl={6}>
+        <Col xl={12}>
           <UsersBalances balances={balances} />
         </Col>
-        <Col xl={6}>
+        {/* <Col xl={6}>
           <RevenueHistory revenueHistory={revenueHistory} />
-        </Col>
+        </Col> */}
       </Row>
     </>;
 };

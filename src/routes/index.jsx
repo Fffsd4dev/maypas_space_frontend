@@ -217,7 +217,7 @@ const dashboardRoutes = {
       roles: ["Owner"]
     },
     {
-      path: "/dashboard",
+      path: "/ownerDashboard",
       name: "Dashboard 3",
       element: <Dashboard3 />,
       route: PrivateRoute,

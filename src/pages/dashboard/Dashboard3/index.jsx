@@ -16,7 +16,7 @@ const Dashboard3 = () => {
   return <>
       <PageTitle breadCrumbItems={[{
       label: "Dashboards",
-      path: "/dashboard-3"
+      path: "/dashboard"
     }, {
       label: "Dashboard 3",
       path: "/dashboard",

@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import MenuItem from "./MenuItem";
-import MenuItemWithChildren from "./MenuItemWithChildren";
 import classNames from "classnames";
 
 const AppMenu = ({ menuItems }) => {

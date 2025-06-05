@@ -12,7 +12,7 @@ const useVisitorLogin = () => {
   const { saveSession } = useAuthContext();
   const [searchParams] = useSearchParams();
   const { user } = useAuthContext();
-  const { tenantSlug } = useParams();
+  const { visitorSlug } = useParams();
   const loginFormSchema = yup.object({
     email: yup.string().email('Please enter a valid email').required('Please enter your email'),
     password: yup.string().required('Please enter your password')
@@ -26,7 +26,7 @@ const useVisitorLogin = () => {
   });
   const redirectUser = () => {
     const redirectLink = searchParams.get('redirectTo');
-    if (redirectLink) navigate(redirectLink); else navigate(`/${tenantSlug}/home`);
+    if (redirectLink) navigate(redirectLink); else navigate(`/${visitorSlug}/home`);
   };
 
   const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
@@ -34,10 +34,10 @@ const useVisitorLogin = () => {
   const login = handleSubmit(async (data) => {
     setLoading(true);
     console.log('submitting');
-    console.log({ tenantSlug });
+    console.log({ visitorSlug });
     console.log(data);
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/login`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -51,15 +51,15 @@ const useVisitorLogin = () => {
       console.log(result);
       if (result.token && res.ok) {
         console.log(res.ok);
-        console.log(result.user.tenant_id);
-        saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id, tenantFirstName: result?.user?.first_name, tenantLastName: result?.user?.last_name, tenantEmail: result?.user?.email, tenantPhone: result?.user?.phone });
+        console.log(result.user.visitor_id);
+        saveSession({ ...(result ?? {}), visitorToken: result.token, visitor: visitorSlug, visitor_id: result.user.visitor_id, user_type_id: result.user.user_type_id, visitorFirstName: result?.user?.first_name, visitorLastName: result?.user?.last_name, visitorEmail: result?.user?.email, visitorPhone: result?.user?.phone });
         console.log(result)
         setPopup({
           message: "Login successful!",
           type: "success",
           isVisible: true,
           buttonLabel: "Proceed ",
-          buttonRoute: `/${tenantSlug}/home`,
+          buttonRoute: `/${visitorSlug}/home`,
         });
 
         // redirectUser();
@@ -71,7 +71,7 @@ const useVisitorLogin = () => {
           type: "error",
           isVisible: true,
           buttonLabel: "Retry",
-          buttonRoute: `/${tenantSlug}/auth/visitorLogin`,
+          buttonRoute: `/${visitorSlug}/auth/visitorLogin`,
         });
       }
     } catch (e) {
@@ -81,7 +81,7 @@ const useVisitorLogin = () => {
         type: "error",
         isVisible: true,
         buttonLabel: "Retry",
-        buttonRoute: `/${tenantSlug}/auth/visitorLogin`,
+        buttonRoute: `/${visitorSlug}/auth/visitorLogin`,
       });
 
       if (e.response?.data?.error) {

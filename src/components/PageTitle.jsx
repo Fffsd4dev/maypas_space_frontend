@@ -8,9 +8,12 @@ const PageTitle = (props) => {
 
   // Prefer user.tenant but fall back to URL param
   const tenantSlug = user?.tenant || tenantUrlSlug;
+  const tenantFirstName = user?.tenantFirstName || "";
+  const tenantLastName = user?.tenantLastName || "";
+  const companyName = user?.tenantCompanyName || "";
 
-  const tenantDisplayName = tenantSlug
-    ? tenantSlug.charAt(0).toUpperCase() + tenantSlug.slice(1).toLowerCase()
+  const tenantDisplayName = companyName
+    ? companyName.charAt(0).toUpperCase()
     : "";
 
   const hasTenant = !!tenantSlug;

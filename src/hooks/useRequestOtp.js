@@ -51,10 +51,10 @@ const useRequestOtp = () => {
       const result = await res.json();
 
       console.log(result);
-      if (result.token && res.ok) {
+      if ( res.ok) {
         console.log(res.ok);
-        console.log(result.user.tenant_id);
-        saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id, tenantFirstName: result?.user?.first_name, tenantLastName: result?.user?.last_name, tenantEmail: result?.user?.email, tenantPhone: result?.user?.phone });
+        // console.log(result.user.tenant_id);
+        // saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id, tenantFirstName: result?.user?.first_name, tenantLastName: result?.user?.last_name, tenantEmail: result?.user?.email, tenantPhone: result?.user?.phone });
         console.log(result)
         setPopup({
           message: "An OTP has been sent to your email!",

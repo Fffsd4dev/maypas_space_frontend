@@ -102,7 +102,7 @@ const Tenants = () => {
 
     try {
       const response = await fetch(
-        "https://trial.maypasworkspace.com/api/system-admin/view-workspaces",
+        `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/view-workspaces`,
         {
           method: "GET",
           headers: {
@@ -162,7 +162,7 @@ const Tenants = () => {
 
     try {
       const response = await fetch(
-        `https://trial.maypasworkspace.com/api/system-admin/delete-workspace`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/delete-workspace`,
         {
           method: "POST",
           headers: {

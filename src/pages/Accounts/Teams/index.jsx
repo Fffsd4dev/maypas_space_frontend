@@ -19,7 +19,7 @@ const Admin = () => {
     setError(null);
 
     try {
-      const response = await fetch("https://trial.maypasworkspace.com/api/system-admin/view-roles", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/system-admin/view-roles`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${user?.token}`,
@@ -68,7 +68,7 @@ const Admin = () => {
     }
 
     try {
-      const response = await fetch("https://trial.maypasworkspace.com/api/system-admin/delete-role", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/system-admin/delete-role`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${user.token}`,

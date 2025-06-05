@@ -55,7 +55,7 @@
 //         company_countries: data.company_countries.split(",").map((c) => c.trim()), // Convert string to array
 //       };
 
-//       const response = await axios.post("https://trial.maypasworkspace.com/system-admin/register-workspace", payload);
+//       const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/system-admin/register-workspace`, payload);
 
 //       console.log(payload)
 
@@ -203,7 +203,7 @@ const WorkspaceRegistrationForm = () => {
 
     try {
       const response = await fetch(
-        "https://trial.maypasworkspace.com/system-admin/register-workspace",
+        `${import.meta.env.VITE_BACKEND_URL}/system-admin/register-workspace`,
         {
           method: "POST",
           headers: {

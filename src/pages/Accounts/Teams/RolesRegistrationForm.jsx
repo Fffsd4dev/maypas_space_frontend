@@ -65,8 +65,8 @@ const RolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
             if (!user?.token) throw new Error("Authorization token is missing.");
 
             const endpoint = selectedAdmin
-                ? `https://trial.maypasworkspace.com/api/system-admin/update-role/${selectedAdmin.id}`
-                : "https://trial.maypasworkspace.com/api/system-admin/create-role";
+                ? `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/update-role/${selectedAdmin.id}`
+                : `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/create-role`;
 
             const method = selectedAdmin ? "POST" : "POST";
 

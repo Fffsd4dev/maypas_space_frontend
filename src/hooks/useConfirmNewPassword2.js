@@ -17,16 +17,13 @@ const useConfirmNewPassword2 = () => {
   const loginFormSchema = yup.object({
     email: yup.string().email('Please enter a valid email').required('Please enter your email'),
     otp: yup.string().required('Please enter the OTP sent to your email'),
-    password: yup.string().required('Please enter your new password'),
-    password_confirmation: yup.string().oneOf([yup.ref('password'), null], 'Passwords must match').required('Please confirm your password')
+    
   });
   const { control, handleSubmit } = useForm({
     resolver: yupResolver(loginFormSchema),
     defaultValues: {
       email: 'user@demo1.com',
       otp: '1234',
-      password: '123456',
-      password_confirmation: '9876543210'
     }
   });
   const redirectUser = () => {
@@ -60,7 +57,7 @@ const useConfirmNewPassword2 = () => {
         // saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id, tenantFirstName: result?.user?.first_name, tenantLastName: result?.user?.last_name, tenantEmail: result?.user?.email, tenantPhone: result?.user?.phone });
         console.log(result)
         setPopup({
-          message: "Password has successfully been changed!",
+          message: "Your New Password Has Been Sent to Your Email!",
           type: "success",
           isVisible: true,
           buttonLabel: "Proceed to Login",

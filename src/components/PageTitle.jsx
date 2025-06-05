@@ -28,8 +28,8 @@ const PageTitle = (props) => {
               <Breadcrumb.Item
                 href={
                   hasTenant
-                    ? `/${tenantSlug}/${hasToken ? "dashboard-1" : "home"}`
-                    : "/dashboard-3"
+                    ? `/${tenantSlug}/${hasToken ? "tenantDashboard" : "home"}`
+                    : "/dashboard"
                 }
               >
                 {hasTenant

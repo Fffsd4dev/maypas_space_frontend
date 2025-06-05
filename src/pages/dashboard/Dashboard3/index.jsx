@@ -19,7 +19,7 @@ const Dashboard3 = () => {
       path: "/dashboard-3"
     }, {
       label: "Dashboard 3",
-      path: "/dashboard-3",
+      path: "/dashboard",
       active: true
     }]} title={"Dashboard 3"} />
 

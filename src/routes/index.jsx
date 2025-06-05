@@ -360,85 +360,85 @@ const workspacesRoutes = {
   icon: "users",
   children: [
     {
-      path: "/workspaceAccount/users",
+      path: "/:tenantSlug/users",
       name: "Personal",
       element: <Personal />,
       route: PrivateRoute
     },
     {
-      path: "/workspaceAccount/roles",
+      path: "/:tenantSlug/roles",
       name: "Workspace Admin",
       element: <WorkspaceRoles />,
       route: PrivateRoute
     },
     {
-      path: "/location/my-locations",
+      path: "/:tenantSlug/my-locations",
       name: "Locations",
       element: <MyLocations />,
       route: PrivateRoute
     },
     {
-      path: "/location/floor",
+      path: "/:tenantSlug/floor",
       name: "Floors",
       element: <Floors />,
       route: PrivateRoute
     },
     {
-      path: "/room/room-categories",
+      path: "/:tenantSlug/room-categories",
       name: "Category",
       element: <Category />,
       route: PrivateRoute
     },
     {
-      path: "/room/my-rooms",
+      path: "/:tenantSlug/my-rooms",
       name: "Rooms",
       element: <Rooms />,
       route: PrivateRoute
     },
     {
-      path: "/room/spot",
+      path: "/:tenantSlug/room/spot",
       name: "Rooms",
       element: <Spot />,
       route: PrivateRoute
     },
     {
-      path: "/settings/operating-time",
+      path: "/:tenantSlug/settings/operating-time",
       name: "Operating Time",
       element: <OperatingTimes />,
       route: PrivateRoute
     },
     {
-      path: "/create-notifications",
+      path: "/:tenantSlug/create-notifications",
       name: "Create Notifications",
       element: <CreateNotification />,
       route: PrivateRoute
     },
     {
-      path: "/manage-teams",
+      path: "/:tenantSlug/manage-teams",
       name: "Manage Teams",
       element: <ManageTeams />,
       route: PrivateRoute
     },
     {
-      path: "/team-members",
+      path: "/:tenantSlug/team-members",
       name: "Manage Team Members",
       element: <ManageTeamMembers />,
       route: PrivateRoute
     },
      {
-      path: "/settings/set-account",
+      path: "/:tenantSlug/settings/set-account",
       name: "Set Bank Account",
       element: <SetAccount />,
       route: PrivateRoute
     },
     {
-      path: "/settings/invoices",
+      path: "/:tenantSlug/settings/invoices",
       name: "Invoices",
       element: <Invoices />,
       route: PrivateRoute
     },
     {
-      path: "/account/roles",
+      path: "/:tenantSlug/account/roles",
       name: "Organisation",
       element: <Teams />,
       route: PrivateRoute

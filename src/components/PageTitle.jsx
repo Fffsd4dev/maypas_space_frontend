@@ -29,7 +29,7 @@ const PageTitle = (props) => {
                 href={
                   hasTenant
                     ? `/${tenantSlug}/${hasToken ? "tenantDashboard" : "home"}`
-                    : "/dashboard-3"
+                    : "/dashboard"
                 }
               >
                 {hasTenant

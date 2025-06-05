@@ -101,13 +101,15 @@ const UserBox = () => {
 
 /* sidebar content */
 const SideBarContent = () => {
+   const { user } = useAuthContext();
+  const tenantSlug = user?.tenant || "";
   return (
     <>
       <UserBox />
 
       {/* <div id="sidebar-menu"> */}
       {/* THE APP MEnu */}
-      <AppMenu menuItems={getMenuItems()} />
+      <AppMenu menuItems={getMenuItems(tenantSlug)} />
       {/* </div> */}
 
       <div className="clearfix" />

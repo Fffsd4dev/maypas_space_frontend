@@ -118,7 +118,8 @@ const VerticalLayout = ({ children }) => {
       )}
 
       <Suspense fallback={loading()}>
-        <Menu />
+        <Menu 
+        menu={menu} />
       </Suspense>
     </>
   );

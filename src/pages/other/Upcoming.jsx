@@ -80,9 +80,9 @@ const Upcoming = () => {
             <div className="col-11">
               <div className="text-center">
                 <h2>
-                  <Link to="#">
+                  {/* <Link to="#">
                     <img src={logoLight} alt="" height="24" />
-                  </Link>
+                  </Link> */}
                 </h2>
 
                 <RocketSvg />

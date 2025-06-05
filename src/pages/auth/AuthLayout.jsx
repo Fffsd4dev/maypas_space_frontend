@@ -38,14 +38,14 @@ const AuthLayout =
                     <div className="auth-brand">
                       <Link to="/auth/login" className="logo logo-dark text-center">
                         <span className="logo-lg">
-                          <img src={LogoDark} alt="" height="82" />
+                          {/* <img src={LogoDark} alt="" height="82" /> */}
                           <h3 color="#fe0002"> {tenantSlug} </h3>
                         </span>
                       </Link>
 
                       <Link to="/auth/login" className="logo logo-light text-center">
                         <span className="logo-lg">
-                          <img src={LogoLight} alt="" height="82" />
+                          {/* <img src={LogoLight} alt="" height="82" /> */}
                           <h3 color="#fe0002">{tenantSlug}</h3>
                         </span>
                       </Link>

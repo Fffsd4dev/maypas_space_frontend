@@ -585,7 +585,9 @@ const SeatBookingSystem = () => {
     <>
      <div className="visitor-header">
                   
-                  <h3 > <img src={logo} alt="Tenant Logo" /> | {tenantSlug}</h3>
+                  <h3 > 
+                    {/* <img src={logo} alt="Tenant Logo" />  */}
+                    | {tenantSlug}</h3>
                   <h2>Already have an account? <Link to={`/${tenantSlug}/auth/visitorLogin`} className=""><button type="submit" >Login</button></Link> </h2>
                 </div>
      <div className="pagetitle" >

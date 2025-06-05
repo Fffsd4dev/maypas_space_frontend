@@ -36,7 +36,7 @@ const Error404Two = () => {
               {/* logo */}
               <div className="auth-brand text-center text-lg-start">
                 <div className="auth-logo">
-                  <Link to="/" className="logo logo-dark text-center outline-none">
+                  {/* <Link to="/" className="logo logo-dark text-center outline-none">
                     <span className="logo-lg">
                       <img src={logoDark} alt="" height="22" />
                     </span>
@@ -46,7 +46,7 @@ const Error404Two = () => {
                     <span className="logo-lg">
                       <img src={logoLight} alt="" height="22" />
                     </span>
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
 

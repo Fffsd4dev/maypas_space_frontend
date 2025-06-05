@@ -22,164 +22,200 @@ import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { toggleDocumentAttribute } from "@/utils";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 
-
 // get the notifications
-const Notifications = [{
-  id: 1,
-  text: "Cristina Pride",
-  subText: "Hi, How are you? What about our next meeting",
-  avatar: profilePic
-}, {
-  id: 2,
-  text: "Caleb Flakelar commented on Admin",
-  subText: "1 min ago",
-  icon: "mdi mdi-comment-account-outline",
-  bgColor: "primary"
-}, {
-  id: 3,
-  text: "Karen Robinson",
-  subText: "Wow ! this admin looks good and awesome design",
-  avatar: avatar4
-}, {
-  id: 4,
-  text: "New user registered.",
-  subText: "5 hours ago",
-  icon: "mdi mdi-account-plus",
-  bgColor: "warning"
-}, {
-  id: 5,
-  text: "Caleb Flakelar commented on Admin",
-  subText: "1 min ago",
-  icon: "mdi mdi-comment-account-outline",
-  bgColor: "info"
-}, {
-  id: 6,
-  text: "Carlos Crouch liked Admin",
-  subText: "13 days ago",
-  icon: "mdi mdi-heart",
-  bgColor: "secondary"
-}];
+const Notifications = [
+  {
+    id: 1,
+    text: "Cristina Pride",
+    subText: "Hi, How are you? What about our next meeting",
+    avatar: profilePic,
+  },
+  {
+    id: 2,
+    text: "Caleb Flakelar commented on Admin",
+    subText: "1 min ago",
+    icon: "mdi mdi-comment-account-outline",
+    bgColor: "primary",
+  },
+  {
+    id: 3,
+    text: "Karen Robinson",
+    subText: "Wow ! this admin looks good and awesome design",
+    avatar: avatar4,
+  },
+  {
+    id: 4,
+    text: "New user registered.",
+    subText: "5 hours ago",
+    icon: "mdi mdi-account-plus",
+    bgColor: "warning",
+  },
+  {
+    id: 5,
+    text: "Caleb Flakelar commented on Admin",
+    subText: "1 min ago",
+    icon: "mdi mdi-comment-account-outline",
+    bgColor: "info",
+  },
+  {
+    id: 6,
+    text: "Carlos Crouch liked Admin",
+    subText: "13 days ago",
+    icon: "mdi mdi-heart",
+    bgColor: "secondary",
+  },
+];
 
 // dummy search results
-const SearchResults = [{
-  id: 1,
-  title: "Analytics Report",
-  icon: "uil-notes",
-  redirectTo: "#"
-}, {
-  id: 2,
-  title: "How can I help you?",
-  icon: "uil-life-ring",
-  redirectTo: "#"
-}, {
-  id: 3,
-  icon: "uil-cog",
-  title: "User profile settings",
-  redirectTo: "#"
-}];
-const otherOptions = [{
-  id: 1,
-  label: "New Projects",
-  icon: "fe-briefcase"
-}, {
-  id: 2,
-  label: "Create Users",
-  icon: "fe-user"
-}, {
-  id: 3,
-  label: "Revenue Report",
-  icon: "fe-bar-chart-line-"
-}, {
-  id: 4,
-  label: "Settings",
-  icon: "fe-settings"
-}, {
-  id: 4,
-  label: "Help & Support",
-  icon: "fe-headphones"
-}];
+const SearchResults = [
+  {
+    id: 1,
+    title: "Analytics Report",
+    icon: "uil-notes",
+    redirectTo: "#",
+  },
+  {
+    id: 2,
+    title: "How can I help you?",
+    icon: "uil-life-ring",
+    redirectTo: "#",
+  },
+  {
+    id: 3,
+    icon: "uil-cog",
+    title: "User profile settings",
+    redirectTo: "#",
+  },
+];
+const otherOptions = [
+  {
+    id: 1,
+    label: "New Projects",
+    icon: "fe-briefcase",
+  },
+  {
+    id: 2,
+    label: "Create Users",
+    icon: "fe-user",
+  },
+  {
+    id: 3,
+    label: "Revenue Report",
+    icon: "fe-bar-chart-line-",
+  },
+  {
+    id: 4,
+    label: "Settings",
+    icon: "fe-settings",
+  },
+  {
+    id: 4,
+    label: "Help & Support",
+    icon: "fe-headphones",
+  },
+];
 
 // get mega-menu options
-const MegaMenuOptions = [{
-  id: 1,
-  title: "UI Components",
-  menuItems: ["Widgets", "Nestable List", "Range Sliders", "Masonry Items", "Sweet Alerts", "Treeview Page", "Tour Page"]
-}, {
-  id: 2,
-  title: "Applications",
-  menuItems: ["eCommerce Pages", "CRM Pages", "Email", "Calendar", "Team Contacts", "Task Board", "Email Templates"]
-}, {
-  id: 3,
-  title: "Extra Pages",
-  menuItems: ["Left Sidebar with User", "Menu Collapsed", "Small Left Sidebar", "New Header Style", "Search Result", "Gallery Pages", "Maintenance & Coming Soon"]
-}];
-const Topbar2 = ({
-  hideLogo,
-  navCssClasses
-}) => {
-  const {
-    width
-  } = useViewport();
-  const {
-    menu,
-    orientation,
-    changeMenuSize,
-    themeCustomizer
-  } = useLayoutContext();
+const MegaMenuOptions = [
+  {
+    id: 1,
+    title: "UI Components",
+    menuItems: [
+      "Widgets",
+      "Nestable List",
+      "Range Sliders",
+      "Masonry Items",
+      "Sweet Alerts",
+      "Treeview Page",
+      "Tour Page",
+    ],
+  },
+  {
+    id: 2,
+    title: "Applications",
+    menuItems: [
+      "eCommerce Pages",
+      "CRM Pages",
+      "Email",
+      "Calendar",
+      "Team Contacts",
+      "Task Board",
+      "Email Templates",
+    ],
+  },
+  {
+    id: 3,
+    title: "Extra Pages",
+    menuItems: [
+      "Left Sidebar with User",
+      "Menu Collapsed",
+      "Small Left Sidebar",
+      "New Header Style",
+      "Search Result",
+      "Gallery Pages",
+      "Maintenance & Coming Soon",
+    ],
+  },
+];
+const Topbar2 = ({ hideLogo, navCssClasses }) => {
+  const { width } = useViewport();
+  const { menu, orientation, changeMenuSize, themeCustomizer } =
+    useLayoutContext();
 
-  const {user} = useAuthContext();
-    const  tenantSlug  = user?.tenant;
-    const ownerFirstName = user?.ownerFirstName;
- 
+  const { user } = useAuthContext();
+  const tenantSlug = user?.tenant;
+  const ownerFirstName = user?.ownerFirstName;
+
   const navbarCssClasses = navCssClasses || "";
   const containerCssClasses = !hideLogo ? "container-fluid" : "";
 
   const ProfileMenus = [
-  //   {
-  //   label: "My Account",
-  //   icon: "fe-user",
-  //   redirectTo: "#"
-  // }, 
-  {
-    label: "Settings",
-    icon: "fe-settings",
-    onClick: () => {
-      console.log("Settings clicked");
-      themeCustomizer.toggle();
+    //   {
+    //   label: "My Account",
+    //   icon: "fe-user",
+    //   redirectTo: "#"
+    // },
+    {
+      label: "Settings",
+      icon: "fe-settings",
+      onClick: () => {
+        console.log("Settings clicked");
+        themeCustomizer.toggle();
+      },
     },
-  }, 
-  // {
-  //   label: "Lock Screen",
-  //   icon: "fe-lock",
-  //   redirectTo: `auth/lock-screen`
-  // },
-   {
-    label: "Logout",
-    icon: "fe-log-out",
-    redirectTo: `/auth/logout2`
-  }];
+    // {
+    //   label: "Lock Screen",
+    //   icon: "fe-lock",
+    //   redirectTo: `auth/lock-screen`
+    // },
+    {
+      label: "Logout",
+      icon: "fe-log-out",
+      redirectTo: `/auth/logout2`,
+    },
+  ];
 
   /**
    * Toggle the leftmenu when having mobile screen
    */
   const handleLeftMenuCallBack = () => {
     if (width < 1140) {
-      if (menu.size === 'full') {
+      if (menu.size === "full") {
         showLeftSideBarBackdrop();
         toggleDocumentAttribute("class", "sidebar-enable");
       } else {
-        changeMenuSize('full');
+        changeMenuSize("full");
       }
     } else if (menu.size === "condensed") {
-      changeMenuSize('default');
-    } else if (menu.size === 'full') {
+      changeMenuSize("default");
+    } else if (menu.size === "full") {
       showLeftSideBarBackdrop();
       toggleDocumentAttribute("class", "sidebar-enable");
-    } else if (menu.size === 'fullscreen') {
-      changeMenuSize('default');
+    } else if (menu.size === "fullscreen") {
+      changeMenuSize("default");
       toggleDocumentAttribute("class", "sidebar-enable");
     } else {
-      changeMenuSize('condensed');
+      changeMenuSize("condensed");
     }
   };
 
@@ -189,7 +225,9 @@ const Topbar2 = ({
     backdrop.id = "custom-backdrop";
     backdrop.className = "offcanvas-backdrop fade show";
     document.body.appendChild(backdrop);
-    if (document.getElementsByTagName("html")[0]?.getAttribute("dir") !== "rtl") {
+    if (
+      document.getElementsByTagName("html")[0]?.getAttribute("dir") !== "rtl"
+    ) {
       document.body.style.overflow = "hidden";
       if (width > 1140) {
         document.body.style.paddingRight = "15px";
@@ -197,7 +235,7 @@ const Topbar2 = ({
     }
     backdrop.addEventListener("click", function () {
       toggleDocumentAttribute("class", "sidebar-enable", true);
-      changeMenuSize('full');
+      changeMenuSize("full");
       hideLeftSideBarBackdrop();
     });
   }
@@ -208,72 +246,94 @@ const Topbar2 = ({
       document.body.style.overflow = "visible";
     }
   }
-  return <React.Fragment>
-            <div className={`navbar-custom ${navbarCssClasses}`}>
-                <div className={`topbar ${containerCssClasses}`}>
-                    <div className="topbar-menu d-flex align-items-center gap-1">
-                        {!hideLogo && <div className="logo-box">
-                                <Link to="/" className="logo logo-dark text-center">
+  return (
+    <React.Fragment>
+      <div className={`navbar-custom ${navbarCssClasses}`}>
+        <div className={`topbar ${containerCssClasses}`}>
+          <div className="topbar-menu d-flex align-items-center gap-1">
+            {!hideLogo && (
+              <div className="logo-box">
+                {/* <Link to="/" className="logo logo-dark text-center">
                   <span className="logo-sm">
                     <img src={logoSm} alt="" height="22" />
                   </span>
-                                    <span className="logo-lg">
-                    <img src={orientation === 'two-column' ? logoDark2 : logoDark} alt="" height="20" />
+                  <span className="logo-lg">
+                    <img
+                      src={orientation === "two-column" ? logoDark2 : logoDark}
+                      alt=""
+                      height="20"
+                    />
                   </span>
-                                </Link>
-                                <Link to="/" className="logo logo-light text-center">
+                </Link>
+                <Link to="/" className="logo logo-light text-center">
                   <span className="logo-sm">
                     <img src={logoSm} alt="" height="22" />
                   </span>
-                                    <span className="logo-lg">
-                    <img src={orientation === 'two-column' ? logoLight2 : logoLight} alt="" height="20" />
+                  <span className="logo-lg">
+                    <img
+                      src={
+                        orientation === "two-column" ? logoLight2 : logoLight
+                      }
+                      alt=""
+                      height="20"
+                    />
                   </span>
-                                </Link>
-                            </div>}
+                </Link> */}
+              </div>
+            )}
 
-                        <button className="button-toggle-menu" onClick={handleLeftMenuCallBack}>
-                            <i className="mdi mdi-menu" />
-                        </button>
+            <button
+              className="button-toggle-menu"
+              onClick={handleLeftMenuCallBack}
+            >
+              <i className="mdi mdi-menu" />
+            </button>
 
-                        {/* <div className="dropdown d-none d-xl-block">
+            {/* <div className="dropdown d-none d-xl-block">
                             <CreateNew otherOptions={otherOptions} />
                         </div>
 
                         <div className="dropdown dropdown-mega d-none d-xl-block">
                             <MegaMenu subMenus={MegaMenuOptions} />
                         </div> */}
-                    </div>
+          </div>
 
-                    <ul className="topbar-menu d-flex align-items-center">
-                        {/* <li className="app-search dropdown d-none d-lg-block">
+          <ul className="topbar-menu d-flex align-items-center">
+            {/* <li className="app-search dropdown d-none d-lg-block">
                             <TopbarSearch items={SearchResults} />
                         </li> */}
-                        {/* <li className="dropdown d-inline-block d-lg-none">
+            {/* <li className="dropdown d-inline-block d-lg-none">
                          <SearchDropdown />
                          </li> */}
-                        <li className="dropdown d-none d-lg-inline-block">
-                            <MaximizeScreen />
-                        </li>
-                        <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
-                            <AppsDropdown />
-                        </li>
-                        {/* <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
+            <li className="dropdown d-none d-lg-inline-block">
+              <MaximizeScreen />
+            </li>
+            {/* <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
+              <AppsDropdown />
+            </li> */}
+            {/* <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
                             <LanguageDropdown />
                         </li> */}
-                        <li className="dropdown notification-list">
-                            <NotificationDropdown notifications={Notifications} />
-                        </li>
-                        <li className="dropdown">
-                            <ProfileDropdown profilePic={profilePic} menuItems={ProfileMenus} username={ownerFirstName} userTitle={"Founder"} />
-                        </li>
-                        <li>
-                            {/* <button className="nav-link dropdown-toggle right-bar-toggle waves-effect waves-light btn btn-link shadow-none" onClick={themeCustomizer.toggle}>
+            <li className="dropdown notification-list">
+              <NotificationDropdown notifications={Notifications} />
+            </li>
+            <li className="dropdown">
+              <ProfileDropdown
+                profilePic={profilePic}
+                menuItems={ProfileMenus}
+                username={ownerFirstName}
+                userTitle={"Founder"}
+              />
+            </li>
+            <li>
+              {/* <button className="nav-link dropdown-toggle right-bar-toggle waves-effect waves-light btn btn-link shadow-none" onClick={themeCustomizer.toggle}>
                                 <i className="fe-settings noti-icon font-22"></i>
                             </button> */}
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </React.Fragment>;
+            </li>
+          </ul>
+        </div>
+      </div>
+    </React.Fragment>
+  );
 };
 export default Topbar2;

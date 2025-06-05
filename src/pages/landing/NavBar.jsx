@@ -29,10 +29,10 @@ const NavBar = () => {
       boxShadow: 'unset'
     }}>
         <Container className="container-fluid">
-          <Link to="/" className="logo text-uppercase">
+          {/* <Link to="/" className="logo text-uppercase">
             <img src={logo} alt="" className="logo-light" height="21" />
             <img src={logo1} alt="" className="logo-dark" height="21" />
-          </Link>
+          </Link> */}
 
           <Navbar.Toggle className="navbar-toggler" aria-controls="responsive-navbar-nav">
             <i className="mdi mdi-menu"></i>

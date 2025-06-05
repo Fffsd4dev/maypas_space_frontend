@@ -113,7 +113,7 @@ const WorkspaceRoles = () => {
 
       if (!response.ok) {
         throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
+          `Contact Support! HTTP error! Status: ${response.message}`
         );
       }
 

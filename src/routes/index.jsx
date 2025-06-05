@@ -39,7 +39,7 @@ const Dashboard3 = React.lazy(() => import("../pages/dashboard/Dashboard3/"));
 const Dashboard4 = React.lazy(() => import("../pages/dashboard/Dashboard4/"));
 
 // Tenants
-const Tenants = React.lazy(() => import("../pages/tenants"));
+const Tenants = React.lazy(() => import("../pages/Tenants"));
 
 // Visitor
 const Visitor = React.lazy(() => import("../pages/Visitor"));

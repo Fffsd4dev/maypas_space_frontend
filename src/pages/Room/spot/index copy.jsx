@@ -3104,7 +3104,7 @@
 
 // // // //       // Make API call to your specific endpoint
 // // // //       const response = await fetch(
-// // // //         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+// // // //         `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/spot/book`,
 // // // //         {
 // // // //           method: "POST",
 // // // //           headers: {
@@ -4122,7 +4122,7 @@
 
 // // //       // Make API call to your specific endpoint
 // // //       const response = await fetch(
-// // //         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+// // //         `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/spot/book`,
 // // //         {
 // // //           method: "POST",
 // // //           headers: {
@@ -5141,7 +5141,7 @@
 
 // //       // Make API call to your specific endpoint
 // //       const response = await fetch(
-// //         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+// //         `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/spot/book`,
 // //         {
 // //           method: "POST",
 // //           headers: {
@@ -6187,7 +6187,7 @@
 
 // //       // Make API call to your specific endpoint
 // //       const response = await fetch(
-// //         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+// //         `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/spot/book`,
 // //         {
 // //           method: "POST",
 // //           headers: {
@@ -7250,7 +7250,7 @@
 
 // //       // Make API call to your specific endpoint
 // //       const response = await fetch(
-// //         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+// //         `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/spot/book`,
 // //         {
 // //           method: "POST",
 // //           headers: {
@@ -8338,7 +8338,7 @@
 
 // //       // Make API call to your specific endpoint
 // //       const response = await fetch(
-// //         "https://trial.maypasworkspace.com/api/distinctshoot/spot/book",
+// //         `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/spot/book`,
 // //         {
 // //           method: "POST",
 // //           headers: {

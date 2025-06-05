@@ -39,7 +39,7 @@ const AdminRegistrationForm = ({ show, onHide, selectedAdmin }) => {
         if (user?.token) {
             const fetchRoles = async () => {
                 try {
-                    const response = await fetch("https://trial.maypasworkspace.com/api/system-admin/view-roles", {
+                    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/system-admin/view-roles`, {
                         headers: { Authorization: `Bearer ${user.token}` },
                     });
                     const result = await response.json();
@@ -73,8 +73,8 @@ const AdminRegistrationForm = ({ show, onHide, selectedAdmin }) => {
             if (!user?.token) throw new Error("Authorization token is missing.");
 
             const endpoint = selectedAdmin
-                ? `https://trial.maypasworkspace.com/api/system-admin/update/${selectedAdmin.id}`
-                : "https://trial.maypasworkspace.com/api/system-admin/add";
+                ? `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/update/${selectedAdmin.id}`
+                : `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/add`;
             
             const method = selectedAdmin ? "POST" : "POST";
             

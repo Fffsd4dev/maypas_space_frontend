@@ -1,7 +1,15 @@
-
 import React, { useState, useEffect } from "react";
-import { Link, redirect, useNavigate } from "react-router-dom";
-import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
+import { Link, redirect, useNavigate, useParams } from "react-router-dom";
+import {
+  Row,
+  Col,
+  Card,
+  Button,
+  Spinner,
+  Form,
+  Badge,
+  Alert,
+} from "react-bootstrap";
 import PageTitle from "../../components/PageTitle";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../components/Popup/Popup";
@@ -10,66 +18,71 @@ import { toast } from "react-toastify";
 import UsersRegistrationModal from "../MyWorkspaceAccount/Personal/UsersRegistrationForm";
 import Error404Alt from "../../pages/error/Error404Alt";
 import axios from "axios";
-import './index.css';
+import "./index.css";
 import logo from "@/assets/images/logo-dark.png";
 
-
-
 const SeatBookingSystem = () => {
-  const { removeSession, user } = useAuthContext();
+  const { removeSession } = useAuthContext();
+  const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
-  const tenantSlug = user?.tenant;
+
+  const { tenantSlug: tenantUrlSlug } = useParams();
+
+  // Prefer user.tenant but fall back to URL param
+  const tenantSlug = user?.tenant || tenantUrlSlug;
   const navigate = useNavigate();
 
-    useEffect(() => {
-    if (document.body) document.body.classList.remove("authentication-bg", "authentication-bg-pattern");
+  useEffect(() => {
+    if (document.body)
+      document.body.classList.remove(
+        "authentication-bg",
+        "authentication-bg-pattern"
+      );
   }, []);
 
-//   if (!tenantToken || !tenantSlug) {
-  
-//   return <Error404Alt />
-// }
+    if ( !tenantSlug) {
 
+    return <Error404Alt />
+  }
 
   useEffect(() => {
-    if (document.body) document.body.classList.remove("authentication-bg", "authentication-bg-pattern");
+    if (document.body)
+      document.body.classList.remove(
+        "authentication-bg",
+        "authentication-bg-pattern"
+      );
   }, []);
 
-  
-  //   useEffect(() => {
-  //   const logout = async () => {
-  //     console.log(tenantToken);
-  //     try {
-  //       const res = await axios.post(
-  //         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/logout`,
-  //         {},
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${tenantToken}`,
-  //             "Content-Type": "multipart/form-data",
-  //           },
-  //         }
-  //       );
+    useEffect(() => {
+    const logout = async () => {
+      console.log(tenantToken);
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/logout`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${tenantToken}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
-  //       if (res.status === 200) {
-  //         console.log(res.data.message);
-  //         removeSession();
+        if (res.status === 200) {
+          console.log(res.data.message);
+          removeSession();
 
-  //       } else {
-  //         console.error('Logout Failed:', res);
-  //       }
-  //     } catch (e) {
-  //       console.error('Error during Logout:', e);
-       
-  //     }
-  //   };
+        } else {
+          console.error('Logout Failed:', res);
+        }
+      } catch (e) {
+        console.error('Error during Logout:', e);
 
-  //   logout();
-  // }, [tenantSlug, removeSession, navigate, tenantToken]);
+      }
+    };
 
-
-
-
+    logout();
+  }, [tenantSlug, removeSession, navigate, tenantToken]);
 
   // State variables
   const [show, setShow] = useState(false);
@@ -83,27 +96,29 @@ const SeatBookingSystem = () => {
   const [roomDetails, setRoomDetails] = useState(null);
   const [spaceCards, setSpaceCards] = useState([]);
   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   // Booking popup states
   const [showBookingPopup, setShowBookingPopup] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState(null);
   const [bookingFormData, setBookingFormData] = useState({
     type: "one-off",
-    chosen_days: [{
-      day: "",
-      start_time: "",
-      end_time: ""
-    }],
+    chosen_days: [
+      {
+        day: "",
+        start_time: "",
+        end_time: "",
+      },
+    ],
     number_weeks: "0",
     number_months: "0",
-    user_id: ""
+    user_id: "",
   });
 
   const [popup, setPopup] = useState({
@@ -131,7 +146,7 @@ const SeatBookingSystem = () => {
     name: "",
     location_id: "",
     floor_id: "",
-    room_id: ""
+    room_id: "",
   });
 
   // Format date time
@@ -149,49 +164,36 @@ const SeatBookingSystem = () => {
 
   // Fetch locations
   const fetchLocations = async () => {
+    console.log(tenantSlug);
     setLoadingLocations(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
-        {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
-        }
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/get/locations`
       );
+      console.log(response);
       const result = await response.json();
+      console.log(result);
+     
       if (response.ok) {
-        setLocations(result.data.data || []);
+        if (result && Array.isArray(result.data)) {
+          const data = result.data;
+          setLocations(data || []);
+        }
       } else {
         throw new Error(result.message || "Failed to fetch locations.");
       }
     } catch (error) {
       toast.error(error.message);
+       if (error.message === "This workspace is not registered on our platform") {
+      setNotFound(true);  //  Set error state here
+    } else {
+      toast.error(error.message);
+    }
     } finally {
       setLoadingLocations(false);
     }
   };
 
-  // Fetch users
-  const fetchUsers = async () => {
-    setLoadingUsers(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-users`,
-        {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
-        }
-      );
-      const result = await response.json();
-      if (response.ok) {
-        setUsers(result.data.data || []);
-      } else {
-        throw new Error(result.message || "Failed to fetch users.");
-      }
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoadingUsers(false);
-    }
-  };
 
   // Handle location change
   const handleLocationChange = (e) => {
@@ -200,8 +202,7 @@ const SeatBookingSystem = () => {
     setFormData((prev) => ({
       ...prev,
       location_id: locationId,
-      floor_id: "",
-      room_id: ""
+      room_id: "",
     }));
     setFloorData([]);
     setRoomsData([]);
@@ -215,7 +216,9 @@ const SeatBookingSystem = () => {
     setLoadingFloor(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/floor/list-floors/${locationId}`,
         {
           method: "GET",
           headers: {
@@ -242,43 +245,29 @@ const SeatBookingSystem = () => {
   };
 
   // Fetch rooms for selected floor
-  const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+  const fetchRoom = async (locationId, page = 1, pageSize = 10) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
-          },
-        }
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/get/spaces/${locationId}?page=${page}&per_page=${pageSize}`,
+        { method: "GET" }
       );
-
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
       const result = await response.json();
-
-      if (result && Array.isArray(result)) {
-        const sortedData = result.sort(
-          (a, b) =>
-            new Date(b.updated_at || b.created_at) -
-            new Date(a.updated_at || a.created_at)
-        );
-        setRoomsData(sortedData);
-        setData(sortedData);
-        setPagination({
-          currentPage: result.current_page,
-          totalPages: result.last_page,
-          nextPageUrl: result.next_page_url,
-          prevPageUrl: result.prev_page_url,
-          pageSize: pageSize,
-        });
-      } else {
-        throw new Error("Invalid response format");
-      }
+      // result.data is an object: { "Co-Workspace": [...], "Office Pod": [...], ... }
+      setRoomsData(result.data); // Store the whole object
+      setData(result.data); // If you use setData elsewhere
+      setPagination({
+        currentPage: result.current_page,
+        totalPages: result.last_page,
+        nextPageUrl: result.next_page_url,
+        prevPageUrl: result.prev_page_url,
+        pageSize: pageSize,
+      });
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -289,13 +278,13 @@ const SeatBookingSystem = () => {
   // Generate space cards based on space_number (fallback)
   const generateSpaceCards = (spaceNumber) => {
     // if (!spaceNumber || isNaN(spaceNumber) return [];
-    
+
     return Array.from({ length: spaceNumber }, (_, i) => ({
       id: i + 1,
       space_number: i + 1,
       is_available: true, // All spaces available
       space_fee: roomDetails?.space_fee || 0,
-      space_type: 'Standard'
+      space_type: "Standard",
     }));
   };
 
@@ -310,34 +299,35 @@ const SeatBookingSystem = () => {
     setLoadingRoomDetails(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/space/show/${roomId}`,
         {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
-          },
         }
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+        throw new Error(
+          `Failed to fetch room details: Status: ${response.status}`
+        );
       }
 
       const result = await response.json();
-      
+
       if (result && result.data) {
         setRoomDetails(result.data);
-        
+
         if (result.data.spots && Array.isArray(result.data.spots)) {
-          const cards = result.data.spots.map(spot => ({
+          const cards = result.data.spots.map((spot) => ({
             id: spot.id,
             space_number: spot.spot_number || spot.id,
             is_available: true, // Force all spaces to be available
             space_fee: spot.price || roomDetails?.space_fee || 0,
-            space_type: spot.type || 'Standard',
-            spotData: spot
+            space_type: spot.type || "Standard",
+            spotData: spot,
           }));
-          
+
           setSpaceCards(cards);
         } else {
           const cards = generateSpaceCards(result.data.space_number);
@@ -359,14 +349,14 @@ const SeatBookingSystem = () => {
     setFormData((prev) => ({
       ...prev,
       floor_id: floorId,
-      room_id: ""
+      room_id: "",
     }));
     setSelectedRoom(null);
     setSpaceCards([]);
     setRoomDetails(null);
 
-    if (floorId && selectedLocation) {
-      fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
+    if (selectedLocation) {
+      fetchRoom(selectedLocation, pagination.currentPage, pagination.pageSize);
     }
   };
 
@@ -376,11 +366,11 @@ const SeatBookingSystem = () => {
     setSelectedRoom(roomId);
     setFormData((prev) => ({
       ...prev,
-      room_id: roomId
+      room_id: roomId,
     }));
 
     if (roomId) {
-      const filteredData = roomsData.filter(room => room.id === roomId);
+      const filteredData = roomsData.filter((room) => room.id === roomId);
       setData(filteredData);
       await fetchRoomDetails(roomId);
     } else {
@@ -390,19 +380,15 @@ const SeatBookingSystem = () => {
     }
   };
 
-  // Handle edit click
-  const handleEditClick = (myRoom) => {
-    setSelectedUser(myRoom);
-    setShow(true);
-  };
+
 
   // Handle close modal
   const handleClose = () => {
     setShow(false);
-    setSelectedUser(null);
 
-    if (selectedLocation && formData.floor_id) {
-      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+
+    if (selectedLocation) {
+      fetchRoom(selectedLocation, pagination.currentPage, pagination.pageSize);
     }
   };
 
@@ -410,46 +396,48 @@ const SeatBookingSystem = () => {
   const handleDayChange = (index, field, value) => {
     const updatedDays = [...bookingFormData.chosen_days];
     updatedDays[index][field] = value;
-    setBookingFormData(prev => ({
+    setBookingFormData((prev) => ({
       ...prev,
-      chosen_days: updatedDays
+      chosen_days: updatedDays,
     }));
   };
 
   // Add a new day to the booking
   const addDay = () => {
-    setBookingFormData(prev => ({
+    setBookingFormData((prev) => ({
       ...prev,
       chosen_days: [
         ...prev.chosen_days,
-        { day: "", start_time: "", end_time: "" }
-      ]
+        { day: "", start_time: "", end_time: "" },
+      ],
     }));
   };
 
   // Remove a day from the booking
   const removeDay = (index) => {
-    setBookingFormData(prev => ({
+    setBookingFormData((prev) => ({
       ...prev,
-      chosen_days: prev.chosen_days.filter((_, i) => i !== index)
+      chosen_days: prev.chosen_days.filter((_, i) => i !== index),
     }));
   };
 
   // Handle book now click
   const handleBookNowClick = (space) => {
-  console.log('Booking spot with ID:', space.id);
-  console.log('Spot details:', space);
+    console.log("Booking spot with ID:", space.id);
+    console.log("Spot details:", space);
     setSelectedSpace(space);
     setBookingFormData({
       type: "one-off",
-      chosen_days: [{
-        day: "",
-        start_time: "",
-        end_time: ""
-      }],
+      chosen_days: [
+        {
+          day: "",
+          start_time: "",
+          end_time: "",
+        },
+      ],
       number_weeks: "0",
       number_months: "0",
-      user_id: ""
+      user_id: "",
     });
     setShowBookingPopup(true);
   };
@@ -461,20 +449,20 @@ const SeatBookingSystem = () => {
 
   const handleBookingInputChange = (e) => {
     const { name, value } = e.target;
-    
-    setBookingFormData(prev => {
+
+    setBookingFormData((prev) => {
       if (name === "type" && value === "one-off") {
         return {
           ...prev,
           type: value,
           number_weeks: "0",
-          number_months: "0"
+          number_months: "0",
         };
       }
-      
+
       return {
         ...prev,
-        [name]: value
+        [name]: value,
       };
     });
   };
@@ -482,19 +470,20 @@ const SeatBookingSystem = () => {
   const formatTimeForAPI = (datetimeString) => {
     if (!datetimeString) return "";
     const date = new Date(datetimeString);
-    return date.toISOString().replace('T', ' ').substring(0, 19);
+    return date.toISOString().replace("T", " ").substring(0, 19);
   };
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       // Validate chosen days
-      const hasEmptyFields = bookingFormData.chosen_days.some(day => 
-        !day.day || !day.start_time || !day.end_time
-      ) || !bookingFormData.user_id;
-      
+      const hasEmptyFields =
+        bookingFormData.chosen_days.some(
+          (day) => !day.day || !day.start_time || !day.end_time
+        ) || !bookingFormData.user_id;
+
       if (hasEmptyFields) {
         throw new Error("Please fill in all required fields");
       }
@@ -515,16 +504,20 @@ const SeatBookingSystem = () => {
 
       // Prepare the booking data
       const bookingData = {
+        company_name: bookingFormData.company_name || "",
+        first_name: bookingFormData.first_name || "",
+        last_name: bookingFormData.last_name || "",
+        email: bookingFormData.email || "",
+        phone: bookingFormData.phone || "0",
         spot_id: selectedSpace.id.toString(),
-        user_id: bookingFormData.user_id,
         type: bookingFormData.type,
         number_weeks: bookingFormData.number_weeks || "0",
         number_months: bookingFormData.number_months || "0",
-        chosen_days: bookingFormData.chosen_days.map(day => ({
+        chosen_days: bookingFormData.chosen_days.map((day) => ({
           day: day.day.toLowerCase(),
           start_time: formatTimeForAPI(day.start_time),
-          end_time: formatTimeForAPI(day.end_time)
-        }))
+          end_time: formatTimeForAPI(day.end_time),
+        })),
       };
 
       // Make API call
@@ -533,13 +526,13 @@ const SeatBookingSystem = () => {
         {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(bookingData),
         }
       );
-      console.log('fff', bookingData)
+      console.log("fff", bookingData);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -549,7 +542,7 @@ const SeatBookingSystem = () => {
       const result = await response.json();
       toast.success(result.message || "Space booked successfully!");
       handleBookingClose();
-      
+
       // Refresh the space data
       if (selectedRoom) {
         await fetchRoomDetails(selectedRoom);
@@ -563,54 +556,56 @@ const SeatBookingSystem = () => {
 
   // Use effects
   useEffect(() => {
-    if (user?.tenantToken) {
-      fetchLocations();
-      fetchUsers();
-    }
-  }, [user?.tenantToken]);
+    fetchLocations();
+  }, []);
+
+  // useEffect(() => {
+  //   if (selectedLocation) {
+  //     fetchFloor(selectedLocation);
+  //   }
+  // }, [selectedLocation]);
 
   useEffect(() => {
-    if (selectedLocation) {
-      fetchFloor(selectedLocation);
-    }
-  }, [selectedLocation]);
-
-  useEffect(() => {
-    if (formData.floor_id && user?.tenantToken) {
-      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
-    }
-  }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+    fetchRoom(selectedLocation, pagination.currentPage, pagination.pageSize);
+  }, [selectedLocation, pagination.currentPage, pagination.pageSize]);
 
   return (
-    <>
-     <div className="visitor-header">
-                  
-                  <h3 > 
-                    {/* <img src={logo} alt="Tenant Logo" />  */}
-                    | {tenantSlug}</h3>
-                  <h2>Already have an account? <Link to={`/${tenantSlug}/auth/visitorLogin`} className=""><button type="submit" >Login</button></Link> </h2>
-                </div>
-     <div className="pagetitle" >
-       <PageTitle
-        breadCrumbItems={[
-          { label: "Book a Spot", path: "/${tenantSlug}/home", active: true },
-        ]}
-        title="Book a Spot"
-      />
-     </div>
+    notFound ? <Error404Alt /> : (
+      <>
+        <div className="visitor-header">
+          <h3>
+            {/* <img src={logo} alt="Tenant Logo" />  */}| {tenantSlug}
+          </h3>
+          <h2>
+            Already have an account?{" "}
+            <Link to={`/${tenantSlug}/auth/visitorLogin`} className="">
+            <button type="submit">Login</button>
+          </Link>{" "}
+        </h2>
+      </div>
+      <div className="pagetitle">
+        <PageTitle
+          breadCrumbItems={[
+            { label: "Book a Spot", path: "/${tenantSlug}/home", active: true },
+          ]}
+          title="Book a Spot"
+        />
+      </div>
 
       <Row>
         <Col>
           <Card>
             <Card.Body>
               <Card>
-                <Card.Body style={{ 
-                  background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", 
-                  marginTop: "30px", 
-                  marginLeft: "2rem",
-                  marginRight: "2rem",
-                }}>
-
+                <Card.Body
+                  style={{
+                    background:
+                      "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))",
+                    marginTop: "30px",
+                    marginLeft: "2rem",
+                    marginRight: "2rem",
+                  }}
+                >
                   {/* Location Selection */}
                   {loadingLocations ? (
                     <div className="text-center">
@@ -641,130 +636,72 @@ const SeatBookingSystem = () => {
                     </div>
                   )}
 
-                  {/* Floor Selection */}
-                  {selectedLocation && (
-                    <Form.Group className="mb-3" controlId="location_id">
-                      {loadingFloor ? (
-                        <div className="text-center">
-                          <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Loading floors/sections...</span>
-                          </Spinner>
-                        </div>
-                      ) : (
-                        <>
-                          <Form.Label>
-                            Select the Floor of the room you want to view.
-                          </Form.Label>
-                          <Form.Select
-                            name="floor_id"
-                            value={formData.floor_id}
-                            onChange={handleFloorChange}
-                            required
-                          >
-                            <option value="">Select a Floor/Section</option>
-                            {Array.isArray(floorData) &&
-                              floorData.map((floor) => (
-                                <option key={floor.id} value={floor.id}>
-                                  {floor.name}
-                                </option>
-                              ))}
-                          </Form.Select>
-                        </>
-                      )}
-                    </Form.Group>
-                  )}
-
                   {/* Room Selection */}
-                  {formData.floor_id && (
+                  {selectedLocation && (
                     <Form.Group className="mb-3" controlId="room_id">
-                      <Form.Label>
-                        Select a specific room (optional)
-                      </Form.Label>
-                      <Form.Select
-                        name="room_id"
-                        value={formData.room_id}
-                        onChange={handleRoomChange}
-                      >
-                        <option value="">All Rooms</option>
-                        {Array.isArray(roomsData) &&
-                          roomsData.map((room) => (
-                            <option key={room.id} value={room.id}>
-                              {room.space_name} (No: {room.space_number})
-                            </option>
-                          ))}
-                      </Form.Select>
+                      {/* Render category sections OUTSIDE the select */}
+                      {/* Render category sections OUTSIDE the select */}
+                      {roomsData &&
+                        Object.keys(roomsData).map((category, idx) => (
+                          <div
+                            key={category}
+                            className="mb-4 p-3 rounded"
+                            style={{
+                              background:
+                                idx % 2 === 0
+                                  ? "linear-gradient(to right, #f8f9fa, #e9ecef)"
+                                  : "linear-gradient(to right, #f3e9e7, #f7f1ee)",
+                            }}
+                          >
+                            <h4>{category}</h4>
+                            <Row>
+                              {roomsData[category].length === 0 ? (
+                                <Col>
+                                  <Alert variant="info">
+                                    No spaces in this category.
+                                  </Alert>
+                                </Col>
+                              ) : (
+                                roomsData[category].map((room) => (
+                                  <Col
+                                    key={room.spot_id}
+                                    md={3}
+                                    className="mb-3"
+                                  >
+                                    <Card className="h-100">
+                                      <Card.Body className="d-flex flex-column">
+                                        <Card.Title>
+                                          {room.space_name}
+                                        </Card.Title>
+                                       <Card.Text className="flex-grow-1">
+  <span><strong>Fee:</strong> {room.space_fee}</span><br />
+  <span><strong>Location:</strong> {room.location_name}</span><br />
+  <span><strong>Floor:</strong> {room.floor_name}</span>
+</Card.Text>
+                                        <div className="mt-auto">
+                                          <Button
+                                            variant="primary"
+                                            size="sm"
+                                            className="w-100"
+                                            onClick={() =>
+                                              handleBookNowClick(room)
+                                            }
+                                          >
+                                            Book Now
+                                          </Button>
+                                        </div>
+                                      </Card.Body>
+                                    </Card>
+                                  </Col>
+                                ))
+                              )}
+                            </Row>
+                          </div>
+                        ))}
                     </Form.Group>
                   )}
 
-                  {/* Rooms Table */}
-                  {formData.floor_id && (
-                    <>
-                      {loading ? (
-                        <p>Loading rooms...</p>
-                      ) : isLoading ? (
-                        <div className="text-center">
-                          <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Deleting...</span>
-                          </Spinner>{" "}
-                          Deleting...
-                        </div>
-                      ) : (
-                        <>
-                          {/* Room Details and Spaces Section */}
-                          {selectedRoom && (
-                            <div className="mt-4">
-                              {/* Spaces Section */}
-                              <h4 className="mb-3">Available Spaces</h4>
-                              {loadingRoomDetails ? (
-                                <div className="text-center">
-                                  <Spinner animation="border" role="status">
-                                    <span className="visually-hidden">Loading spaces...</span>
-                                  </Spinner>
-                                </div>
-                              ) : spaceCards && spaceCards.length > 0 ? (
-                                <>
-                                  <p className="mb-3">Total spaces: {spaceCards.length}</p>
-                                  <Row>
-                                    {spaceCards.map((space) => (
-                                      <Col key={space.id} md={3} className="mb-3">
-                                        <Card className="h-100">
-                                          <Card.Body className="d-flex flex-column">
-                                            <Card.Title className="d-flex justify-content-between align-items-center">
-                                              <span>Space {space.space_number}</span>
-                                              <Badge bg="success">Available</Badge>
-                                            </Card.Title>
-                                            <Card.Text className="flex-grow-1">
-                                              <div><strong>Number:</strong> {space.space_number}</div>
-                                              <div><strong>Fee:</strong> ${space.space_fee}</div>
-                                              <div><strong>Type:</strong> {space.space_type}</div>
-                                            </Card.Text>
-                                            <div className="mt-auto">
-                                              <Button 
-                                                variant="primary" 
-                                                size="sm"
-                                                className="w-100"
-                                                onClick={() => handleBookNowClick(space)}
-                                              >
-                                                Book Now
-                                              </Button>
-                                            </div>
-                                          </Card.Body>
-                                        </Card>
-                                      </Col>
-                                    ))}
-                                  </Row>
-                                </>
-                              ) : (
-                                <Alert variant="info">
-                                  {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
-                                </Alert>
-                              )}
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </>
-                  )}
+                
                 </Card.Body>
               </Card>
             </Card.Body>
@@ -793,13 +730,6 @@ const SeatBookingSystem = () => {
         />
       )}
 
-      {/* User Registration Modal */}
-      <UsersRegistrationModal
-        show={show}
-        onHide={handleClose}
-        myUser={selectedUser}
-        onSubmit={fetchUsers}
-      />
 
       {/* Booking Popup */}
       {showBookingPopup && selectedSpace && (
@@ -850,16 +780,7 @@ const SeatBookingSystem = () => {
                         ))}
                       </Form.Select>
                     )}
-                    <Button 
-                      variant="outline-primary" 
-                      size="sm" 
-                      onClick={() => {
-                        setSelectedUser(null);
-                        setShow(true);
-                      }}
-                    >
-                      <i className="mdi mdi-plus"></i> Add User
-                    </Button>
+                
                   </div>
                 </Form.Group>
               </Col>
@@ -908,7 +829,9 @@ const SeatBookingSystem = () => {
                       <Form.Select
                         name={`day-${index}`}
                         value={day.day}
-                        onChange={(e) => handleDayChange(index, 'day', e.target.value)}
+                        onChange={(e) =>
+                          handleDayChange(index, "day", e.target.value)
+                        }
                         required
                       >
                         <option value="">Select day</option>
@@ -929,7 +852,9 @@ const SeatBookingSystem = () => {
                         type="datetime-local"
                         name={`start_time-${index}`}
                         value={day.start_time}
-                        onChange={(e) => handleDayChange(index, 'start_time', e.target.value)}
+                        onChange={(e) =>
+                          handleDayChange(index, "start_time", e.target.value)
+                        }
                         required
                       />
                     </Form.Group>
@@ -941,16 +866,18 @@ const SeatBookingSystem = () => {
                         type="datetime-local"
                         name={`end_time-${index}`}
                         value={day.end_time}
-                        onChange={(e) => handleDayChange(index, 'end_time', e.target.value)}
+                        onChange={(e) =>
+                          handleDayChange(index, "end_time", e.target.value)
+                        }
                         required
                       />
                     </Form.Group>
                   </Col>
                 </Row>
                 {index > 0 && (
-                  <Button 
-                    variant="danger" 
-                    size="sm" 
+                  <Button
+                    variant="danger"
+                    size="sm"
                     onClick={() => removeDay(index)}
                     className="mt-2"
                   >
@@ -960,9 +887,9 @@ const SeatBookingSystem = () => {
               </div>
             ))}
 
-            <Button 
-              variant="outline-primary" 
-              size="sm" 
+            <Button
+              variant="outline-primary"
+              size="sm"
               onClick={addDay}
               className="mb-3"
             >
@@ -970,22 +897,35 @@ const SeatBookingSystem = () => {
             </Button>
 
             <div className="d-flex justify-content-end">
-              <Button variant="secondary" onClick={handleBookingClose} className="me-2">
+              <Button
+                variant="secondary"
+                onClick={handleBookingClose}
+                className="me-2"
+              >
                 Cancel
               </Button>
               <Button variant="primary" type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
-                    <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                    {' '}Booking...
+                    <Spinner
+                      as="span"
+                      animation="border"
+                      size="sm"
+                      role="status"
+                      aria-hidden="true"
+                    />{" "}
+                    Booking...
                   </>
-                ) : 'Confirm Booking'}
+                ) : (
+                  "Confirm Booking"
+                )}
               </Button>
             </div>
           </Form>
         </Popup>
       )}
     </>
+    )
   );
 };
 

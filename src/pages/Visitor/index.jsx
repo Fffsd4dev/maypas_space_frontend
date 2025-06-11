@@ -40,9 +40,46 @@ const SeatBookingSystem = () => {
       );
   }, []);
 
-    if ( !tenantSlug) {
+  useEffect(() => {
+    // Only load once
+    if (!window.PaystackPop) {
+      const script = document.createElement("script");
+      script.src = "https://js.paystack.co/v2/inline.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
-    return <Error404Alt />
+  const triggerPaystackPopup = (access_code) => {
+  if (!window.PaystackPop) {
+    showPaystackPopup("Payment library not loaded. Please try again.", "error");
+    return;
+  }
+  const popup = new window.PaystackPop();
+
+  popup.resumeTransaction(access_code, {
+    onSuccess: (response) => {
+      showPaystackPopup(
+        "Transaction successful! Reference: " + response.reference,
+        "success"
+      );
+      // Optionally: validate payment status with your backend here
+    },
+    onCancel: () => {
+      showPaystackPopup("Transaction was canceled.", "warning");
+    },
+    onLoad: () => {
+      // Optionally show a loading popup if you want
+      showPaystackPopup("Transaction loading...", "info");
+    },
+    onError: (error) => {
+      showPaystackPopup("An error occurred: " + error.message, "error");
+    },
+  });
+};
+
+  if (!tenantSlug) {
+    return <Error404Alt />;
   }
 
   useEffect(() => {
@@ -53,35 +90,33 @@ const SeatBookingSystem = () => {
       );
   }, []);
 
-    useEffect(() => {
-    const logout = async () => {
-      console.log(tenantToken);
-      try {
-        const res = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/logout`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${tenantToken}`,
-              "Content-Type": "multipart/form-data",
-            },
+  useEffect(() => {
+    if (tenantToken) {
+      const logout = async () => {
+        try {
+          const res = await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/logout`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${tenantToken}`,
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
+          if (res.status === 200) {
+            console.log(res.data.message);
+            removeSession();
+          } else {
+            console.error("Logout Failed:", res);
           }
-        );
-
-        if (res.status === 200) {
-          console.log(res.data.message);
-          removeSession();
-
-        } else {
-          console.error('Logout Failed:', res);
+        } catch (e) {
+          console.error("Error during Logout:", e);
         }
-      } catch (e) {
-        console.error('Error during Logout:', e);
-
-      }
-    };
-
-    logout();
+      };
+      logout();
+    }
   }, [tenantSlug, removeSession, navigate, tenantToken]);
 
   // State variables
@@ -118,7 +153,11 @@ const SeatBookingSystem = () => {
     ],
     number_weeks: "0",
     number_months: "0",
-    user_id: "",
+    company_name: "",
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
   });
 
   const [popup, setPopup] = useState({
@@ -134,6 +173,15 @@ const SeatBookingSystem = () => {
     myRoomID: null,
   });
 
+const showPaystackPopup = (message, type = "info", buttonLabel = "OK", buttonRoute = "") => {
+  setPopup({
+    message,
+    type,
+    isVisible: true,
+    buttonLabel,
+    buttonRoute,
+  });
+};
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -173,7 +221,7 @@ const SeatBookingSystem = () => {
       console.log(response);
       const result = await response.json();
       console.log(result);
-     
+
       if (response.ok) {
         if (result && Array.isArray(result.data)) {
           const data = result.data;
@@ -184,16 +232,17 @@ const SeatBookingSystem = () => {
       }
     } catch (error) {
       toast.error(error.message);
-       if (error.message === "This workspace is not registered on our platform") {
-      setNotFound(true);  //  Set error state here
-    } else {
-      toast.error(error.message);
-    }
+      if (
+        error.message === "This workspace is not registered on our platform"
+      ) {
+        setNotFound(true); //  Set error state here
+      } else {
+        toast.error(error.message);
+      }
     } finally {
       setLoadingLocations(false);
     }
   };
-
 
   // Handle location change
   const handleLocationChange = (e) => {
@@ -209,39 +258,6 @@ const SeatBookingSystem = () => {
     setData([]);
     setSpaceCards([]);
     setRoomDetails(null);
-  };
-
-  // Fetch floors for selected location
-  const fetchFloor = async (locationId) => {
-    setLoadingFloor(true);
-    try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/floor/list-floors/${locationId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result && Array.isArray(result.data.data)) {
-        setFloorData(result.data.data);
-      } else {
-        throw new Error("Invalid response format");
-      }
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoadingFloor(false);
-    }
   };
 
   // Fetch rooms for selected floor
@@ -314,6 +330,7 @@ const SeatBookingSystem = () => {
       }
 
       const result = await response.json();
+      console.log("Room details result:", result);
 
       if (result && result.data) {
         setRoomDetails(result.data);
@@ -380,12 +397,9 @@ const SeatBookingSystem = () => {
     }
   };
 
-
-
   // Handle close modal
   const handleClose = () => {
     setShow(false);
-
 
     if (selectedLocation) {
       fetchRoom(selectedLocation, pagination.currentPage, pagination.pageSize);
@@ -422,10 +436,10 @@ const SeatBookingSystem = () => {
   };
 
   // Handle book now click
-  const handleBookNowClick = (space) => {
-    console.log("Booking spot with ID:", space.id);
-    console.log("Spot details:", space);
-    setSelectedSpace(space);
+  const handleBookNowClick = (room) => {
+    console.log("Booking spot with ID:", room.spot_id);
+    console.log("Spot details:", room);
+    setSelectedSpace(room);
     setBookingFormData({
       type: "one-off",
       chosen_days: [
@@ -437,7 +451,11 @@ const SeatBookingSystem = () => {
       ],
       number_weeks: "0",
       number_months: "0",
-      user_id: "",
+      company_name: "",
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
     });
     setShowBookingPopup(true);
   };
@@ -482,7 +500,12 @@ const SeatBookingSystem = () => {
       const hasEmptyFields =
         bookingFormData.chosen_days.some(
           (day) => !day.day || !day.start_time || !day.end_time
-        ) || !bookingFormData.user_id;
+        ) ||
+        !bookingFormData.company_name ||
+        !bookingFormData.first_name ||
+        !bookingFormData.last_name ||
+        !bookingFormData.email ||
+        !bookingFormData.phone;
 
       if (hasEmptyFields) {
         throw new Error("Please fill in all required fields");
@@ -509,7 +532,7 @@ const SeatBookingSystem = () => {
         last_name: bookingFormData.last_name || "",
         email: bookingFormData.email || "",
         phone: bookingFormData.phone || "0",
-        spot_id: selectedSpace.id.toString(),
+        spot_id: selectedSpace.spot_id.toString(),
         type: bookingFormData.type,
         number_weeks: bookingFormData.number_weeks || "0",
         number_months: bookingFormData.number_months || "0",
@@ -522,7 +545,9 @@ const SeatBookingSystem = () => {
 
       // Make API call
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/book`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/initiate/pay/spot`,
         {
           method: "POST",
           headers: {
@@ -540,8 +565,14 @@ const SeatBookingSystem = () => {
       }
 
       const result = await response.json();
+      console.log("Booking result:", result);
       toast.success(result.message || "Space booked successfully!");
       handleBookingClose();
+
+      // If your backend returns access_code for Paystack
+      if (result.access_code) {
+        triggerPaystackPopup(result.access_code);
+      }
 
       // Refresh the space data
       if (selectedRoom) {
@@ -569,16 +600,17 @@ const SeatBookingSystem = () => {
     fetchRoom(selectedLocation, pagination.currentPage, pagination.pageSize);
   }, [selectedLocation, pagination.currentPage, pagination.pageSize]);
 
-  return (
-    notFound ? <Error404Alt /> : (
-      <>
-        <div className="visitor-header">
-          <h3>
-            {/* <img src={logo} alt="Tenant Logo" />  */}| {tenantSlug}
-          </h3>
-          <h2>
-            Already have an account?{" "}
-            <Link to={`/${tenantSlug}/auth/visitorLogin`} className="">
+  return notFound ? (
+    <Error404Alt />
+  ) : (
+    <>
+      <div className="visitor-header">
+        <h3>
+          {/* <img src={logo} alt="Tenant Logo" />  */}| {tenantSlug}
+        </h3>
+        <h2>
+          Already have an account?{" "}
+          <Link to={`/${tenantSlug}/auth/visitorLogin`} className="">
             <button type="submit">Login</button>
           </Link>{" "}
         </h2>
@@ -673,11 +705,22 @@ const SeatBookingSystem = () => {
                                         <Card.Title>
                                           {room.space_name}
                                         </Card.Title>
-                                       <Card.Text className="flex-grow-1">
-  <span><strong>Fee:</strong> {room.space_fee}</span><br />
-  <span><strong>Location:</strong> {room.location_name}</span><br />
-  <span><strong>Floor:</strong> {room.floor_name}</span>
-</Card.Text>
+                                        <Card.Text className="flex-grow-1">
+                                          <span>
+                                            <strong>Fee:</strong>{" "}
+                                            {room.space_fee}
+                                          </span>
+                                          <br />
+                                          <span>
+                                            <strong>Location:</strong>{" "}
+                                            {room.location_name}
+                                          </span>
+                                          <br />
+                                          <span>
+                                            <strong>Floor:</strong>{" "}
+                                            {room.floor_name}
+                                          </span>
+                                        </Card.Text>
                                         <div className="mt-auto">
                                           <Button
                                             variant="primary"
@@ -700,8 +743,6 @@ const SeatBookingSystem = () => {
                         ))}
                     </Form.Group>
                   )}
-
-                
                 </Card.Body>
               </Card>
             </Card.Body>
@@ -730,7 +771,6 @@ const SeatBookingSystem = () => {
         />
       )}
 
-
       {/* Booking Popup */}
       {showBookingPopup && selectedSpace && (
         <Popup
@@ -756,32 +796,70 @@ const SeatBookingSystem = () => {
                 </Form.Group>
               </Col>
             </Row>
-
             <Row>
               <Col md={12}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Select User</Form.Label>
-                  <div className="d-flex align-items-center mb-2">
-                    {loadingUsers ? (
-                      <Spinner animation="border" size="sm" />
-                    ) : (
-                      <Form.Select
-                        name="user_id"
-                        value={bookingFormData.user_id}
-                        onChange={handleBookingInputChange}
-                        required
-                        className="me-2"
-                      >
-                        <option value="">Select a user</option>
-                        {users.map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.first_name} {user.last_name} ({user.email})
-                          </option>
-                        ))}
-                      </Form.Select>
-                    )}
-                
-                  </div>
+                  <Form.Label>Company Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="company_name"
+                    value={bookingFormData.company_name || ""}
+                    onChange={handleBookingInputChange}
+                    placeholder="Enter company name"
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>First Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="first_name"
+                    value={bookingFormData.first_name || ""}
+                    onChange={handleBookingInputChange}
+                    placeholder="Enter first name"
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Last Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="last_name"
+                    value={bookingFormData.last_name || ""}
+                    onChange={handleBookingInputChange}
+                    placeholder="Enter last name"
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={bookingFormData.email || ""}
+                    onChange={handleBookingInputChange}
+                    placeholder="Enter email"
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Phone</Form.Label>
+                  <Form.Control
+                    type="tel"
+                    name="phone"
+                    value={bookingFormData.phone || ""}
+                    onChange={handleBookingInputChange}
+                    placeholder="Enter phone number"
+                    required
+                  />
                 </Form.Group>
               </Col>
             </Row>
@@ -925,7 +1003,6 @@ const SeatBookingSystem = () => {
         </Popup>
       )}
     </>
-    )
   );
 };
 

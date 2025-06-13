@@ -13,6 +13,7 @@ const useVisitorLogin = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuthContext();
   const { visitorSlug } = useParams();
+  console.log(visitorSlug);
   const loginFormSchema = yup.object({
     email: yup.string().email('Please enter a valid email').required('Please enter your email'),
     password: yup.string().required('Please enter your password')

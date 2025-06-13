@@ -11,7 +11,7 @@
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
 }
 
-.visitor-header img {
+.visitor-header.logo img {
   width: 80px;
   height: 80px;
   object-fit: contain;

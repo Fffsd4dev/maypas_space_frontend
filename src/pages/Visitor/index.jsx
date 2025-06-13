@@ -20,16 +20,25 @@ import Error404Alt from "../../pages/error/Error404Alt";
 import axios from "axios";
 import "./index.css";
 import logo from "@/assets/images/logo-dark.png";
+import ProfileDropdown from "@/components/ProfileDropdown";
+import profilePic from "../../assets/images/users/user-1.jpg";
+
+
 
 const SeatBookingSystem = () => {
   const { removeSession } = useAuthContext();
   const { user } = useAuthContext();
-  const tenantToken = user?.tenantToken;
 
-  const { tenantSlug: tenantUrlSlug } = useParams();
+  const tenantToken = user?.tenantToken;
+  const visitorFirstName = user?.visitorFirstName ;
+  const visitorToken = user?.visitorToken;
+
+  
+
+  const { visitorSlug: visitorUrlSlug } = useParams();
 
   // Prefer user.tenant but fall back to URL param
-  const tenantSlug = user?.tenant || tenantUrlSlug;
+  const visitorSlug = user?.visitor || visitorUrlSlug;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,6 +48,22 @@ const SeatBookingSystem = () => {
         "authentication-bg-pattern"
       );
   }, []);
+
+   const ProfileMenus = [
+    // {
+    //   label: "Settings",
+    //   icon: "fe-settings",
+    //   onClick: () => {
+    //     console.log("Settings clicked");
+    //     themeCustomizer.toggle();
+    //   },
+    // },
+    {
+      label: "Logout",
+      icon: "fe-log-out",
+      redirectTo: `/${visitorSlug}/auth/visitorLogout`,
+    },
+  ];
 
   useEffect(() => {
     // Only load once
@@ -78,7 +103,7 @@ const SeatBookingSystem = () => {
   });
 };
 
-  if (!tenantSlug) {
+  if (!visitorSlug) {
     return <Error404Alt />;
   }
 
@@ -95,7 +120,7 @@ const SeatBookingSystem = () => {
       const logout = async () => {
         try {
           const res = await axios.post(
-            `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/logout`,
+            `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/logout`,
             {},
             {
               headers: {
@@ -117,7 +142,7 @@ const SeatBookingSystem = () => {
       };
       logout();
     }
-  }, [tenantSlug, removeSession, navigate, tenantToken]);
+  }, [visitorSlug, removeSession, navigate, tenantToken]);
 
   // State variables
   const [show, setShow] = useState(false);
@@ -212,11 +237,11 @@ const showPaystackPopup = (message, type = "info", buttonLabel = "OK", buttonRou
 
   // Fetch locations
   const fetchLocations = async () => {
-    console.log(tenantSlug);
+    console.log(visitorSlug);
     setLoadingLocations(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/get/locations`
+        `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/locations`
       );
       console.log(response);
       const result = await response.json();
@@ -267,7 +292,7 @@ const showPaystackPopup = (message, type = "info", buttonLabel = "OK", buttonRou
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/get/spaces/${locationId}?page=${page}&per_page=${pageSize}`,
+        }/api/${visitorSlug}/get/spaces/${locationId}?page=${page}&per_page=${pageSize}`,
         { method: "GET" }
       );
       if (!response.ok) {
@@ -317,7 +342,7 @@ const showPaystackPopup = (message, type = "info", buttonLabel = "OK", buttonRou
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/space/show/${roomId}`,
+        }/api/${visitorSlug}/space/show/${roomId}`,
         {
           method: "GET",
         }
@@ -547,11 +572,10 @@ const showPaystackPopup = (message, type = "info", buttonLabel = "OK", buttonRou
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/initiate/pay/spot`,
+        }/api/${visitorSlug}/initiate/pay/spot`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(bookingData),
@@ -606,19 +630,30 @@ const showPaystackPopup = (message, type = "info", buttonLabel = "OK", buttonRou
     <>
       <div className="visitor-header">
         <h3>
-          {/* <img src={logo} alt="Tenant Logo" />  */}| {tenantSlug}
+          {/* <img src={logo} className="logo" alt="Tenant Logo" />  */}| {visitorSlug}
         </h3>
+        {visitorToken ? ( 
+          <h2 className="dropdown">
+            <ProfileDropdown
+              profilePic={profilePic}
+              menuItems={ProfileMenus}
+              username={visitorFirstName}
+            />
+          </h2>
+        ) :
+        (
         <h2>
           Already have an account?{" "}
-          <Link to={`/${tenantSlug}/auth/visitorLogin`} className="">
+          <Link to={`/${visitorSlug}/auth/visitorLogin`} className="">
             <button type="submit">Login</button>
           </Link>{" "}
         </h2>
+      )}
       </div>
       <div className="pagetitle">
         <PageTitle
           breadCrumbItems={[
-            { label: "Book a Spot", path: "/${tenantSlug}/home", active: true },
+            { label: "Book a Spot", path: "/${visitorSlug}/home", active: true },
           ]}
           title="Book a Spot"
         />

@@ -18,7 +18,7 @@ const ProfileDropdown = props => {
     })}>
         <img src={profilePic} className="rounded-circle" alt="" />
         <span className="pro-user-name ms-1">
-          {props["username"]} <i className="mdi mdi-chevron-down"></i>
+          Welcome, {props["username"]} <i className="mdi mdi-chevron-down"></i>
         </span>
       </Dropdown.Toggle>
       <Dropdown.Menu className="dropdown-menu dropdown-menu-end profile-dropdown">

@@ -282,7 +282,7 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
             ) : (
               "Create"
             )}{" "}
-            Category
+            Team
           </Button>
         </Form>
       </Modal.Body>

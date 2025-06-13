@@ -281,7 +281,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="space_discount">
-            <Form.Label>Space Discount(%)</Form.Label>
+            <Form.Label>Space Discount(%) (optional)</Form.Label>
             <Form.Control
               type="number"
               name="space_discount"
@@ -291,7 +291,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="min_space_discount_time">
-            <Form.Label>Minimum Time For a Space Discount</Form.Label>
+            <Form.Label>Minimum Time For a Space Discount (optional)</Form.Label>
             <Form.Control
               type="number"
               name="min_space_discount_time"

@@ -11,6 +11,7 @@ import CreateNotificationModal from "../pages/Settings/notifications/CreateNotif
 // auth
 const Login = React.lazy(() => import("../pages/auth/Login"));
 const Logout = React.lazy(() => import("../pages/auth/Logout"));
+const VisitorLogout = React.lazy(() => import("../pages/auth-visitor/VisitorLogout"));
 const Confirm = React.lazy(() => import("../pages/auth/Confirm"));
 const ForgetPassword = React.lazy(() => import("../pages/auth/ForgetPassword"));
 const ConfirmNewPassword = React.lazy(() => import("../pages/auth/ConfirmNewPassword"));
@@ -217,7 +218,7 @@ const dashboardRoutes = {
       roles: ["Owner"]
     },
     {
-      path: "/dashboard",
+      path: "/ownerDashboard",
       name: "Dashboard 3",
       element: <Dashboard3 />,
       route: PrivateRoute,
@@ -1103,6 +1104,13 @@ const authRoutes = [
     element: <Logout />,
     route: Route
   },
+
+  {
+    path: "/:visitorSlug/auth/visitorLogout",
+    name: "Visitor Logout",
+    element: <VisitorLogout />,
+    route: Route
+  },
   {
     path: "/auth/login2",
     name: "Login2",
@@ -1110,7 +1118,7 @@ const authRoutes = [
     route: Route
   },
     {
-    path: "/:tenantSlug/auth/visitorLogin",
+    path: "/:visitorSlug/auth/visitorLogin",
     name: "Visitor Login",
     element: <VisitorLogin />,
     route: Route
@@ -1162,7 +1170,7 @@ const otherPublicRoutes = [
     route: Route
   },
   {
-  path: "/:tenantSlug/home",
+  path: "/:visitorSlug/home",
   name: "Visitor",
   route: Route,
   roles: ["Admin"],

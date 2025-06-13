@@ -31,7 +31,7 @@ const Error404Alt = () => {
               internet connection. Here's a little tip that might help you get
               back on track.
             </p>
-            <Link to="/landing" className="btn btn-success waves-effect waves-light">
+            <Link to="/" className="btn btn-success waves-effect waves-light">
               Back to Home Page
             </Link>
           </div>

@@ -1662,6 +1662,8 @@ const SeatBookingSystem = () => {
           onClose={handleBookingClose}
           size="lg"
         >
+                     <div style={{ maxHeight: "70vh", overflowY: "auto", overflowX: "hidden", paddingRight: "8px" }}>
+
           <Form onSubmit={handleBookingSubmit}>
             <Row>
               <Col md={12}>
@@ -1836,6 +1838,7 @@ const SeatBookingSystem = () => {
               </Button>
             </div>
           </Form>
+          </div>
         </Popup>
       )}
     </>

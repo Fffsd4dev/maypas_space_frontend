@@ -134,7 +134,7 @@ const InvoiceDetails = () => {
         <tbody>
           {(invoice?.schedule || []).map((item, index) => (
             <tr key={index}>
-              <td>{<b>Days & Time: <br/> NA</b>}</td>
+              <td>{<b>Days & Time: <br/> <p>{formatDateTime(invoice.created_at)}</p></b>}</td>
               <td>Reserved spot - </td>
           <td>{Number(invoice.amount) || 'N/A' }</td>
           

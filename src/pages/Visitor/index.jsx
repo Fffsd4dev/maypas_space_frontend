@@ -840,7 +840,8 @@ const fetchLocations = async () => {
           onClose={handleBookingClose}
           size="lg"
         >
-          <Form onSubmit={handleBookingSubmit}>
+           <div style={{ maxHeight: "70vh", overflowY: "auto", overflowX: "hidden", paddingRight: "8px" }}>
+            <Form onSubmit={handleBookingSubmit}>
             <Row>
               <Col md={12}>
                 <Form.Group className="mb-3">
@@ -1061,6 +1062,7 @@ const fetchLocations = async () => {
               </Button>
             </div>
           </Form>
+            </div>
         </Popup>
       )}
     </>

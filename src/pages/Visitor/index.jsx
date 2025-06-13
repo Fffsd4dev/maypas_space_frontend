@@ -32,6 +32,7 @@ const SeatBookingSystem = () => {
   const tenantToken = user?.tenantToken;
   const visitorFirstName = user?.visitorFirstName ;
   const visitorToken = user?.visitorToken;
+  const [noRooms, setNoRooms] = useState(false); // Add this state
 
   
 
@@ -235,39 +236,43 @@ const showPaystackPopup = (message, type = "info", buttonLabel = "OK", buttonRou
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
 
-  // Fetch locations
-  const fetchLocations = async () => {
-    console.log(visitorSlug);
-    setLoadingLocations(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/locations`
-      );
-      console.log(response);
-      const result = await response.json();
-      console.log(result);
+// Fetch locations
+const fetchLocations = async () => {
+  console.log(visitorSlug);
+  setLoadingLocations(true);
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/locations`
+    );
+    console.log(response);
+    const result = await response.json();
+    console.log(result);
 
-      if (response.ok) {
-        if (result && Array.isArray(result.data)) {
-          const data = result.data;
-          setLocations(data || []);
+    if (response.ok) {
+      if (result && Array.isArray(result.data)) {
+        const data = result.data;
+        setLocations(data || []);
+        // Auto-select location if only one exists
+        if (data.length === 1) {
+          setSelectedLocation(data[0].id);
         }
-      } else {
-        throw new Error(result.message || "Failed to fetch locations.");
       }
-    } catch (error) {
-      toast.error(error.message);
-      if (
-        error.message === "This workspace is not registered on our platform"
-      ) {
-        setNotFound(true); //  Set error state here
-      } else {
-        toast.error(error.message);
-      }
-    } finally {
-      setLoadingLocations(false);
+    } else {
+      throw new Error(result.message || "Failed to fetch locations.");
     }
-  };
+  } catch (error) {
+    toast.error(error.message);
+    if (
+      error.message === "This workspace is not registered on our platform"
+    ) {
+      setNotFound(true); //  Set error state here
+    } else {
+      toast.error(error.message);
+    }
+  } finally {
+    setLoadingLocations(false);
+  }
+};
 
   // Handle location change
   const handleLocationChange = (e) => {
@@ -286,35 +291,48 @@ const showPaystackPopup = (message, type = "info", buttonLabel = "OK", buttonRou
   };
 
   // Fetch rooms for selected floor
-  const fetchRoom = async (locationId, page = 1, pageSize = 10) => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${visitorSlug}/get/spaces/${locationId}?page=${page}&per_page=${pageSize}`,
-        { method: "GET" }
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const result = await response.json();
-      // result.data is an object: { "Co-Workspace": [...], "Office Pod": [...], ... }
-      setRoomsData(result.data); // Store the whole object
-      setData(result.data); // If you use setData elsewhere
-      setPagination({
-        currentPage: result.current_page,
-        totalPages: result.last_page,
-        nextPageUrl: result.next_page_url,
-        prevPageUrl: result.prev_page_url,
-        pageSize: pageSize,
-      });
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
+     const fetchRoom = async (locationId, page = 1, pageSize = 10) => {
+  setLoading(true);
+  setNoRooms(false); // Reset before fetching
+  try {
+    const response = await fetch(
+      `${
+        import.meta.env.VITE_BACKEND_URL
+      }/api/${visitorSlug}/get/spaces/${locationId}?page=${page}&per_page=${pageSize}`,
+      { method: "GET" }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-  };
+    const result = await response.json();
+    console.log(result)
+    // result.data is an object: { "Co-Workspace": [...], "Office Pod": [...], ... }
+    setRoomsData(result.data); // Store the whole object
+    setData(result.data); // If you use setData elsewhere
+    setPagination({
+      currentPage: result.current_page,
+      totalPages: result.last_page,
+      nextPageUrl: result.next_page_url,
+      prevPageUrl: result.prev_page_url,
+      pageSize: pageSize,
+    });
+
+    // Check if all categories are empty or result.data is empty object
+    if (
+      !result.data ||
+      (typeof result.data === "object" &&
+        Object.values(result.data).every((arr) => Array.isArray(arr) && arr.length === 0))
+    ) {
+      setNoRooms(true);
+    } else {
+      setNoRooms(false);
+    }
+  } catch (error) {
+    toast.error(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Generate space cards based on space_number (fallback)
   const generateSpaceCards = (spaceNumber) => {
@@ -674,110 +692,118 @@ const showPaystackPopup = (message, type = "info", buttonLabel = "OK", buttonRou
                   }}
                 >
                   {/* Location Selection */}
-                  {loadingLocations ? (
-                    <div className="text-center">
-                      <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                      </Spinner>{" "}
-                      Loading your locations...
-                    </div>
-                  ) : (
-                    <div>
-                      <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
-                        Select a location to view the room.
-                      </p>
-                      <Form.Select
-                        style={{ marginBottom: "25px", fontSize: "1rem" }}
-                        value={selectedLocation || ""}
-                        onChange={handleLocationChange}
-                      >
-                        <option value="" disabled>
-                          Select a location
-                        </option>
-                        {locations.map((location) => (
-                          <option key={location.id} value={location.id}>
-                            {location.name} at {location.state}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </div>
-                  )}
+              {loadingLocations ? (
+  <div className="text-center">
+    <Spinner animation="border" role="status">
+      <span className="visually-hidden">Loading...</span>
+    </Spinner>{" "}
+    Loading your locations...
+  </div>
+) : (
+  locations.length > 1 ? (
+    <div>
+      <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+        Select a location to view the room.
+      </p>
+      <Form.Select
+        style={{ marginBottom: "25px", fontSize: "1rem" }}
+        value={selectedLocation || ""}
+        onChange={handleLocationChange}
+      >
+        <option value="" disabled>
+          Select a location
+        </option>
+        {locations.map((location) => (
+          <option key={location.id} value={location.id}>
+            {location.name} at {location.state}
+          </option>
+        ))}
+      </Form.Select>
+    </div>
+  ) : null // Hide select if only one location
+)}
 
                   {/* Room Selection */}
                   {selectedLocation && (
-                    <Form.Group className="mb-3" controlId="room_id">
-                      {/* Render category sections OUTSIDE the select */}
-                      {/* Render category sections OUTSIDE the select */}
-                      {roomsData &&
-                        Object.keys(roomsData).map((category, idx) => (
-                          <div
-                            key={category}
-                            className="mb-4 p-3 rounded"
-                            style={{
-                              background:
-                                idx % 2 === 0
-                                  ? "linear-gradient(to right, #f8f9fa, #e9ecef)"
-                                  : "linear-gradient(to right, #f3e9e7, #f7f1ee)",
-                            }}
+  <Form.Group className="mb-3" controlId="room_id">
+    {/* Show no rooms message if noRooms is true */}
+    {noRooms ? (
+      <Alert variant="warning" className="text-center">
+        No room in this location
+      </Alert>
+    ) : (
+      roomsData &&
+        Object.keys(roomsData).map((category, idx) => (
+          <div
+            key={category}
+            className="mb-4 p-3 rounded"
+            style={{
+              background:
+                idx % 2 === 0
+                  ? "linear-gradient(to right, #f8f9fa, #e9ecef)"
+                  : "linear-gradient(to right, #f4f9e7, #e7f1ee)",
+            }}
+          >
+            <h4>{category}</h4>
+            <Row>
+              {roomsData[category].length === 0 ? (
+                <Col>
+                  <Alert variant="info">
+                    No spaces in this category.
+                  </Alert>
+                </Col>
+              ) : (
+                roomsData[category].map((room) => (
+                  <Col
+                    key={room.spot_id}
+                    md={3}
+                    className="mb-3"
+                  >
+                    <Card className="h-100">
+                      <Card.Body className="d-flex flex-column">
+                        <Card.Title>
+                          {room.space_name}
+                        </Card.Title>
+                        <Card.Text className="flex-grow-1">
+                          <span>
+                            <strong>Fee:</strong>{" "}
+                            {room.space_fee}
+                          </span>
+                          <br />
+                                  <span>
+                            <strong>Location:</strong>{" "}
+                            {room.location_name}
+                          </span>
+                          <br />
+                          <span>
+                            <strong>Floor:</strong>{" "}
+                            {room.floor_name}
+                          </span>
+                        </Card.Text>
+                        <div className="mt-auto">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="w-100"
+                            onClick={() =>
+                              handleBookNowClick(room)
+                            }
                           >
-                            <h4>{category}</h4>
-                            <Row>
-                              {roomsData[category].length === 0 ? (
-                                <Col>
-                                  <Alert variant="info">
-                                    No spaces in this category.
-                                  </Alert>
-                                </Col>
-                              ) : (
-                                roomsData[category].map((room) => (
-                                  <Col
-                                    key={room.spot_id}
-                                    md={3}
-                                    className="mb-3"
-                                  >
-                                    <Card className="h-100">
-                                      <Card.Body className="d-flex flex-column">
-                                        <Card.Title>
-                                          {room.space_name}
-                                        </Card.Title>
-                                        <Card.Text className="flex-grow-1">
-                                          <span>
-                                            <strong>Fee:</strong>{" "}
-                                            {room.space_fee}
-                                          </span>
-                                          <br />
-                                          <span>
-                                            <strong>Location:</strong>{" "}
-                                            {room.location_name}
-                                          </span>
-                                          <br />
-                                          <span>
-                                            <strong>Floor:</strong>{" "}
-                                            {room.floor_name}
-                                          </span>
-                                        </Card.Text>
-                                        <div className="mt-auto">
-                                          <Button
-                                            variant="primary"
-                                            size="sm"
-                                            className="w-100"
-                                            onClick={() =>
-                                              handleBookNowClick(room)
-                                            }
-                                          >
-                                            Book Now
-                                          </Button>
-                                        </div>
-                                      </Card.Body>
-                                    </Card>
-                                  </Col>
-                                ))
-                              )}
-                            </Row>
-                          </div>
-                        ))}
-                    </Form.Group>
-                  )}
+                            Book Now
+                          </Button>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))
+                )}
+            </Row>
+          </div>
+        ))
+    )}
+  </Form.Group>
+)}
+
                 </Card.Body>
               </Card>
             </Card.Body>

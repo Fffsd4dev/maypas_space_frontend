@@ -44,6 +44,7 @@ const Tenants = React.lazy(() => import("../pages/Tenants"));
 
 // Visitor
 const Visitor = React.lazy(() => import("../pages/Visitor"));
+const VisitorCategory = React.lazy(() => import("../pages/Visitor/VisitorCategory"));
 
 const CreateSubscription = React.lazy(() => import("../pages/subscriptions/CreateSubscription"));
 const TenantSub = React.lazy(() => import("../pages/subscriptions/TenantSub"));
@@ -1177,6 +1178,12 @@ const otherPublicRoutes = [
   icon: "airplay",
   element: <Visitor />,
   header: "Apps"
+},
+{
+  path: "/:visitorSlug/:category",
+  name: "Visitor Category",
+  element: <VisitorCategory />,
+  route: Route
 },
   {
     path: "/maintenance",

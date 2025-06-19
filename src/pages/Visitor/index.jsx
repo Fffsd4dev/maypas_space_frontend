@@ -786,7 +786,7 @@ const SeatBookingSystem = () => {
       handleBookingClose();
       // Show success popup
       showPaystackPopup(
-        "1Transaction successful! Reference: " + reference,
+        "Transaction successful! Reference: " + reference,
         "success"
       );
       }

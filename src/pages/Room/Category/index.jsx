@@ -156,6 +156,21 @@ const Categories = () => {
     setShow(true);
   };
 
+const handleCopy = (myCategory) => {
+  const baseUrl = window.location.origin;
+  const categorySlug = myCategory.category.toLowerCase().replace(/\s+/g, "_");
+  const url = `${baseUrl}/${tenantSlug}/${categorySlug}`;
+  navigator.clipboard.writeText(url).then(() => {
+    setPopup({
+      message: "Link copied",
+      type: "success",
+      isVisible: true,
+      buttonLabel: "OK",
+      buttonRoute: "",
+    });
+  });
+};
+
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
@@ -267,6 +282,7 @@ const Categories = () => {
       accessor: "action",
       sort: false,
       Cell: ({ row }) => (
+        
         <>
           <Link
             to="#"
@@ -281,6 +297,14 @@ const Categories = () => {
             onClick={() => handleDeleteButton(row.original.id)}
           >
             <i className="mdi mdi-delete"></i>
+          </Link>
+
+            <Link
+            to="#"
+            className="action-icon"
+            onClick={() => handleCopy(row.original)}
+          >
+            <i className="mdi mdi-content-copy"></i>
           </Link>
         </>
       ),

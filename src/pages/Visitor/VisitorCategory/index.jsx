@@ -17,6 +17,9 @@ const VisitorCategory = () => {
 
   const { visitorSlug: visitorUrlSlug, category } = useParams();
   const visitorSlug = user?.visitor || visitorUrlSlug;
+  const decodedCategory = decodeURIComponent(category)
+  .replace(/_/g, " ")
+  .replace(/\b\w/g, (c) => c.toUpperCase());
     const visitorFirstName = user?.visitorFirstName;
   const visitorToken = user?.visitorToken;
     const tenantToken = user?.tenantToken;
@@ -537,10 +540,13 @@ const VisitorCategory = () => {
 
         // 4. Find the category for the requested category
         const categories = Object.keys(spaceData.data);
-        const decodedCategory = decodeURIComponent(category);
-        const matchedCategory = categories.find(
-          (cat) => cat.toLowerCase() === decodedCategory.toLowerCase()
-        );
+
+
+
+
+const matchedCategory = categories.find(
+  (cat) => cat.toLowerCase() === decodedCategory.toLowerCase()
+);
 
         if (!matchedCategory) {
           setNotFound(true);
@@ -596,7 +602,7 @@ const VisitorCategory = () => {
       )}
       
       <h2 className="pagetitle">
-        Category: <span style={{ color: "#007bff" }}>{decodeURIComponent(category)}</span>
+        Category: <span style={{ color: "#007bff" }}>{decodedCategory}</span>
       </h2>
       
       <Row className="pagetitle">

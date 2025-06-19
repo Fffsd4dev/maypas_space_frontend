@@ -38,7 +38,7 @@ const SeatBookingSystem = () => {
 
   const { visitorSlug: visitorUrlSlug } = useParams();
   const visitorSlug = user?.visitor || visitorUrlSlug;
-  const [userId, setUserId] = useState(null); 
+  const [userId, setUserId] = useState(null);
   const userIDRef = useRef(null);
 
   const navigate = useNavigate();
@@ -653,11 +653,11 @@ const SeatBookingSystem = () => {
       console.log(result);
       toast.success(result.message || "Space booked successfully!");
       handleBookingClose();
-      
-        setUserId(result.user.id);
+
+      setUserId(result.user.id);
       userIDRef.current = result.user.id; // Store user ID in ref for later use
-        console.log(userId)
-      
+      console.log(userId);
+
       // If your backend returns access_code for Paystack
       if (result.access_code) {
         triggerPaystackPopup(result.access_code, result.user.id);
@@ -778,17 +778,17 @@ const SeatBookingSystem = () => {
       }
 
       const result = await response.json();
-      if (response.ok){
+      if (response.ok) {
         console.log("confirmbooking result", result);
-      toast.success(
-        result.message || " Payment made and Space booked successfully!"
-      );
-      handleBookingClose();
-      // Show success popup
-      showPaystackPopup(
-        "Transaction successful! Reference: " + reference,
-        "success"
-      );
+        toast.success(
+          result.message || " Payment made and Space booked successfully!"
+        );
+        handleBookingClose();
+        // Show success popup
+        showPaystackPopup(
+          "Transaction successful! Reference: " + reference,
+          "success"
+        );
       }
     } catch (error) {
       toast.error(error.message || "Failed to book space");
@@ -931,9 +931,9 @@ const SeatBookingSystem = () => {
                             {/* Category title as a link */}
                             <h4>
                               <Link
-                                to={`/${visitorSlug}/${encodeURIComponent(
-                                  category
-                                )}`}
+                                to={`/${visitorSlug}/${category
+                                  .toLowerCase()
+                                  .replace(/\s+/g, "_")}`}
                                 style={{
                                   textDecoration: "underline",
                                   color: "#007bff",

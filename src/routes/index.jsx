@@ -87,6 +87,7 @@ const Rooms = React.lazy(() => import("../pages/Room/roomManager"))
 const Spot = React.lazy(() => import('../pages/Room/spot'))
 const OperatingTimes = React.lazy(() => import('../pages/Settings/operatingTimes'))
 const SetAccount = React.lazy(() => import('../pages/Settings/SetAccount'))
+const SetLogoAndColor = React.lazy(() => import('../pages/Settings/setLogo'))
 const Invoices = React.lazy(() => import('../pages/Settings/invoices'))
 const CreateNotification = React.lazy(() => import('../pages/Settings/notifications'))
 const ManageTeams = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeams'))
@@ -431,6 +432,12 @@ const workspacesRoutes = {
       path: "/:tenantSlug/settings/set-account",
       name: "Set Bank Account",
       element: <SetAccount />,
+      route: PrivateRoute
+    },
+     {
+      path: "/:tenantSlug/settings/set-logo-and-color",
+      name: "Set Logo and Color",
+      element: <SetLogoAndColor />,
       route: PrivateRoute
     },
     {

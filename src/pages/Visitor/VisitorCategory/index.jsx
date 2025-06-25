@@ -4,6 +4,7 @@ import { Row, Col, Card, Alert, Button, Spinner, Form } from "react-bootstrap";
 import Error404Alt from "../../../pages/error/Error404Alt";
 import Popup from "../../../components/Popup/Popup";
 import DatePicker from "react-datepicker";
+import profileImg from "@/assets/images/users/user-1.jpg";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isBefore, addHours } from "date-fns";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
@@ -573,6 +574,64 @@ const matchedCategory = categories.find(
 
     fetchCategoryAndRooms();
   }, [visitorUrlSlug, category]);
+  
+  
+    const [logoData, setLogoData] = useState([]);
+    const [loadingLogo, setLoadingLogo] = useState(true);
+            const [error, setError] = useState(null);
+  
+        
+      
+        const fetchLogoData = async ( page = 1, pageSize = 10) => {
+  setLoadingLogo;
+          setError(null);
+          console.log("User Token:", user?.tenantToken);
+          try {
+            const response = await fetch(
+              `${
+                import.meta.env.VITE_BACKEND_URL
+              }/api/${visitorSlug}/view-details`,
+              {
+                method: "GET"             
+              }
+            );
+        
+            if (!response.ok) {
+              throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+            }
+        
+            const result = await response.json();
+            console.log(result);
+        
+            if (Array.isArray(result.data)) {
+              // Sort the data by updated_at or created_at
+              const sortedLogoData = result.data.sort(
+                (a, b) =>
+                  new Date(b.updated_at || b.created_at) -
+                  new Date(a.updated_at || a.created_at)
+              );
+              setLogoData(sortedLogoData);
+              console.log("Sorted Logo Data:", sortedLogoData);
+        
+          
+            } else {
+              throw new Error("Invalid response format");
+            }
+          } catch (error) {
+            toast.error(error.message);
+            setError(error.message);
+          } finally {
+            setLoadingLogo(false);
+          }
+        };
+  
+        useEffect(() => {
+          
+              fetchLogoData();
+               
+          }, [visitorSlug]);
+        
+  
 
   if (loading) return <div>Loading...</div>;
   if (notFound) return <Error404Alt />;
@@ -581,11 +640,20 @@ const matchedCategory = categories.find(
     <div >
         {showLogin && (
          <div className="visitor-header">
-                <h3>| {visitorSlug}</h3>
+                <h3>{logoData[0]?.logo ? (  <img
+                                src={
+                                  logoData[0]?.logo
+                                    ? `${import.meta.env.VITE_BACKEND_URL}/storage/uploads/tenant_logo/${logoData[0].logo}`
+                                    : profileImg
+                                }
+                                alt=""
+                                className="rounded-circle avatar-md"
+                              />) : ("")}
+                              | {visitorSlug.toUpperCase()} | {visitorSlug}</h3>
                 {visitorToken ? (
                   <h2 className="dropdown">
                     <ProfileDropdown
-                      profilePic={profilePic}
+                      profilePic={profileImg}
                       menuItems={ProfileMenus}
                       username={visitorFirstName}
                     />

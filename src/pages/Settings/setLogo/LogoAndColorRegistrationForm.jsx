@@ -4,6 +4,7 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useParams } from "react-router-dom";
+import { useLogoColor } from "../../../context/LogoColorContext.jsx";
 
 
 const COLOR_OPTIONS = [
@@ -23,12 +24,20 @@ const CompanyLogoAndColorRegistration = ({ show, onHide, myLogo, onSubmit }) => 
   const { tenantSlug: tenantUrlSlug } = useParams();
   const tenantSlug = user?.tenant;
 
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [ error, setError] = useState(null);
+
   const [formData, setFormData] = useState({
     logo: "",
     colour: "",
   });
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
+
+  const { colour: primary } = useLogoColor();
+  const { refetchLogoData } = useLogoColor();
+
 
   // Helper to fetch image as File
   const fetchImageAsFile = async (imageUrl, fileName) => {
@@ -159,6 +168,7 @@ const CompanyLogoAndColorRegistration = ({ show, onHide, myLogo, onSubmit }) => 
             ? "Company's Logo and Color updated successfully!"
             : "Company's Logo and Color added successfully!"
         );
+        await refetchLogoData();
         if (!myLogo) {
           setFormData({
             logo: "",
@@ -251,10 +261,10 @@ const CompanyLogoAndColorRegistration = ({ show, onHide, myLogo, onSubmit }) => 
             )}
           </Form.Group>
           <Button
-            variant="primary"
             type="submit"
             className="w-100"
             disabled={!isFormValid || isLoading}
+            style={{ background: primary, borderColor: primary, color: "#fff" }}
           >
             {isLoading ? (
               <Spinner

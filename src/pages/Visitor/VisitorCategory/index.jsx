@@ -9,7 +9,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isBefore, addHours } from "date-fns";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
-import { useLogoColor } from "@/context/LogoColorContext";
 
 import "../index.css";
 
@@ -25,7 +24,6 @@ const VisitorCategory = () => {
   const visitorFirstName = user?.visitorFirstName;
   const visitorToken = user?.visitorToken;
   const tenantToken = user?.tenantToken;
-  const { colour: primary } = useLogoColor();
 
   const navigate = useNavigate();
 
@@ -630,7 +628,11 @@ const VisitorCategory = () => {
 
   useEffect(() => {
     fetchLogoData();
-  }, [visitorSlug]);
+  }, []);
+
+    const primary = logoData[0]?.colour || "#fe0002" ;
+  console.log(primary);
+  
 
   if (loading) return <div>Loading...</div>;
   if (notFound) return <Error404Alt />;
@@ -655,7 +657,7 @@ const VisitorCategory = () => {
             ) : (
               ""
             )}
-            | {visitorSlug.toUpperCase()} | {visitorSlug}
+            | {visitorSlug.toUpperCase()}
           </h3>
           {visitorToken ? (
             <h2 className="dropdown">
@@ -669,7 +671,16 @@ const VisitorCategory = () => {
             <h2>
               Already have an account?{" "}
               <Link to={`/${visitorSlug}/auth/visitorLogin`} className="">
-                <button type="submit">Login</button>
+                <button
+                  type="submit"
+                  style={{
+                    backgroundColor: primary,
+                    borderColor: primary,
+                    color: "#fff",
+                  }}
+                >
+                  Login
+                </button>
               </Link>{" "}
             </h2>
           )}

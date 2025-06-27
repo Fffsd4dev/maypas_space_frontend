@@ -226,6 +226,9 @@ const Floors = () => {
     handleDelete(myFloorID);
     setDeletePopup({ isVisible: false, myFloorID: null });
   };
+  const [formData, setFormData] = useState({
+    location_id: "",
+  });
 
   const handleLocationChange = (e) => {
     const locationId = e.target.value;

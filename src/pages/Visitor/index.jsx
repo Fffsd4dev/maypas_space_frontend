@@ -27,15 +27,14 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isBefore, addHours } from "date-fns";
 import { reference } from "@popperjs/core";
-import { useLogoColor } from "../../context/LogoColorContext";
 
 const SeatBookingSystem = () => {
   const { removeSession } = useAuthContext();
   const { user } = useAuthContext();
 
   const tenantToken = user?.tenantToken;
-  const { colour: primary } = useLogoColor();
-  console.log(primary)
+
+  
 
   const visitorFirstName = user?.visitorFirstName;
   const visitorToken = user?.visitorToken;
@@ -55,6 +54,8 @@ const SeatBookingSystem = () => {
         "authentication-bg-pattern"
       );
   }, []);
+
+
 
   const ProfileMenus = [
     {
@@ -878,7 +879,11 @@ const SeatBookingSystem = () => {
 
   useEffect(() => {
     fetchLogoData();
-  }, [visitorSlug]);
+  }, []);
+
+  const primary = logoData[0]?.colour || "#fe0002" ;
+  console.log(primary);
+  
 
   return notFound ? (
     <Error404Alt />
@@ -916,7 +921,16 @@ const SeatBookingSystem = () => {
           <h2>
             Already have an account?{" "}
             <Link to={`/${visitorSlug}/auth/visitorLogin`} className="">
-              <button type="submit">Login</button>
+              <button
+                type="submit"
+                style={{
+                  backgroundColor: primary,
+                  borderColor: primary,
+                  color: "#fff",
+                }}
+              >
+                Login
+              </button>
             </Link>{" "}
           </h2>
         )}
@@ -1057,8 +1071,11 @@ const SeatBookingSystem = () => {
                                             onClick={() =>
                                               handleBookNowClick(room)
                                             }
-                                                                                                          style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
+                                            style={{
+                                              backgroundColor: primary,
+                                              borderColor: primary,
+                                              color: "#fff",
+                                            }}
                                           >
                                             Book Now
                                           </Button>

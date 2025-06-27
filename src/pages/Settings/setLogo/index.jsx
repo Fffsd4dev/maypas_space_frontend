@@ -7,6 +7,7 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
+import { useLogoColor } from "../../../context/LogoColorContext.jsx";
 
 const LogoColor = () => {
   const { user } = useAuthContext();
@@ -118,6 +119,7 @@ const LogoColor = () => {
   }, [user?.tenantToken]);
 
     const primary = data[0]?.colour || "#fe0002";
+  const { colour: primaryColor } = useLogoColor();
 
 
   const handleEditClick = (myLogo) => {  
@@ -250,7 +252,7 @@ const columns = [
               <Row className="mb-2">
                 <Col sm={4}>
                   <Button
-                    style={{ background: primary, borderColor: primary, color: "#fff" }}
+                    style={{ background: primaryColor, borderColor: primaryColor, color: "#fff" }}
                     className="waves-effect waves-light"
                     onClick={() => {
                       setShow(true);

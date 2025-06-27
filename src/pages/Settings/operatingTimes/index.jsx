@@ -7,11 +7,13 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const OperatingTimes = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
+  const { colour: primary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -32,18 +34,17 @@ const OperatingTimes = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   const [formData, setFormData] = useState({
-      location_id: "",
-      hours: [
-        { day: "monday", open_time: "09:00", close_time: "17:00" },
-        { day: "tuesday", open_time: "09:00", close_time: "17:00" },
-        { day: "wednesday", open_time: "09:00", close_time: "17:00" },
-        { day: "thursday", open_time: "09:00", close_time: "17:00" },
-        { day: "friday", open_time: "09:00", close_time: "17:00" },
-        { day: "saturday", open_time: "14:00", close_time: "18:00" },
-        { day: "sunday", open_time: "14:00", close_time: "18:00" },
-      ],
-    });
-
+    location_id: "",
+    hours: [
+      { day: "monday", open_time: "09:00", close_time: "17:00" },
+      { day: "tuesday", open_time: "09:00", close_time: "17:00" },
+      { day: "wednesday", open_time: "09:00", close_time: "17:00" },
+      { day: "thursday", open_time: "09:00", close_time: "17:00" },
+      { day: "friday", open_time: "09:00", close_time: "17:00" },
+      { day: "saturday", open_time: "14:00", close_time: "18:00" },
+      { day: "sunday", open_time: "14:00", close_time: "18:00" },
+    ],
+  });
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
@@ -112,14 +113,16 @@ const OperatingTimes = () => {
           },
         }
       );
-  
+
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
-  
+
       const result = await response.json();
       console.log(result);
-  
+
       if (Array.isArray(result)) {
         // Sort the data by updated_at or created_at
         const sortedData = result.sort(
@@ -129,7 +132,7 @@ const OperatingTimes = () => {
         );
         setData(sortedData);
         console.log("Sorted Data:", sortedData);
-  
+
         // Update pagination state (if needed)
         setPagination((prev) => ({
           ...prev,
@@ -157,13 +160,18 @@ const OperatingTimes = () => {
     if (user?.tenantToken && selectedLocation) {
       fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
     }
-  }, [user?.tenantToken, selectedLocation,  pagination.currentPage, pagination.pageSize]);
+  }, [
+    user?.tenantToken,
+    selectedLocation,
+    pagination.currentPage,
+    pagination.pageSize,
+  ]);
 
   const handleEditClick = (locationId) => {
     const operatingTimesForLocation = data.filter(
       (item) => item.location_id === parseInt(locationId)
     );
-  
+
     // Define the order of days
     const dayOrder = [
       "monday",
@@ -174,20 +182,22 @@ const OperatingTimes = () => {
       "saturday",
       "sunday",
     ];
-  
+
     // Sort the data by the day field
     const sortedOperatingTimes = operatingTimesForLocation.sort(
-      (a, b) => dayOrder.indexOf(a.day.toLowerCase()) - dayOrder.indexOf(b.day.toLowerCase())
+      (a, b) =>
+        dayOrder.indexOf(a.day.toLowerCase()) -
+        dayOrder.indexOf(b.day.toLowerCase())
     );
-  
+
     setSelectedUser({
       location_id: locationId,
       hours: sortedOperatingTimes,
     });
-  
+
     setShow(true);
   };
-  
+
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
@@ -196,17 +206,17 @@ const OperatingTimes = () => {
       // Reload users after closing the modal
     }
     setFormData({}); // Reset inputs after success
-
   };
-
 
   const handleDelete = async (locationId) => {
     if (!user?.tenantToken) return;
-  
+
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/settings/workspace/time/delete`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/settings/workspace/time/delete`,
         {
           method: "POST",
           headers: {
@@ -218,13 +228,13 @@ const OperatingTimes = () => {
       );
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Failed to delete.");
-  
+
       setPopup({
         message: "Operating Time deleted successfully!",
         type: "success",
         isVisible: true,
       });
-  
+
       fetchData(locationId, pagination.currentPage, pagination.pageSize);
     } catch (error) {
       toast.error("Failed to delete Operating hours!");
@@ -237,9 +247,6 @@ const OperatingTimes = () => {
       setIsLoading(false);
     }
   };
-  
-
-
 
   const handleDeleteButton = (locationId) => {
     setDeletePopup({
@@ -247,12 +254,12 @@ const OperatingTimes = () => {
       myOperatingTimeID: locationId,
     });
   };
-  
+
   const confirmDelete = () => {
     handleDelete(deletePopup.myOperatingTimeID);
     setDeletePopup({ isVisible: false, myOperatingTimeID: null });
   };
-  
+
   const formatTime = (time) => {
     if (!time) return ""; // Handle empty or undefined time
     const [hour, minute] = time.split(":").map(Number);
@@ -260,7 +267,6 @@ const OperatingTimes = () => {
     const formattedHour = hour % 12 || 12; // Convert 24-hour to 12-hour format
     return `${formattedHour}:${minute.toString().padStart(2, "0")} ${period}`;
   };
- 
 
   const handleLocationChange = (e) => {
     const locationId = e.target.value;
@@ -281,7 +287,7 @@ const OperatingTimes = () => {
       Header: "Day",
       accessor: "day",
       sort: true,
-      Cell: ({ value }) => value.charAt(0).toUpperCase() + value.slice(1), 
+      Cell: ({ value }) => value.charAt(0).toUpperCase() + value.slice(1),
     },
     {
       Header: "Open Time",
@@ -293,7 +299,7 @@ const OperatingTimes = () => {
       Header: "Close Time",
       accessor: "close_time",
       sort: true,
-      Cell: ({ value }) => formatTime(value), 
+      Cell: ({ value }) => formatTime(value),
     },
     // {
     //   Header: "Action",
@@ -323,7 +329,11 @@ const OperatingTimes = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Spaces Operating Hours", path: "/Settings/operating-time", active: true },
+          {
+            label: "Spaces Operating Hours",
+            path: "/Settings/operating-time",
+            active: true,
+          },
         ]}
         title="Spaces Operating Hours"
       />
@@ -341,8 +351,14 @@ const OperatingTimes = () => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
+                    style={{
+                      backgroundColor: primary,
+                      borderColor: primary,
+                      color: "#fff",
+                    }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add Working Hours
+                    <i className="mdi mdi-plus-circle me-1"></i> Add Working
+                    Hours
                   </Button>
                 </Col>
               </Row>
@@ -355,92 +371,101 @@ const OperatingTimes = () => {
                     marginTop: "30px",
                   }}
                 >
-                   {loadingLocations ? (
-                                      <div className="text-center">
-                                        <Spinner animation="border" role="status">
-                                          <span className="visually-hidden">Loading...</span>
-                                        </Spinner>{" "}
-                                        Loading your locations...
-                                      </div>
-                                    ) : (
-                                      <div>
-                                        <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select a location to view or update your working hours.</p>
-                                        <Form.Select
-                                          style={{ marginBottom: "25px", fontSize: "1rem" }}
-                                          value={selectedLocation || ""}
-                                          onChange={handleLocationChange} // Use the new handler
-                                          required
-                                        >
-                                          <option value="" disabled>
-                                            Select a location
-                                          </option>
-                                          {locations.map((location) => (
-                                            <option key={location.id} value={location.id}>
-                                              {location.name} at {location.state}
-                                            </option>
-                                          ))}
-                                        </Form.Select>
-                                      </div>
-                                    )}
-{selectedLocation && (
-                <>
-
-                  {error ? (
-                    <p className="text-danger">Error: {error}</p>
-                  ) : loading ? (
-                    <p>Loading your working hours...</p>
-                  ) : isLoading ? (
+                  {loadingLocations ? (
                     <div className="text-center">
                       <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Deleting...</span>
+                        <span className="visually-hidden">Loading...</span>
                       </Spinner>{" "}
-                      Deleting...
+                      Loading your locations...
                     </div>
                   ) : (
-                    <Table2
-                      columns={columns}
-                      data={data}
-                      pageSize={pagination.pageSize}
-                      isSortable
-                      isSearchable
-                      tableClass="table-striped dt-responsive nowrap w-100"
-                      searchBoxClass="my-2"
-                      paginationProps={{
-                        currentPage: pagination.currentPage,
-                        totalPages: pagination.totalPages,
-                        onPageChange: (page) =>
-                          setPagination((prev) => ({
-                            ...prev,
-                            currentPage: page,
-                          })),
-                        onPageSizeChange: (pageSize) =>
-                          setPagination((prev) => ({ ...prev, pageSize })),
-                      }}
-                    />
+                    <div>
+                      <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+                        Select a location to view or update your working hours.
+                      </p>
+                      <Form.Select
+                        style={{ marginBottom: "25px", fontSize: "1rem" }}
+                        value={selectedLocation || ""}
+                        onChange={handleLocationChange} // Use the new handler
+                        required
+                      >
+                        <option value="" disabled>
+                          Select a location
+                        </option>
+                        {locations.map((location) => (
+                          <option key={location.id} value={location.id}>
+                            {location.name} at {location.state}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </div>
                   )}
+                  {selectedLocation && (
+                    <>
+                      {error ? (
+                        <p className="text-danger">Error: {error}</p>
+                      ) : loading ? (
+                        <p>Loading your working hours...</p>
+                      ) : isLoading ? (
+                        <div className="text-center">
+                          <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Deleting...</span>
+                          </Spinner>{" "}
+                          Deleting...
+                        </div>
+                      ) : (
+                        <Table2
+                          columns={columns}
+                          data={data}
+                          pageSize={pagination.pageSize}
+                          isSortable
+                          isSearchable
+                          tableClass="table-striped dt-responsive nowrap w-100"
+                          searchBoxClass="my-2"
+                          paginationProps={{
+                            currentPage: pagination.currentPage,
+                            totalPages: pagination.totalPages,
+                            onPageChange: (page) =>
+                              setPagination((prev) => ({
+                                ...prev,
+                                currentPage: page,
+                              })),
+                            onPageSizeChange: (pageSize) =>
+                              setPagination((prev) => ({ ...prev, pageSize })),
+                          }}
+                        />
+                      )}
 
-<Row className="mt-3">
-  <Col>
-  <Button
-  variant="primary"
-  disabled={!selectedLocation}
-  onClick={() => handleEditClick(selectedLocation)}
->
-  Edit Working Hours
-</Button>{" "}
-    <Button
-      variant="danger"
-      disabled={!selectedLocation}
-      onClick={() => handleDeleteButton(selectedLocation)}
-    >
-      Delete Working Hours
-    </Button>
-  </Col>
-</Row>
-
-                  </>
-              )}
-
+                      <Row className="mt-3">
+                        <Col>
+                          <Button
+                            variant="primary"
+                            disabled={!selectedLocation}
+                            onClick={() => handleEditClick(selectedLocation)}
+                            style={{
+                              backgroundColor: primary,
+                              borderColor: primary,
+                              color: "#fff",
+                            }}
+                          >
+                            Edit Working Hours
+                          </Button>{" "}
+                          <Button
+                            variant="danger"
+                            disabled={!selectedLocation}
+                            onClick={() => handleDeleteButton(selectedLocation)}
+                            style={{
+                              backgroundColor: primary,
+                              borderColor: primary,
+                              color: "#fff",
+                            }}
+                          >
+                            Delete Working Hours
+                          </Button>
+                        </Col>
+                      </Row>
+                    </>
+                  )}
                 </Card.Body>
               </Card>
             </Card.Body>
@@ -449,13 +474,17 @@ const OperatingTimes = () => {
       </Row>
 
       <TimeRegistrationModal
-  show={show}
-  onHide={handleClose}
-  myOperatingTime={selectedUser} // Pass the selected user data
-  onSubmit={() =>
-    fetchData(selectedLocation, pagination.currentPage, pagination.pageSize)
-  }
-/>
+        show={show}
+        onHide={handleClose}
+        myOperatingTime={selectedUser} // Pass the selected user data
+        onSubmit={() =>
+          fetchData(
+            selectedLocation,
+            pagination.currentPage,
+            pagination.pageSize
+          )
+        }
+      />
 
       {popup.isVisible && (
         <Popup

@@ -11,7 +11,7 @@ import AuthLayout from "./AuthLayout";
 import useLogin from "@/hooks/useLogin.js";
 import { Controller } from "react-hook-form";
 import Feedback from "react-bootstrap/esm/Feedback";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 /* bottom links */
@@ -71,7 +71,6 @@ const SocialLinks = () => {
 };
 const Login = () => {
 
-  const { tenantSlug } = useParams();
 
   const {
     t
@@ -84,15 +83,70 @@ const Login = () => {
     loading
   } = useLogin();
 
+         // Fetch logo data
+    const [logoData, setLogoData] = useState([]);
+    const [loadingLogo, setLoadingLogo] = useState(false);
+    const [error, setError] = useState(null);
+  
+     const { tenantSlug } = useParams();
+  
+    const fetchLogoData = async (page = 1, pageSize = 10) => {
+      setLoadingLogo(true);
+      setError(null);
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-details`,
+          {
+            method: "GET",
+          }
+        );
+  
+        if (!response.ok) {
+          throw new Error(
+            `Contact Support! HTTP error! Status: ${response.status}`
+          );
+        }
+  
+        const result = await response.json();
+        if (Array.isArray(result.data)) {
+          const sortedLogoData = result.data.sort(
+            (a, b) =>
+              new Date(b.updated_at || b.created_at) -
+              new Date(a.updated_at || a.created_at)
+          );
+          setLogoData(sortedLogoData);
+          console.log("logocolor data", sortedLogoData);
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoadingLogo(false);
+      }
+    };
+  
+      useEffect(() => {
+      fetchLogoData();
+    }, []);
+  
+      
+  
+  
+  const primary = logoData[0]?.colour || "#fe0002" ;
+  console.log(primary);
+  
+  
+
   
 
   const [showPassword, setShowPassword] = useState(false);
   return <>
-            <AuthLayout helpText={t("Enter your email address and password to access admin panel.")} bottomLinks={<BottomLink />}>
+            <AuthLayout helpText={t("Enter your email address and password to access admin panel.")} bottomLinks={<BottomLink />} >
 
                 <form onSubmit={login}>
 
-                    <div className="mb-3">
+                    <div className="mb-3" >
                         <Controller name="email" control={control} render={({
             field,
             fieldState
@@ -125,7 +179,7 @@ const Login = () => {
                     </div>
 
                     <div className="text-center d-grid">
-                    <Button variant="primary" type="submit" disabled={loading}>
+                    <Button style={{ background: primary, borderColor: primary, color: "#fff" }} type="submit" disabled={loading}>
   {loading ? (
     <Spinner
       as="span"

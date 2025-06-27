@@ -7,11 +7,13 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../../components/Popup/Popup";
 import Table2 from "../../../../components/Table2";
 import { toast } from "react-toastify";
+import { useLogoColor } from "../../../../context/LogoColorContext";
 
 const TeamManagement = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
+  const { colour: primary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -28,12 +30,12 @@ const TeamManagement = () => {
     buttonRoute: "",
   });
   const [formData, setFormData] = useState({
-      company: "",
-      department: "",
-      description: "",
-      manager: "",
-    });
-  
+    company: "",
+    department: "",
+    description: "",
+    manager: "",
+  });
+
   const [isError, setIsError] = useState(false);
   const [locations, setLocations] = useState([]);
 
@@ -88,15 +90,13 @@ const TeamManagement = () => {
     }
   };
 
-  const fetchData = async ( page = 1, pageSize = 10) => {
+  const fetchData = async (page = 1, pageSize = 10) => {
     setLoading(true);
     setError(null);
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/teams`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/teams`,
         // ?page=${page}&per_page=${pageSize}
         {
           method: "GET",
@@ -107,7 +107,9 @@ const TeamManagement = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       const result = await response.json();
@@ -147,9 +149,9 @@ const TeamManagement = () => {
 
   useEffect(() => {
     if (user?.tenantToken) {
-      fetchData( pagination.currentPage, pagination.pageSize);
+      fetchData(pagination.currentPage, pagination.pageSize);
     }
-  }, [user?.tenantToken,  pagination.currentPage, pagination.pageSize]);
+  }, [user?.tenantToken, pagination.currentPage, pagination.pageSize]);
 
   const handleEditClick = (myTeams) => {
     setSelectedUser(myTeams);
@@ -159,14 +161,12 @@ const TeamManagement = () => {
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
-    if (user?.tenantToken ) {
-      fetchData( pagination.currentPage, pagination.pageSize);
+    if (user?.tenantToken) {
+      fetchData(pagination.currentPage, pagination.pageSize);
       // Reload users after closing the modal
     }
     setFormData({}); // Reset inputs after success
-
   };
-
 
   const handleDelete = async (myTeamsID) => {
     if (!user?.tenantToken) return;
@@ -186,7 +186,9 @@ const TeamManagement = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       setData((prevData) =>
@@ -197,8 +199,8 @@ const TeamManagement = () => {
         type: "success",
         isVisible: true,
       });
-      if (user?.tenantToken ) {
-        fetchData( pagination.currentPage, pagination.pageSize);
+      if (user?.tenantToken) {
+        fetchData(pagination.currentPage, pagination.pageSize);
         // Reload users after deleting a user
       }
     } catch (error) {
@@ -212,8 +214,6 @@ const TeamManagement = () => {
       setIsLoading(false);
     }
   };
-
-
 
   const handleDeleteButton = (myTeamsID) => {
     setDeletePopup({
@@ -313,6 +313,11 @@ const TeamManagement = () => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
+                    style={{
+                      backgroundColor: primary,
+                      borderColor: primary,
+                      color: "#fff",
+                    }}
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a Team
                   </Button>
@@ -327,7 +332,7 @@ const TeamManagement = () => {
                     marginTop: "30px",
                   }}
                 >
-                   {/* {loadingLocations ? (
+                  {/* {loadingLocations ? (
                                       <div className="text-center">
                                         <Spinner animation="border" role="status">
                                           <span className="visually-hidden">Loading...</span>
@@ -355,44 +360,41 @@ const TeamManagement = () => {
                                       </div>
                                     )} */}
 
-                <>
-
-                  {error ? (
-                    <p className="text-danger">Error: {error}</p>
-                  ) : loading ? (
-                    <p>Loading Teams...</p>
-                  ) : isLoading ? (
-                    <div className="text-center">
-                      <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Deleting...</span>
-                      </Spinner>{" "}
-                      Deleting...
-                    </div>
-                  ) : (
-                    <Table2
-                      columns={columns}
-                      data={data}
-                      pageSize={pagination.pageSize}
-                      isSortable
-                      isSearchable
-                      tableClass="table-striped dt-responsive nowrap w-100"
-                      searchBoxClass="my-2"
-                      // paginationProps={{
-                      //   currentPage: pagination.currentPage,
-                      //   totalPages: pagination.totalPages,
-                      //   onPageChange: (page) =>
-                      //     setPagination((prev) => ({
-                      //       ...prev,
-                      //       currentPage: page,
-                      //     })),
-                      //   onPageSizeChange: (pageSize) =>
-                      //     setPagination((prev) => ({ ...prev, pageSize })),
-                      // }}
-                    />
-                  )}
+                  <>
+                    {error ? (
+                      <p className="text-danger">Error: {error}</p>
+                    ) : loading ? (
+                      <p>Loading Teams...</p>
+                    ) : isLoading ? (
+                      <div className="text-center">
+                        <Spinner animation="border" role="status">
+                          <span className="visually-hidden">Deleting...</span>
+                        </Spinner>{" "}
+                        Deleting...
+                      </div>
+                    ) : (
+                      <Table2
+                        columns={columns}
+                        data={data}
+                        pageSize={pagination.pageSize}
+                        isSortable
+                        isSearchable
+                        tableClass="table-striped dt-responsive nowrap w-100"
+                        searchBoxClass="my-2"
+                        // paginationProps={{
+                        //   currentPage: pagination.currentPage,
+                        //   totalPages: pagination.totalPages,
+                        //   onPageChange: (page) =>
+                        //     setPagination((prev) => ({
+                        //       ...prev,
+                        //       currentPage: page,
+                        //     })),
+                        //   onPageSizeChange: (pageSize) =>
+                        //     setPagination((prev) => ({ ...prev, pageSize })),
+                        // }}
+                      />
+                    )}
                   </>
-              
-
                 </Card.Body>
               </Card>
             </Card.Body>
@@ -404,9 +406,7 @@ const TeamManagement = () => {
         show={show}
         onHide={handleClose}
         myTeams={selectedUser}
-        onSubmit={() =>
-          fetchData( pagination.currentPage, pagination.pageSize)
-        } // Reload users after adding or editing a user
+        onSubmit={() => fetchData(pagination.currentPage, pagination.pageSize)} // Reload users after adding or editing a user
       />
 
       {popup.isVisible && (
@@ -423,9 +423,7 @@ const TeamManagement = () => {
         <Popup
           message="Are you sure you want to delete this team?"
           type="confirm"
-          onClose={() =>
-            setDeletePopup({ isVisible: false, myTeamsID: null })
-          }
+          onClose={() => setDeletePopup({ isVisible: false, myTeamsID: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />

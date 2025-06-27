@@ -3,10 +3,12 @@ import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLogoColor } from "../../../../context/LogoColorContext";
 
 const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
+  const { colour: primary } = useLogoColor();
 
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
@@ -45,9 +47,7 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
     setLoadingUsers(true);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/view-users`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-users`,
         {
           headers: { Authorization: `Bearer ${user.tenantToken}` },
         }
@@ -109,12 +109,10 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
         throw new Error("Authorization token is missing.");
 
       const url = myTeams
-        ? `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/${tenantSlug}/team/update/${myTeams.id}`
-        : `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/${tenantSlug}/team/create`;
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/team/update/${
+            myTeams.id
+          }`
+        : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/team/create`;
 
       const method = myTeams ? "POST" : "POST";
 
@@ -136,10 +134,12 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
             ? "Team updated successfully!"
             : "Team registered successfully!"
         );
-        setFormData({ company: "",
+        setFormData({
+          company: "",
           department: "",
           description: "",
-          manager: "",});
+          manager: "",
+        });
         setTimeout(() => {
           onSubmit();
           onHide();
@@ -167,9 +167,7 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
   return (
     <Modal show={show} onHide={onHide} centered>
       <Modal.Header className="bg-light" closeButton>
-        <Modal.Title>
-          {myTeams ? "Team" : "Add a New Team"}
-        </Modal.Title>
+        <Modal.Title>{myTeams ? "Team" : "Add a New Team"}</Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
         <Form onSubmit={handleSubmit}>
@@ -221,7 +219,7 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
                 {Array.isArray(users) &&
                   users.map((user) => (
                     <option key={user.id} value={user.id}>
-                      {user.first_name} {user.last_name} 
+                      {user.first_name} {user.last_name}
                     </option>
                   ))}
               </Form.Select>
@@ -268,6 +266,11 @@ const TeamsRegistrationModal = ({ show, onHide, myTeams, onSubmit }) => {
             type="submit"
             className="w-100"
             disabled={isLoading}
+            style={{
+              backgroundColor: primary,
+              borderColor: primary,
+              color: "#fff",
+            }}
           >
             {isLoading ? (
               <Spinner

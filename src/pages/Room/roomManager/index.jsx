@@ -7,11 +7,13 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const Rooms = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
+  const { colour: primary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -116,7 +118,9 @@ const Rooms = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       const result = await response.json();
@@ -154,16 +158,17 @@ const Rooms = () => {
           },
         }
       );
-      console.log('response for api', response)
+      console.log("response for api", response);
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       const result = await response.json();
       console.log("rooms:", result);
       if (result && Array.isArray(result)) {
-
         console.log("fff", result);
 
         const data = result;
@@ -185,7 +190,7 @@ const Rooms = () => {
       }
     } catch (error) {
       toast.error(error.message); // Replaced setErrorMessage with toast.error
-      console.error(error)
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -206,15 +211,30 @@ const Rooms = () => {
     }));
 
     if (floorId && selectedLocation) {
-      fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize); // Fetch rooms immediately after floor selection
+      fetchRoom(
+        selectedLocation,
+        floorId,
+        pagination.currentPage,
+        pagination.pageSize
+      ); // Fetch rooms immediately after floor selection
     }
   };
 
   useEffect(() => {
     if (formData.floor_id && user?.tenantToken) {
-      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+      fetchRoom(
+        selectedLocation,
+        formData.floor_id,
+        pagination.currentPage,
+        pagination.pageSize
+      );
     }
-  }, [user?.tenantToken, selectedLocation, pagination.currentPage, pagination.pageSize]);
+  }, [
+    user?.tenantToken,
+    selectedLocation,
+    pagination.currentPage,
+    pagination.pageSize,
+  ]);
 
   const handleEditClick = (myRoom) => {
     setSelectedUser(myRoom);
@@ -227,7 +247,12 @@ const Rooms = () => {
 
     // Fetch rooms after closing the modal
     if (selectedLocation && formData.floor_id) {
-      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+      fetchRoom(
+        selectedLocation,
+        formData.floor_id,
+        pagination.currentPage,
+        pagination.pageSize
+      );
     }
   };
 
@@ -249,7 +274,9 @@ const Rooms = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       setData((prevData) =>
@@ -308,10 +335,9 @@ const Rooms = () => {
       Header: "Space Number",
       accessor: "space_number",
       sort: true,
-    },  
-    
-    
-   {
+    },
+
+    {
       Header: "Fee/Space",
       accessor: "space_fee",
       sort: true,
@@ -379,6 +405,11 @@ const Rooms = () => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
+                    style={{
+                      backgroundColor: primary,
+                      borderColor: primary,
+                      color: "#fff",
+                    }}
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a Room
                   </Button>
@@ -386,7 +417,13 @@ const Rooms = () => {
               </Row>
 
               <Card>
-                <Card.Body style={{ background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", marginTop: "30px" }}>
+                <Card.Body
+                  style={{
+                    background:
+                      "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))",
+                    marginTop: "30px",
+                  }}
+                >
                   {loadingLocations ? (
                     <div className="text-center">
                       <Spinner animation="border" role="status">
@@ -421,7 +458,9 @@ const Rooms = () => {
                       {loadingFloor ? (
                         <div className="text-center">
                           <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Loading floors/sections...</span>
+                            <span className="visually-hidden">
+                              Loading floors/sections...
+                            </span>
                           </Spinner>
                         </div>
                       ) : (
@@ -497,7 +536,12 @@ const Rooms = () => {
         myRoom={selectedUser}
         onSubmit={() => {
           if (selectedLocation && formData.floor_id) {
-            fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+            fetchRoom(
+              selectedLocation,
+              formData.floor_id,
+              pagination.currentPage,
+              pagination.pageSize
+            );
           }
         }}
       />

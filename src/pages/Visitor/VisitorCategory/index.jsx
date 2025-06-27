@@ -9,23 +9,25 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isBefore, addHours } from "date-fns";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
+import { useLogoColor } from "@/context/LogoColorContext";
 
 import "../index.css";
 
 const VisitorCategory = () => {
-      const { removeSession } = useAuthContext();
-      const { user } = useAuthContext();
+  const { removeSession } = useAuthContext();
+  const { user } = useAuthContext();
 
   const { visitorSlug: visitorUrlSlug, category } = useParams();
   const visitorSlug = user?.visitor || visitorUrlSlug;
   const decodedCategory = decodeURIComponent(category)
-  .replace(/_/g, " ")
-  .replace(/\b\w/g, (c) => c.toUpperCase());
-    const visitorFirstName = user?.visitorFirstName;
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+  const visitorFirstName = user?.visitorFirstName;
   const visitorToken = user?.visitorToken;
-    const tenantToken = user?.tenantToken;
-    
-      const navigate = useNavigate();
+  const tenantToken = user?.tenantToken;
+  const { colour: primary } = useLogoColor();
+
+  const navigate = useNavigate();
 
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -43,9 +45,8 @@ const VisitorCategory = () => {
     buttonRoute: "",
   });
 
-    const [userId, setUserId] = useState(null);
-      const userIDRef = useRef(null); 
-  
+  const [userId, setUserId] = useState(null);
+  const userIDRef = useRef(null);
 
   const [bookingFormData, setBookingFormData] = useState({
     type: "one-off",
@@ -67,73 +68,73 @@ const VisitorCategory = () => {
   // Show login button if not logged in
   const showLogin = !visitorToken;
 
-    useEffect(() => {
-      if (tenantToken) {
-        const logout = async () => {
-          try {
-            const res = await axios.post(
-              `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/logout`,
-              {},
-              {
-                headers: {
-                  Authorization: `Bearer ${tenantToken}`,
-                  "Content-Type": "multipart/form-data",
-                },
-              }
-            );
-  
-            if (res.status === 200) {
-              console.log(res.data.message);
-              removeSession();
-            } else {
-              console.error("Logout Failed:", res);
+  useEffect(() => {
+    if (tenantToken) {
+      const logout = async () => {
+        try {
+          const res = await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/logout`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${tenantToken}`,
+                "Content-Type": "multipart/form-data",
+              },
             }
-          } catch (e) {
-            console.error("Error during Logout:", e);
+          );
+
+          if (res.status === 200) {
+            console.log(res.data.message);
+            removeSession();
+          } else {
+            console.error("Logout Failed:", res);
           }
-        };
-        logout();
-      }
-    }, [visitorSlug, removeSession, navigate, tenantToken]);
-
-      useEffect(() => {
-        if (!window.PaystackPop) {
-          const script = document.createElement("script");
-          script.src = "https://js.paystack.co/v2/inline.js";
-          script.async = true;
-          document.body.appendChild(script);
+        } catch (e) {
+          console.error("Error during Logout:", e);
         }
-      }, []);
+      };
+      logout();
+    }
+  }, [visitorSlug, removeSession, navigate, tenantToken]);
 
-    const triggerPaystackPopup = (access_code, userId) => {
-      if (!window.PaystackPop) {
-        showPaystackPopup(
-          "Payment library not loaded. Please try again.",
-          "error"
-        );
-        return;
-      }
-      const popup = new window.PaystackPop();
-  
-      popup.resumeTransaction(access_code, {
-        onSuccess: (response) => {
-          handleConfirmBooking(response.reference, userId);
-          console.log("Transaction successful:", response);
-        },
-  
-        onCancel: () => {
-          showPaystackPopup("Transaction was canceled.", "warning");
-        },
-        onLoad: () => {
-          showPaystackPopup("Transaction loading...", "info");
-        },
-        onError: (error) => {
-          showPaystackPopup("An error occurred: " + error.message, "error");
-        },
-      });
-    };
+  useEffect(() => {
+    if (!window.PaystackPop) {
+      const script = document.createElement("script");
+      script.src = "https://js.paystack.co/v2/inline.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
-      const showPaystackPopup = (
+  const triggerPaystackPopup = (access_code, userId) => {
+    if (!window.PaystackPop) {
+      showPaystackPopup(
+        "Payment library not loaded. Please try again.",
+        "error"
+      );
+      return;
+    }
+    const popup = new window.PaystackPop();
+
+    popup.resumeTransaction(access_code, {
+      onSuccess: (response) => {
+        handleConfirmBooking(response.reference, userId);
+        console.log("Transaction successful:", response);
+      },
+
+      onCancel: () => {
+        showPaystackPopup("Transaction was canceled.", "warning");
+      },
+      onLoad: () => {
+        showPaystackPopup("Transaction loading...", "info");
+      },
+      onError: (error) => {
+        showPaystackPopup("An error occurred: " + error.message, "error");
+      },
+    });
+  };
+
+  const showPaystackPopup = (
     message,
     type = "info",
     buttonLabel = "OK",
@@ -148,155 +149,157 @@ const VisitorCategory = () => {
     });
   };
 
-      const handleConfirmBooking = async (reference) => {
-        setIsLoading(true);
-    
-        try {
-          // Validate chosen days
-          let hasEmptyFieldsConfirm = false;
-          if (visitorToken) {
-            hasEmptyFieldsConfirm = bookingFormData.chosen_days.some(
-              (day) => !day.day || !day.start_time || !day.end_time
-            );
-          } else {
-            hasEmptyFieldsConfirm =
-              bookingFormData.chosen_days.some(
-                (day) => !day.day || !day.start_time || !day.end_time
-              ) ||
-              !bookingFormData.company_name ||
-              !bookingFormData.first_name ||
-              !bookingFormData.last_name ||
-              !bookingFormData.email ||
-              !bookingFormData.phone;
-          }
-    
-          if (hasEmptyFieldsConfirm) {
-            throw new Error("Please fill in all required fields");
-          }
-    
-          // Prepare the booking data
-          let bookingData = {};
-          if (visitorToken) {
-            bookingData = {
-              reference,
-              spot_id: selectedSpace.spot_id.toString(),
-              type: bookingFormData.type,
-              number_weeks: bookingFormData.number_weeks || "0",
-              number_months: bookingFormData.number_months || "0",
-              chosen_days: bookingFormData.chosen_days.map((day) => ({
-                day: day.day.toLowerCase(),
-                start_time: formatTimeForAPI(day.start_time),
-                end_time: formatTimeForAPI(day.end_time),
-              })),
-            };
-          } else {
-            bookingData = {
-              reference,
-              company_name: bookingFormData.company_name,
-              first_name: bookingFormData.first_name,
-              last_name: bookingFormData.last_name,
-              email: bookingFormData.email,
-              phone: bookingFormData.phone,
-              user_id: userIDRef.current || userId, // Use ref or state for user ID
-              spot_id: selectedSpace.spot_id.toString(),
-              type: bookingFormData.type,
-              number_weeks: bookingFormData.number_weeks || "0",
-              number_months: bookingFormData.number_months || "0",
-              chosen_days: bookingFormData.chosen_days.map((day) => ({
-                day: day.day.toLowerCase(),
-                start_time: formatTimeForAPI(day.start_time),
-                end_time: formatTimeForAPI(day.end_time),
-              })),
-            };
-          }
-    
-          // Validate time ranges
-          for (const day of bookingData.chosen_days) {
-            const start = parseISO(day.start_time.replace(" ", "T") + "Z");
-            const end = parseISO(day.end_time.replace(" ", "T") + "Z");
-    
-            if (isBefore(end, start)) {
-              throw new Error("End time must be after start time");
-            }
-          }
-    
-          const url = visitorToken
-            ? `${
-                import.meta.env.VITE_BACKEND_URL
-              }/api/${visitorSlug}/user/confirm/pay`
-            : `${
-                import.meta.env.VITE_BACKEND_URL
-              }/api/${visitorSlug}/confirm/pay/spot`;
-    
-          console.log("Confirm Booking with visitor token:", bookingData);
-    
-          // Make API call
-          let response;
-          if (visitorToken) {
-            response = await fetch(url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${visitorToken}`,
-              },
-              body: JSON.stringify(bookingData),
-            });
-          } else {
-            response = await fetch(url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(bookingData),
-            });
-          }
-    
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Failed to book space");
-          }
-    
-          const result = await response.json();
-          if (response.ok){
-            console.log("confirmbooking result", result);
-          toast.success(
-            result.message || " Payment made and Space booked successfully!"
-          );
-          handleBookingClose();
-          // Show success popup
-          showPaystackPopup(
-            "Transaction successful! Reference: " + reference,
-            "success"
-          );
-          }
-        } catch (error) {
-          toast.error(error.message || "Failed to book space");
-          setPopup((prev) => ({
-            ...prev,
-            isVisible: false, // Hide any previous popup
-          }));
-          showPaystackPopup(
-            `Contact Admin with reference number:<br /><strong>${reference}</strong><br /><br />
+  const handleConfirmBooking = async (reference) => {
+    setIsLoading(true);
+
+    try {
+      // Validate chosen days
+      let hasEmptyFieldsConfirm = false;
+      if (visitorToken) {
+        hasEmptyFieldsConfirm = bookingFormData.chosen_days.some(
+          (day) => !day.day || !day.start_time || !day.end_time
+        );
+      } else {
+        hasEmptyFieldsConfirm =
+          bookingFormData.chosen_days.some(
+            (day) => !day.day || !day.start_time || !day.end_time
+          ) ||
+          !bookingFormData.company_name ||
+          !bookingFormData.first_name ||
+          !bookingFormData.last_name ||
+          !bookingFormData.email ||
+          !bookingFormData.phone;
+      }
+
+      if (hasEmptyFieldsConfirm) {
+        throw new Error("Please fill in all required fields");
+      }
+
+      // Prepare the booking data
+      let bookingData = {};
+      if (visitorToken) {
+        bookingData = {
+          reference,
+          spot_id: selectedSpace.spot_id.toString(),
+          type: bookingFormData.type,
+          number_weeks: bookingFormData.number_weeks || "0",
+          number_months: bookingFormData.number_months || "0",
+          chosen_days: bookingFormData.chosen_days.map((day) => ({
+            day: day.day.toLowerCase(),
+            start_time: formatTimeForAPI(day.start_time),
+            end_time: formatTimeForAPI(day.end_time),
+          })),
+        };
+      } else {
+        bookingData = {
+          reference,
+          company_name: bookingFormData.company_name,
+          first_name: bookingFormData.first_name,
+          last_name: bookingFormData.last_name,
+          email: bookingFormData.email,
+          phone: bookingFormData.phone,
+          user_id: userIDRef.current || userId, // Use ref or state for user ID
+          spot_id: selectedSpace.spot_id.toString(),
+          type: bookingFormData.type,
+          number_weeks: bookingFormData.number_weeks || "0",
+          number_months: bookingFormData.number_months || "0",
+          chosen_days: bookingFormData.chosen_days.map((day) => ({
+            day: day.day.toLowerCase(),
+            start_time: formatTimeForAPI(day.start_time),
+            end_time: formatTimeForAPI(day.end_time),
+          })),
+        };
+      }
+
+      // Validate time ranges
+      for (const day of bookingData.chosen_days) {
+        const start = parseISO(day.start_time.replace(" ", "T") + "Z");
+        const end = parseISO(day.end_time.replace(" ", "T") + "Z");
+
+        if (isBefore(end, start)) {
+          throw new Error("End time must be after start time");
+        }
+      }
+
+      const url = visitorToken
+        ? `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/${visitorSlug}/user/confirm/pay`
+        : `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/${visitorSlug}/confirm/pay/spot`;
+
+      console.log("Confirm Booking with visitor token:", bookingData);
+
+      // Make API call
+      let response;
+      if (visitorToken) {
+        response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${visitorToken}`,
+          },
+          body: JSON.stringify(bookingData),
+        });
+      } else {
+        response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookingData),
+        });
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to book space");
+      }
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log("confirmbooking result", result);
+        toast.success(
+          result.message || " Payment made and Space booked successfully!"
+        );
+        handleBookingClose();
+        // Show success popup
+        showPaystackPopup(
+          "Transaction successful! Reference: " + reference,
+          "success"
+        );
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to book space");
+      setPopup((prev) => ({
+        ...prev,
+        isVisible: false, // Hide any previous popup
+      }));
+      showPaystackPopup(
+        `Contact Admin with reference number:<br /><strong>${reference}</strong><br /><br />
       <span style="color:red;font-weight:bold;">
         !!! Don't click ok or close this popup without copying or screenshotting the reference number
       </span>`,
-            "error"
-          );
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (document.body) document.body.classList.remove("authentication-bg", "authentication-bg-pattern");
+    if (document.body)
+      document.body.classList.remove(
+        "authentication-bg",
+        "authentication-bg-pattern"
+      );
     if (document.body) document.body.classList.add("auth-fluid-pages", "pb-0");
     return () => {
-      if (document.body) document.body.classList.remove("auth-fluid-pages", "pb-0");
+      if (document.body)
+        document.body.classList.remove("auth-fluid-pages", "pb-0");
     };
   }, []);
-
-
 
   // Handle book now click
   const handleBookNowClick = (room) => {
@@ -385,131 +388,131 @@ const VisitorCategory = () => {
 
   // Dummy booking submit (replace with your API logic)
   const handleBookingSubmit = async (e) => {
-     e.preventDefault();
-     setIsLoading(true);
- 
-     try {
-       // Validate chosen days
-       let hasEmptyFields = false;
-       if (visitorToken) {
-         hasEmptyFields = bookingFormData.chosen_days.some(
-           (day) => !day.day || !day.start_time || !day.end_time
-         );
-       } else {
-         hasEmptyFields =
-           bookingFormData.chosen_days.some(
-             (day) => !day.day || !day.start_time || !day.end_time
-           ) ||
-           !bookingFormData.company_name ||
-           !bookingFormData.first_name ||
-           !bookingFormData.last_name ||
-           !bookingFormData.email ||
-           !bookingFormData.phone;
-       }
- 
-       if (hasEmptyFields) {
-         throw new Error("Please fill in all required fields");
-       }
- 
-       // Prepare the booking data
-       let bookingData = {};
- 
-       if (visitorToken) {
-         bookingData = {
-           spot_id: selectedSpace.spot_id.toString(),
-           type: bookingFormData.type,
-           number_weeks: bookingFormData.number_weeks || "0",
-           number_months: bookingFormData.number_months || "0",
-           chosen_days: bookingFormData.chosen_days.map((day) => ({
-             day: day.day.toLowerCase(),
-             start_time: formatTimeForAPI(day.start_time),
-             end_time: formatTimeForAPI(day.end_time),
-           })),
-         };
-       } else {
-         bookingData = {
-           company_name: bookingFormData.company_name,
-           first_name: bookingFormData.first_name,
-           last_name: bookingFormData.last_name,
-           email: bookingFormData.email,
-           phone: bookingFormData.phone,
-           spot_id: selectedSpace.spot_id.toString(),
-           type: bookingFormData.type,
-           number_weeks: bookingFormData.number_weeks || "0",
-           number_months: bookingFormData.number_months || "0",
-           chosen_days: bookingFormData.chosen_days.map((day) => ({
-             day: day.day.toLowerCase(),
-             start_time: formatTimeForAPI(day.start_time),
-             end_time: formatTimeForAPI(day.end_time),
-           })),
-         };
-       }
- 
-       // Validate time ranges
-       for (const day of bookingData.chosen_days) {
-         const start = parseISO(day.start_time.replace(" ", "T") + "Z");
-         const end = parseISO(day.end_time.replace(" ", "T") + "Z");
- 
-         if (isBefore(end, start)) {
-           throw new Error("End time must be after start time");
-         }
-       }
- 
-       const url = visitorToken
-         ? `${
-             import.meta.env.VITE_BACKEND_URL
-           }/api/${visitorSlug}/user/initiate/pay`
-         : `${
-             import.meta.env.VITE_BACKEND_URL
-           }/api/${visitorSlug}/initiate/pay/spot`;
- 
-       console.log("Booking with visitor token:", bookingData);
- 
-       // Make API call
-       let response;
-       if (visitorToken) {
-         response = await fetch(url, {
-           method: "POST",
-           headers: {
-             "Content-Type": "application/json",
-             Authorization: `Bearer ${visitorToken}`,
-           },
-           body: JSON.stringify(bookingData),
-         });
-       } else {
-         response = await fetch(url, {
-           method: "POST",
-           headers: {
-             "Content-Type": "application/json",
-           },
-           body: JSON.stringify(bookingData),
-         });
-       }
- 
-       if (!response.ok) {
-         const errorData = await response.json();
-         throw new Error(errorData.message || "Failed to book space");
-       }
- 
-       const result = await response.json();
-       console.log(result);
-       toast.success(result.message || "Space booked successfully!");
-       handleBookingClose();
-       
-         setUserId(result.user.id);
-       userIDRef.current = result.user.id; // Store user ID in ref for later use
-         console.log(userId)
-       
-       // If your backend returns access_code for Paystack
-       if (result.access_code) {
-         triggerPaystackPopup(result.access_code, result.user.id);
-       }
-     } catch (error) {
-       toast.error(error.message || "Failed to book space");
-     } finally {
-       setIsLoading(false);
-     }
-   };
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Validate chosen days
+      let hasEmptyFields = false;
+      if (visitorToken) {
+        hasEmptyFields = bookingFormData.chosen_days.some(
+          (day) => !day.day || !day.start_time || !day.end_time
+        );
+      } else {
+        hasEmptyFields =
+          bookingFormData.chosen_days.some(
+            (day) => !day.day || !day.start_time || !day.end_time
+          ) ||
+          !bookingFormData.company_name ||
+          !bookingFormData.first_name ||
+          !bookingFormData.last_name ||
+          !bookingFormData.email ||
+          !bookingFormData.phone;
+      }
+
+      if (hasEmptyFields) {
+        throw new Error("Please fill in all required fields");
+      }
+
+      // Prepare the booking data
+      let bookingData = {};
+
+      if (visitorToken) {
+        bookingData = {
+          spot_id: selectedSpace.spot_id.toString(),
+          type: bookingFormData.type,
+          number_weeks: bookingFormData.number_weeks || "0",
+          number_months: bookingFormData.number_months || "0",
+          chosen_days: bookingFormData.chosen_days.map((day) => ({
+            day: day.day.toLowerCase(),
+            start_time: formatTimeForAPI(day.start_time),
+            end_time: formatTimeForAPI(day.end_time),
+          })),
+        };
+      } else {
+        bookingData = {
+          company_name: bookingFormData.company_name,
+          first_name: bookingFormData.first_name,
+          last_name: bookingFormData.last_name,
+          email: bookingFormData.email,
+          phone: bookingFormData.phone,
+          spot_id: selectedSpace.spot_id.toString(),
+          type: bookingFormData.type,
+          number_weeks: bookingFormData.number_weeks || "0",
+          number_months: bookingFormData.number_months || "0",
+          chosen_days: bookingFormData.chosen_days.map((day) => ({
+            day: day.day.toLowerCase(),
+            start_time: formatTimeForAPI(day.start_time),
+            end_time: formatTimeForAPI(day.end_time),
+          })),
+        };
+      }
+
+      // Validate time ranges
+      for (const day of bookingData.chosen_days) {
+        const start = parseISO(day.start_time.replace(" ", "T") + "Z");
+        const end = parseISO(day.end_time.replace(" ", "T") + "Z");
+
+        if (isBefore(end, start)) {
+          throw new Error("End time must be after start time");
+        }
+      }
+
+      const url = visitorToken
+        ? `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/${visitorSlug}/user/initiate/pay`
+        : `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/${visitorSlug}/initiate/pay/spot`;
+
+      console.log("Booking with visitor token:", bookingData);
+
+      // Make API call
+      let response;
+      if (visitorToken) {
+        response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${visitorToken}`,
+          },
+          body: JSON.stringify(bookingData),
+        });
+      } else {
+        response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookingData),
+        });
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to book space");
+      }
+
+      const result = await response.json();
+      console.log(result);
+      toast.success(result.message || "Space booked successfully!");
+      handleBookingClose();
+
+      setUserId(result.user.id);
+      userIDRef.current = result.user.id; // Store user ID in ref for later use
+      console.log(userId);
+
+      // If your backend returns access_code for Paystack
+      if (result.access_code) {
+        triggerPaystackPopup(result.access_code, result.user.id);
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to book space");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchCategoryAndRooms = async () => {
@@ -517,10 +520,16 @@ const VisitorCategory = () => {
       try {
         // 1. Fetch locations
         const locRes = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorUrlSlug}/get/locations`
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/${visitorUrlSlug}/get/locations`
         );
         const locData = await locRes.json();
-        if (!locRes.ok || !Array.isArray(locData.data) || locData.data.length === 0) {
+        if (
+          !locRes.ok ||
+          !Array.isArray(locData.data) ||
+          locData.data.length === 0
+        ) {
           setNotFound(true);
           setLoading(false);
           return;
@@ -530,7 +539,9 @@ const VisitorCategory = () => {
 
         // 3. Fetch spaces for this location
         const spaceRes = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorUrlSlug}/get/spaces/${locationId}`
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/${visitorUrlSlug}/get/spaces/${locationId}`
         );
         const spaceData = await spaceRes.json();
         if (!spaceRes.ok || !spaceData.data) {
@@ -542,12 +553,9 @@ const VisitorCategory = () => {
         // 4. Find the category for the requested category
         const categories = Object.keys(spaceData.data);
 
-
-
-
-const matchedCategory = categories.find(
-  (cat) => cat.toLowerCase() === decodedCategory.toLowerCase()
-);
+        const matchedCategory = categories.find(
+          (cat) => cat.toLowerCase() === decodedCategory.toLowerCase()
+        );
 
         if (!matchedCategory) {
           setNotFound(true);
@@ -574,105 +582,104 @@ const matchedCategory = categories.find(
 
     fetchCategoryAndRooms();
   }, [visitorUrlSlug, category]);
-  
-  
-    const [logoData, setLogoData] = useState([]);
-    const [loadingLogo, setLoadingLogo] = useState(true);
-            const [error, setError] = useState(null);
-  
-        
-      
-        const fetchLogoData = async ( page = 1, pageSize = 10) => {
-  setLoadingLogo;
-          setError(null);
-          console.log("User Token:", user?.tenantToken);
-          try {
-            const response = await fetch(
-              `${
-                import.meta.env.VITE_BACKEND_URL
-              }/api/${visitorSlug}/view-details`,
-              {
-                method: "GET"             
-              }
-            );
-        
-            if (!response.ok) {
-              throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
-            }
-        
-            const result = await response.json();
-            console.log(result);
-        
-            if (Array.isArray(result.data)) {
-              // Sort the data by updated_at or created_at
-              const sortedLogoData = result.data.sort(
-                (a, b) =>
-                  new Date(b.updated_at || b.created_at) -
-                  new Date(a.updated_at || a.created_at)
-              );
-              setLogoData(sortedLogoData);
-              console.log("Sorted Logo Data:", sortedLogoData);
-        
-          
-            } else {
-              throw new Error("Invalid response format");
-            }
-          } catch (error) {
-            toast.error(error.message);
-            setError(error.message);
-          } finally {
-            setLoadingLogo(false);
-          }
-        };
-  
-        useEffect(() => {
-          
-              fetchLogoData();
-               
-          }, [visitorSlug]);
-        
-  
+
+  const [logoData, setLogoData] = useState([]);
+  const [loadingLogo, setLoadingLogo] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchLogoData = async (page = 1, pageSize = 10) => {
+    setLoadingLogo;
+    setError(null);
+    console.log("User Token:", user?.tenantToken);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/view-details`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
+      }
+
+      const result = await response.json();
+      console.log(result);
+
+      if (Array.isArray(result.data)) {
+        // Sort the data by updated_at or created_at
+        const sortedLogoData = result.data.sort(
+          (a, b) =>
+            new Date(b.updated_at || b.created_at) -
+            new Date(a.updated_at || a.created_at)
+        );
+        setLogoData(sortedLogoData);
+        console.log("Sorted Logo Data:", sortedLogoData);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      toast.error(error.message);
+      setError(error.message);
+    } finally {
+      setLoadingLogo(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogoData();
+  }, [visitorSlug]);
 
   if (loading) return <div>Loading...</div>;
   if (notFound) return <Error404Alt />;
 
   return (
-    <div >
-        {showLogin && (
-         <div className="visitor-header">
-                <h3>{logoData[0]?.logo ? (  <img
-                                src={
-                                  logoData[0]?.logo
-                                    ? `${import.meta.env.VITE_BACKEND_URL}/storage/uploads/tenant_logo/${logoData[0].logo}`
-                                    : profileImg
-                                }
-                                alt=""
-                                className="rounded-circle avatar-md"
-                              />) : ("")}
-                              | {visitorSlug.toUpperCase()} | {visitorSlug}</h3>
-                {visitorToken ? (
-                  <h2 className="dropdown">
-                    <ProfileDropdown
-                      profilePic={profileImg}
-                      menuItems={ProfileMenus}
-                      username={visitorFirstName}
-                    />
-                  </h2>
-                ) : (
-                  <h2>
-                    Already have an account?{" "}
-                    <Link to={`/${visitorSlug}/auth/visitorLogin`} className="">
-                      <button type="submit">Login</button>
-                    </Link>{" "}
-                  </h2>
-                )}
-              </div>
+    <div>
+      {showLogin && (
+        <div className="visitor-header">
+          <h3>
+            {logoData[0]?.logo ? (
+              <img
+                src={
+                  logoData[0]?.logo
+                    ? `${
+                        import.meta.env.VITE_BACKEND_URL
+                      }/storage/uploads/tenant_logo/${logoData[0].logo}`
+                    : profileImg
+                }
+                alt=""
+                className="rounded-circle avatar-md"
+              />
+            ) : (
+              ""
+            )}
+            | {visitorSlug.toUpperCase()} | {visitorSlug}
+          </h3>
+          {visitorToken ? (
+            <h2 className="dropdown">
+              <ProfileDropdown
+                profilePic={profileImg}
+                menuItems={ProfileMenus}
+                username={visitorFirstName}
+              />
+            </h2>
+          ) : (
+            <h2>
+              Already have an account?{" "}
+              <Link to={`/${visitorSlug}/auth/visitorLogin`} className="">
+                <button type="submit">Login</button>
+              </Link>{" "}
+            </h2>
+          )}
+        </div>
       )}
-      
+
       <h2 className="pagetitle">
         Category: <span style={{ color: "#007bff" }}>{decodedCategory}</span>
       </h2>
-      
+
       <Row className="pagetitle">
         {roomsData &&
           Object.keys(roomsData).map((cat) =>
@@ -705,6 +712,11 @@ const matchedCategory = categories.find(
                           size="sm"
                           className="w-100"
                           onClick={() => handleBookNowClick(room)}
+                          style={{
+                            backgroundColor: primary,
+                            borderColor: primary,
+                            color: "#fff",
+                          }}
                         >
                           Book Now
                         </Button>
@@ -926,7 +938,16 @@ const matchedCategory = categories.find(
                 >
                   Cancel
                 </Button>
-                <Button variant="primary" type="submit" disabled={isLoading}>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={isLoading}
+                  style={{
+                    backgroundColor: primary,
+                    borderColor: primary,
+                    color: "#fff",
+                  }}
+                >
                   {isLoading ? (
                     <>
                       <Spinner

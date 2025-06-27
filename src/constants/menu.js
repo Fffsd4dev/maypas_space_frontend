@@ -48,10 +48,7 @@ export const MENU_ITEMS = (tenantSlug = "") => [
     isTitle: false,
     icon: FiAirplay,
     url: `/${tenantSlug}/tenantDashboard`,
-    badge: {
-      variant: "success",
-     
-    },
+  
     
   },
   {

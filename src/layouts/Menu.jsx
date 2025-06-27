@@ -2,11 +2,25 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Collapse } from "react-bootstrap";
 import classNames from "classnames";
+import { useLogoColor } from "@/context/LogoColorContext"; // <-- import context
 
 //helpers
 import { findAllParent, findMenuItem } from "../helpers/menu";
 
 // constants
+
+// Inject dynamic style for menu-item and menuitem-active
+const menuItemDynamicStyle = `
+  .menu-item.menuitem-active {
+    color: var(--primary-menu, #fe0002) !important;
+    background-color: rgba(254,0,2,0.08) !important;
+  }
+  .menu-item.menuitem-active > .menu-link,
+  .menu-item > .menu-link:hover,
+  .menu-item > .menu-link:focus {
+    color: var(--primary-menu, #fe0002) !important;
+  }
+`;
 
 const MenuItemWithChildren = ({
   item,
@@ -95,6 +109,23 @@ const AppMenu = ({
   const location = useLocation();
   const menuRef = useRef(null);
   const [activeMenuItems, setActiveMenuItems] = useState([]);
+  const { colour: primary } = useLogoColor();
+
+  // Inject dynamic style for menu-item and menuitem-active
+  useEffect(() => {
+    const styleId = "dynamic-menuitem-primary";
+    let styleTag = document.getElementById(styleId);
+    if (!styleTag) {
+      styleTag = document.createElement("style");
+      styleTag.id = styleId;
+      document.head.appendChild(styleTag);
+    }
+    styleTag.innerHTML = menuItemDynamicStyle;
+    document.documentElement.style.setProperty("--primary-menu", primary || "#fe0002");
+    return () => {
+      if (styleTag) styleTag.remove();
+    };
+  }, [primary]);
 
   /*
    * toggle the menus

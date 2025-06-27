@@ -7,11 +7,14 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const Categories = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
+
+  const { colour: primary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -156,20 +159,20 @@ const Categories = () => {
     setShow(true);
   };
 
-const handleCopy = (myCategory) => {
-  const baseUrl = window.location.origin;
-  const categorySlug = myCategory.category.toLowerCase().replace(/\s+/g, "_");
-  const url = `${baseUrl}/${tenantSlug}/${categorySlug}`;
-  navigator.clipboard.writeText(url).then(() => {
-    setPopup({
-      message: "Link copied",
-      type: "success",
-      isVisible: true,
-      buttonLabel: "OK",
-      buttonRoute: "",
+  const handleCopy = (myCategory) => {
+    const baseUrl = window.location.origin;
+    const categorySlug = myCategory.category.toLowerCase().replace(/\s+/g, "_");
+    const url = `${baseUrl}/${tenantSlug}/${categorySlug}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setPopup({
+        message: "Link copied",
+        type: "success",
+        isVisible: true,
+        buttonLabel: "OK",
+        buttonRoute: "",
+      });
     });
-  });
-};
+  };
 
   const handleClose = () => {
     setShow(false);
@@ -282,7 +285,6 @@ const handleCopy = (myCategory) => {
       accessor: "action",
       sort: false,
       Cell: ({ row }) => (
-        
         <>
           <Link
             to="#"
@@ -299,7 +301,7 @@ const handleCopy = (myCategory) => {
             <i className="mdi mdi-delete"></i>
           </Link>
 
-            <Link
+          <Link
             to="#"
             className="action-icon"
             onClick={() => handleCopy(row.original)}
@@ -332,6 +334,11 @@ const handleCopy = (myCategory) => {
                     onClick={() => {
                       setShow(true);
                       setSelectedUser(null);
+                    }}
+                    style={{
+                      backgroundColor: primary,
+                      borderColor: primary,
+                      color: "#fff",
                     }}
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a Category

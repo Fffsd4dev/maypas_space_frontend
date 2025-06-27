@@ -7,12 +7,15 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const MyLocations = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const { tenantSlug } = useParams();
   const tenantSlugg = user?.tenant;
+
+  const { colour: primary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -59,7 +62,9 @@ const MyLocations = () => {
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/list-locations?page=${page}&per_page=${pageSize}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlugg}/location/list-locations?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
@@ -69,7 +74,9 @@ const MyLocations = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       const result = await response.json();
@@ -120,7 +127,9 @@ const MyLocations = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/delete`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlugg}/location/delete`,
         {
           method: "POST",
           headers: {
@@ -132,7 +141,9 @@ const MyLocations = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       setData((prevData) =>
@@ -245,6 +256,11 @@ const MyLocations = () => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
+                    style={{
+                      backgroundColor: primary,
+                      borderColor: primary,
+                      color: "#fff",
+                    }}
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a Location
                   </Button>
@@ -275,8 +291,10 @@ const MyLocations = () => {
                   paginationProps={{
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
-                    onPageChange: (page) => setPagination((prev) => ({ ...prev, currentPage: page })),
-                    onPageSizeChange: (pageSize) => setPagination((prev) => ({ ...prev, pageSize })),
+                    onPageChange: (page) =>
+                      setPagination((prev) => ({ ...prev, currentPage: page })),
+                    onPageSizeChange: (pageSize) =>
+                      setPagination((prev) => ({ ...prev, pageSize })),
                   }}
                 />
               )}

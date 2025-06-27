@@ -3,10 +3,12 @@ import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
+  const { colour: primary } = useLogoColor();
 
   const [locations, setLocations] = useState([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
@@ -18,7 +20,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
     category: "",
     location_id: "",
     booking_type: "",
-    min_duration: ""
+    min_duration: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -136,7 +138,12 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
             ? "Category updated successfully!"
             : "Category registered successfully!"
         );
-        setFormData({ category: "", location_id: "", booking_type: "", min_duration: "" });
+        setFormData({
+          category: "",
+          location_id: "",
+          booking_type: "",
+          min_duration: "",
+        });
         setTimeout(() => {
           onSubmit();
           onHide();
@@ -215,7 +222,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
                 <option value="monthly">monthly</option>
               </Form.Select>
             </Form.Group>
-            
+
             <Form.Group className="mb-3" controlId="min_duration">
               <Form.Label>Minimum duration for the booking type</Form.Label>
               <Form.Control
@@ -224,8 +231,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
                 value={formData.min_duration}
                 onChange={handleInputChange}
                 placeholder="1"
-              >
-              </Form.Control>
+              ></Form.Control>
             </Form.Group>
 
             {/* {myCategory ? (
@@ -270,6 +276,11 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
             type="submit"
             className="w-100"
             disabled={isLoading}
+            style={{
+              backgroundColor: primary,
+              borderColor: primary,
+              color: "#fff",
+            }}
           >
             {isLoading ? (
               <Spinner

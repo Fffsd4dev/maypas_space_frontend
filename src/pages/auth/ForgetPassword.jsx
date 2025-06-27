@@ -4,7 +4,10 @@ import { useTranslation } from "react-i18next";
 import classNames from "classnames";
 import Popup from "../../components/Popup/Popup";
 import { useParams } from "react-router-dom";
+import { useLogoColor } from "../../context/LogoColorContext";
 
+
+import { useEffect } from "react";
 
 // components
 import { VerticalForm, FormInput } from "@/components";
@@ -21,11 +24,13 @@ const BottomLink = () => {
   const {
     t
   } = useTranslation();
+        const { tenantSlug } = useParams();
+
   return <Row className="mt-3">
             <Col className="text-center">
                 <p className="text-white-50">
                     {t("Back to")}{" "}
-                    <Link to={"/auth/login"} className="text-white ms-1">
+                    <Link to={`/${tenantSlug}/auth/login`} className="text-white ms-1">
                         <b>{t("Log in")}</b>
                     </Link>
                 </p>
@@ -42,9 +47,22 @@ const ForgetPassword = () => {
       popup,
       setPopup,
       loading
-    } = useRequestOtp();
+    } = useRequestOtp();  
+
+ const { logoImg } = useLogoColor();
+   const { colour: primary } = useLogoColor();
+   const { tenantSlug } = useParams();
+
+
+
+    
+
+
+
+
+
   return <>
-            <AuthLayout helpText={t("Enter your email address and we'll send you an email with instructions to reset your password.")} bottomLinks={<BottomLink />}>
+            <AuthLayout helpText={t("Enter your email address and we'll send you an email with instructions to reset your password.")} bottomLinks={<BottomLink />} primary={primary} >
               <form onSubmit={requestOtp}>
             
                                 <div className="mb-3">
@@ -63,7 +81,7 @@ const ForgetPassword = () => {
                               
             
                                 <div className="text-center d-grid">
-                                <Button variant="primary" type="submit" disabled={loading}>
+                                <Button  type="submit" disabled={loading} style={{ background: primary, borderColor: primary, color: "#fff" }}>
               {loading ? (
                 <Spinner
                   as="span"

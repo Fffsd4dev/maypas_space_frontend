@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
+
+  const { colour: primary } = useLogoColor();
 
   const [locations, setLocations] = useState([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
@@ -449,11 +452,11 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               backgroundColor:
                 isLoading || loadingLocations || loadingFloor || loadingCategory
                   ? "#d3d3d3"
-                  : "#fe0002", // Use primary color or disabled color
+                  : primary, // Use primary color or disabled color
               borderColor:
                 isLoading || loadingLocations || loadingFloor || loadingCategory
                   ? "#d3d3d3"
-                  : "#fe0002", // Match border color
+                  : primary, // Match border color
             }}
             type="submit"
             className="w-100"

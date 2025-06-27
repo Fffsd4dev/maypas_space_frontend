@@ -7,7 +7,6 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
-import { m } from "framer-motion";
 
 const LogoColor = () => {
   const { user } = useAuthContext();
@@ -117,6 +116,9 @@ const LogoColor = () => {
         fetchData();
     }
   }, [user?.tenantToken]);
+
+    const primary = data[0]?.colour || "#fe0002";
+
 
   const handleEditClick = (myLogo) => {  
     setSelectedUser(myLogo);
@@ -248,7 +250,7 @@ const columns = [
               <Row className="mb-2">
                 <Col sm={4}>
                   <Button
-                    variant="danger"
+                    style={{ background: primary, borderColor: primary, color: "#fff" }}
                     className="waves-effect waves-light"
                     onClick={() => {
                       setShow(true);
@@ -321,6 +323,9 @@ const columns = [
   show={show}
   onHide={handleClose}
   myLogo={selectedUser} // Pass the selected user data
+    onSubmit={() =>
+    fetchData()
+  }
 
 />
 

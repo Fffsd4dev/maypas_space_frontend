@@ -8,11 +8,13 @@ import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
 import { m } from "framer-motion";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const BankAccount = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
+  const { colour: primary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -324,6 +326,8 @@ const BankAccount = () => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
+                                                                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add Your Bank Account
                   </Button>

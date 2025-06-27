@@ -3,12 +3,16 @@ import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useParams } from "react-router-dom";
+
 
 const COLOR_OPTIONS = [
+  "#FE0002",
   "#FF5733", // Red-Orange
   "#3498DB", // Blue
+  "#000080", // Navy
   "#27AE60", // Green
-  "#F1C40F", // Yellow
+  "#8B8000", // Yellow
 ];
 
 const MAX_LOGO_SIZE = 2048 * 1024; // 2048 KB in bytes
@@ -16,6 +20,7 @@ const MAX_LOGO_SIZE = 2048 * 1024; // 2048 KB in bytes
 
 const CompanyLogoAndColorRegistration = ({ show, onHide, myLogo, onSubmit }) => {
   const { user } = useAuthContext();
+  const { tenantSlug: tenantUrlSlug } = useParams();
   const tenantSlug = user?.tenant;
 
   const [formData, setFormData] = useState({

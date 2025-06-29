@@ -14,12 +14,15 @@ const breadcrumbLinkStyle = `
 const PageTitle = (props) => {
   const { user } = useAuthContext();
   const { tenantSlug: tenantUrlSlug } = useParams();
+  const { visitorSlug: visitorUrlSlug } = useParams();
 
   // Prefer user.tenant but fall back to URL param
   const tenantSlug = user?.tenant || tenantUrlSlug;
+  const visitorSlug = user?.visitorSlug || visitorUrlSlug;
   const tenantFirstName = user?.tenantFirstName || "";
   const tenantLastName = user?.tenantLastName || "";
   const companyName = user?.tenantCompanyName || "";
+  console.log(companyName);
   const { logoImg } = useLogoColor();
   const { colour: primary } = useLogoColor();
 
@@ -38,6 +41,7 @@ const PageTitle = (props) => {
     : "";
 
   const hasTenant = !!tenantSlug;
+  const hasVisitor = !!visitorSlug;
   const hasToken = !!user?.token;
 
   return (
@@ -50,11 +54,15 @@ const PageTitle = (props) => {
                 href={
                   hasTenant
                     ? `/${tenantSlug}/${hasToken ? "tenantDashboard" : "home"}`
+                    : hasVisitor
+                    ? `/${visitorSlug}/home`
                     : "/dashboard"
                 }
                 className="breadcrumb-primary-link"
               >
-                {hasTenant
+                {hasVisitor
+                  ? `${visitorSlug.charAt(0).toUpperCase()}${visitorSlug.slice(1)} Booking`
+                  : hasTenant
                   ? `${tenantDisplayName} Booking`
                   : hasToken
                   ? "MayPas Booking"

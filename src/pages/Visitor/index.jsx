@@ -27,6 +27,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isBefore, addHours } from "date-fns";
 import { reference } from "@popperjs/core";
+import { useLogoColor } from "../../context/LogoColorContext";
 
 const SeatBookingSystem = () => {
   const { removeSession } = useAuthContext();
@@ -34,7 +35,7 @@ const SeatBookingSystem = () => {
 
   const tenantToken = user?.tenantToken;
 
-  
+  const { logoColor } = useLogoColor();
 
   const visitorFirstName = user?.visitorFirstName;
   const visitorToken = user?.visitorToken;

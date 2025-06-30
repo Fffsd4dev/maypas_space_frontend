@@ -60,6 +60,7 @@ const InvoiceDetails = () => {
               headers: { Authorization: `Bearer ${user?.tenantToken}` },
             }
           );
+          console.log(response);
           if (response.data.invoice) {
             console.log(response.data.invoice);
             setInvoice(response.data.invoice);

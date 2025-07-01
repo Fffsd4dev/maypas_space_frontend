@@ -13,7 +13,7 @@ const Floors = () => {
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
 
-  const { colour: primary } = useLogoColor();
+  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -328,8 +328,8 @@ const Floors = () => {
               <Card>
                 <Card.Body
                   style={{
-                    background:
-                      "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))",
+                    background: 
+                      secondary,
                     marginTop: "30px",
                   }}
                 >

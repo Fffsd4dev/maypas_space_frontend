@@ -21,7 +21,7 @@ const NotificationDropdown = ({ notifications, fetchNotification }) => {
     notificationContainerStyle
   );
 
-    const { colour: primary } = useLogoColor();
+    const { colour: primary, secondaryColor: secondary } = useLogoColor();
   
     // Inject dynamic nav-link style for primary color
     useEffect(() => {
@@ -73,7 +73,8 @@ const NotificationDropdown = ({ notifications, fetchNotification }) => {
     })}>
         <i className="fe-bell noti-icon font-22"></i>
         <span className="badge bg-danger rounded-circle noti-icon-badge">
-          9
+            {notifications?.length || 0}
+
         </span>
       </Dropdown.Toggle>
       <Dropdown.Menu className="dropdown-menu dropdown-menu-end dropdown-menu-animated dropdown-lg py-0">
@@ -96,7 +97,7 @@ const NotificationDropdown = ({ notifications, fetchNotification }) => {
                 className="dropdown-item p-0 notify-item card shadow-none mb-1"
                 key={i}
                 style={{
-                  backgroundColor: item.is_read ? "#E8F5E9" : "#FFEBEE", // Green for read, red for unread
+                  backgroundColor: item.is_read ? secondary : "#FFEBEE", // Green for read, red for unread
                 }}
               >
                 <div className="card-body">

@@ -13,7 +13,7 @@ import { findAllParent, findMenuItem } from "../helpers/menu";
 const menuItemDynamicStyle = `
   .menu-item.menuitem-active {
     color: var(--primary-menu, #fe0002) !important;
-    background-color: rgba(254,0,2,0.08) !important;
+    background-color: var(--secondary-menu, #FE000214) !important;
   }
   .menu-item.menuitem-active > .menu-link,
   .menu-item > .menu-link:hover,
@@ -109,23 +109,24 @@ const AppMenu = ({
   const location = useLocation();
   const menuRef = useRef(null);
   const [activeMenuItems, setActiveMenuItems] = useState([]);
-  const { colour: primary } = useLogoColor();
+  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   // Inject dynamic style for menu-item and menuitem-active
-  useEffect(() => {
-    const styleId = "dynamic-menuitem-primary";
-    let styleTag = document.getElementById(styleId);
-    if (!styleTag) {
-      styleTag = document.createElement("style");
-      styleTag.id = styleId;
-      document.head.appendChild(styleTag);
-    }
-    styleTag.innerHTML = menuItemDynamicStyle;
-    document.documentElement.style.setProperty("--primary-menu", primary || "#fe0002");
-    return () => {
-      if (styleTag) styleTag.remove();
-    };
-  }, [primary]);
+useEffect(() => {
+  const styleId = "dynamic-menuitem-primary";
+  let styleTag = document.getElementById(styleId);
+  if (!styleTag) {
+    styleTag = document.createElement("style");
+    styleTag.id = styleId;
+    document.head.appendChild(styleTag);
+  }
+  styleTag.innerHTML = menuItemDynamicStyle;
+  document.documentElement.style.setProperty("--primary-menu", primary || "#fe0002");
+  document.documentElement.style.setProperty("--secondary-menu", secondary || "#f7eaea");
+  return () => {
+    if (styleTag) styleTag.remove();
+  };
+}, [primary, secondary]);
 
   /*
    * toggle the menus

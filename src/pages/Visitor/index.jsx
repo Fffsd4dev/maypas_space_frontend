@@ -883,6 +883,20 @@ const SeatBookingSystem = () => {
   }, []);
 
   const primary = logoData[0]?.colour || "#fe0002" ;
+
+
+  function hexToRgba(hex, alpha = 0.08) {
+  let c = hex ? hex.replace("#", "") : "fe0002";
+  if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  const num = parseInt(c, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+const secondary = hexToRgba(logoData[0]?.colour || "#fe0002", 0.08)
+
   console.log(primary);
   
 
@@ -957,7 +971,7 @@ const SeatBookingSystem = () => {
                 <Card.Body
                   style={{
                     background:
-                      "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))",
+                      secondary,
                     marginTop: "30px",
                     marginLeft: "2rem",
                     marginRight: "2rem",

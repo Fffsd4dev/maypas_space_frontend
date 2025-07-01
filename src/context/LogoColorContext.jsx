@@ -50,11 +50,23 @@ export const LogoColorProvider = ({ children }) => {
     fetchLogoData();
   }, [fetchLogoData]);
 
+  // Helper to get a lighter version of the primary color using opacity
+function hexToRgba(hex, alpha = 0.08) {
+  let c = hex ? hex.replace("#", "") : "fe0002";
+  if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  const num = parseInt(c, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
   return (
     <LogoColorContext.Provider
       value={{
         logoImg: logoData?.logo || null,
         colour: logoData?.colour || "#fe0002",
+        secondaryColor: hexToRgba(logoData?.colour || "#fe0002", 0.08),
         loadingLogo,
         error,
         refetchLogoData: fetchLogoData, // <-- expose this

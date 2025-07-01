@@ -14,7 +14,7 @@ const Invoices = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
-  const { color: primary } = useLogoColor();
+  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -488,7 +488,7 @@ const Invoices = () => {
                 <Card.Body
                   style={{
                     background:
-                      "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))",
+                      secondary,
                     marginTop: "30px",
                   }}
                 >
@@ -520,12 +520,13 @@ const Invoices = () => {
                         getRowProps={(row) => ({
                           style: {
                             cursor: "pointer",
-                            backgroundColor:
+                              backgroundColor:
                               row.original.space_payment[0].payment_status
                                 ?.toString()
                                 .toLowerCase() === "completed"
-                                ? "#E8F5E9"
+                                ? secondary
                                 : "inherit",
+                                
                             opacity: rowLoading === row.original.id ? 0.4 : 1, // visually indicate loading
 
                             transition: "opacity 0.3s ease",

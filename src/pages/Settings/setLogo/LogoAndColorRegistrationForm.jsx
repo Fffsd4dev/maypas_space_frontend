@@ -202,7 +202,7 @@ const CompanyLogoAndColorRegistration = ({ show, onHide, myLogo, onSubmit }) => 
     <Modal show={show} onHide={onHide} centered>
       <Modal.Header className="bg-light" closeButton>
         <Modal.Title>
-          {myLogo ? "Company's Logo and Color" : "Add Your Company's Logo and Color"}
+          {myLogo ? "Company's Logo and Color" : "Add Your Company's Logo & Color"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">

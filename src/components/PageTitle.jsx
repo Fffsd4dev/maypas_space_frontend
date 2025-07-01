@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 const breadcrumbLinkStyle = `
   .breadcrumb .breadcrumb-primary-link {
-    color: var(--primary-breadcrumb, #fe0002) !important;
+    color: var(--primary-breadcrumb, ) important;
     text-decoration: underline;
   }
 `;

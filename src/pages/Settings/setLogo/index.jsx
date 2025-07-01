@@ -121,6 +121,18 @@ const LogoColor = () => {
     const primary = data[0]?.colour || "#fe0002";
   const { colour: primaryColor } = useLogoColor();
 
+  function hexToRgba(hex, alpha = 0.08) {
+  let c = hex ? hex.replace("#", "") : "fe0002";
+  if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  const num = parseInt(c, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+const secondary = hexToRgba(data[0]?.colour || "#fe0002", 0.08)
+
 
   const handleEditClick = (myLogo) => {  
     setSelectedUser(myLogo);
@@ -259,7 +271,7 @@ const columns = [
                       setSelectedUser(null);
                     }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add Your Company's Logo and Color
+                    <i className="mdi mdi-plus-circle me-1"></i> Add Your Company's Logo & Color
                   </Button>
                 </Col>
               </Row>
@@ -267,8 +279,7 @@ const columns = [
               <Card>
                 <Card.Body
                   style={{
-                    background:
-                      "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))",
+                    background: secondary,
                     marginTop: "30px",
                   }}
                 >

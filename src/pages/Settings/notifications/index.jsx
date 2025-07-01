@@ -12,7 +12,7 @@ const Notification = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlugg = user?.tenant;
-  const { colour: primary } = useLogoColor();
+  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -388,7 +388,7 @@ const Notification = () => {
                     style: {
                       backgroundColor:
                         row.original.publish?.toString().toLowerCase() === "yes"
-                          ? "#E8F5E9"
+                          ? secondary
                           : "inherit",
                     },
                   })}

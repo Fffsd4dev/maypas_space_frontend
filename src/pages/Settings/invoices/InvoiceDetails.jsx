@@ -142,7 +142,7 @@ const InvoiceDetails = () => {
           {(invoice?.schedule || []).map((item, index) => (
             <tr key={index}>
               <td>{<b>Date: <br/> <br/> <p className="ms-4"> Start time:  {formatDateTime(invoice.schedule[0].start_time)}   <br/> End time: {formatDateTime(invoice.schedule[0].end_time)}</p></b>}</td>
-              <td>Reserved spot - <b> {space.space.space_name} </b> in the <b> {space.space.category.category} </b> Category at <b>{space.floor.name}</b> of <b>{space.location.name}</b></td>
+              <td>Reserved spot - The <b> {space.space.category.category} </b> Category of <b> {space.space.space_name} </b> at <b>{space.floor.name}</b> of the <b>{space.location.name} </b> location</td>
           <td>{Number(invoice.amount) || 'N/A' }</td>
           
             </tr>

@@ -3,6 +3,7 @@ import { toggleDocumentAttribute } from "@/utils";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { useParams } from "react-router-dom";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
+import { useLogoColor } from "../context/LogoColorContext";
 
 const loading = () => <div className=""></div>;
 
@@ -10,53 +11,11 @@ const DefaultLayout = props => {
   const { theme } = useLayoutContext();
 
   // Fetch logo data
-  const [logoData, setLogoData] = useState([]);
-  const [loadingLogo, setLoadingLogo] = useState(false);
-  const [error, setError] = useState(null);
+     const { colour: primary, secondaryColor: secondary } = useLogoColor();
+
 
   const { tenantSlug } = useParams();
 
-  const fetchLogoData = async (page = 1, pageSize = 10) => {
-    setLoadingLogo(true);
-    setError(null);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-details`,
-        {
-          method: "GET",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
-      }
-
-      const result = await response.json();
-      if (Array.isArray(result.data)) {
-        const sortedLogoData = result.data.sort(
-          (a, b) =>
-            new Date(b.updated_at || b.created_at) -
-            new Date(a.updated_at || a.created_at)
-        );
-        setLogoData(sortedLogoData);
-        console.log("logocolor data", sortedLogoData);
-      } else {
-        throw new Error("Invalid response format");
-      }
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoadingLogo(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLogoData();
-  }, []);
-
-  const primary = logoData[0]?.colour || "#fe0002";
   console.log(primary);
 
   useEffect(() => {

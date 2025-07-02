@@ -143,7 +143,7 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
       <Modal.Body className="p-4">
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="name">
-            <Form.Label>Floor Name</Form.Label>
+            <Form.Label>Floor Name/Section Name</Form.Label>
             <Form.Control
               type="text"
               name="name"

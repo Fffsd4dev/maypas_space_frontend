@@ -56,8 +56,6 @@ const SeatBookingSystem = () => {
       );
   }, []);
 
-
-
   const ProfileMenus = [
     {
       label: "Logout",
@@ -882,26 +880,33 @@ const SeatBookingSystem = () => {
     fetchLogoData();
   }, []);
 
-  const primary = logoData[0]?.colour || "#fe0002" ;
-
+  const primary = logoData[0]?.colour || "#fe0002";
 
   function hexToRgba(hex, alpha = 0.08) {
-  let c = hex ? hex.replace("#", "") : "fe0002";
-  if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
-  const num = parseInt(c, 16);
-  const r = (num >> 16) & 255;
-  const g = (num >> 8) & 255;
-  const b = num & 255;
-  return `rgba(${r},${g},${b},${alpha})`;
-}
+    let c = hex ? hex.replace("#", "") : "fe0002";
+    if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+    const num = parseInt(c, 16);
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
 
-const secondary = hexToRgba(logoData[0]?.colour || "#fe0002", 0.08)
+  const secondary = hexToRgba(logoData[0]?.colour || "#fe0002", 0.08);
 
   console.log(primary);
-  
 
   return notFound ? (
     <Error404Alt />
+  ) : loadingLogo ? (
+    <div className="d-flex justify-content-center align-items-center vh-100">
+      <div className="text-center">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+        <div>Loading...</div>
+      </div>
+    </div>
   ) : (
     <>
       <div className="visitor-header">
@@ -970,8 +975,7 @@ const secondary = hexToRgba(logoData[0]?.colour || "#fe0002", 0.08)
               <Card>
                 <Card.Body
                   style={{
-                    background:
-                      secondary,
+                    background: secondary,
                     marginTop: "30px",
                     marginLeft: "2rem",
                     marginRight: "2rem",
@@ -1063,6 +1067,10 @@ const secondary = hexToRgba(logoData[0]?.colour || "#fe0002", 0.08)
                                           {room.space_name}
                                         </Card.Title>
                                         <Card.Text className="flex-grow-1">
+                                          <div>
+                                            <strong>Number:</strong>{" "}
+                                            {room.spot_id}
+                                          </div>
                                           <span>
                                             <strong>Fee:</strong>{" "}
                                             {room.space_fee}
@@ -1074,10 +1082,15 @@ const secondary = hexToRgba(logoData[0]?.colour || "#fe0002", 0.08)
                                           </span>
                                           <br />
                                           <span>
-                                            <strong>Floor:</strong>{" "}
+                                            <strong>Floor/Section:</strong>{" "}
                                             {room.floor_name}
                                           </span>
                                         </Card.Text>
+                                        <div className="text-center mb-1">
+                                          <strong>
+                                            Charged {room.book_time}{" "}
+                                          </strong>
+                                        </div>
                                         <div className="mt-auto">
                                           <Button
                                             variant="primary"

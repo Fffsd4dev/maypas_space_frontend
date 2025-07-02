@@ -5,74 +5,35 @@ import LogoDark from "@/assets/images/logo-dark.png";
 import LogoLight from "@/assets/images/logo-light.png";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useAuthContext } from "@/context/useAuthContext.jsx";
+import { useLogoColor } from "../../context/LogoColorContext";
+
 
 // import Popup from '../../components/Popup/Popup'
 
 const AuthLayout = ({ helpText, bottomLinks, children, isCombineForm }) => {
-  // useEffect(() => {
-  //   if (document.body)
-  //     document.body.classList.add(
-  //       "authentication-bg",
-  //       "authentication-bg-pattern"
-  //     );
-  //   return () => {
-  //     if (document.body)
-  //       document.body.classList.remove(
-  //         "authentication-bg",
-  //         "authentication-bg-pattern"
-  //       );
-  //   };
-  // }, []);
-
-  const { tenantSlug } = useParams();
-  const [logoData, setLogoData] = useState([]);
-  const [loadingLogo, setLoadingLogo] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchLogoData = async (page = 1, pageSize = 10) => {
-    setLoadingLogo;
-    setError(null);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-details`,
-        {
-          method: "GET",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
-      }
-
-      const result = await response.json();
-      console.log(result);
-
-      if (Array.isArray(result.data)) {
-        // Sort the data by updated_at or created_at
-        const sortedLogoData = result.data.sort(
-          (a, b) =>
-            new Date(b.updated_at || b.created_at) -
-            new Date(a.updated_at || a.created_at)
-        );
-        setLogoData(sortedLogoData);
-        console.log("Sorted Logo Data:", sortedLogoData);
-      } else {
-        throw new Error("Invalid response format");
-      }
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoadingLogo(false);
-    }
-  };
-
   useEffect(() => {
-    fetchLogoData();
+    if (document.body)
+      document.body.classList.add(
+        "authentication-bg",
+        "authentication-bg-pattern"
+      );
+    return () => {
+      if (document.body)
+        document.body.classList.remove(
+          "authentication-bg",
+          "authentication-bg-pattern"
+        );
+    };
   }, []);
 
-const primary = logoData[0]?.colour || "#fe0002";
+  const { tenantSlug } = useParams();
+  const { user } = useAuthContext();
+  const CName  = user?.CName;
+  console.log(CName)
+      const { colour: primary, secondaryColor: secondary, logoImg } = useLogoColor();
+
+
 
   // const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
 
@@ -91,14 +52,14 @@ const primary = logoData[0]?.colour || "#fe0002";
                         className="logo logo-dark text-center"
                       >
                         <span className="logo-lg">
-                          {logoData[0]?.logo ? (
+                          {logoImg ? (
                             <img
                               src={
-                                logoData[0]?.logo
+                                logoImg
                                   ? `${
                                       import.meta.env.VITE_BACKEND_URL
                                     }/storage/uploads/tenant_logo/${
-                                      logoData[0].logo
+                                      logoImg
                                     }`
                                   : ""
                               }
@@ -111,7 +72,7 @@ const primary = logoData[0]?.colour || "#fe0002";
                           )}{" "}
                           <h3 color="#fe0002">
                             {" "}
-                            {tenantSlug.toLocaleUpperCase()}{" "}
+                            {CName}{" "}
                           </h3>
                         </span>
                       </Link>
@@ -121,14 +82,14 @@ const primary = logoData[0]?.colour || "#fe0002";
                         className="logo logo-light text-center"
                       >
                         <span className="logo-lg">
-                          {logoData[0]?.logo ? (
+                          {logoImg ? (
                             <img
                               src={
-                                logoData[0]?.logo
+                                logoImg
                                   ? `${
                                       import.meta.env.VITE_BACKEND_URL
                                     }/storage/uploads/tenant_logo/${
-                                      logoData[0].logo
+                                      logoImg
                                     }`
                                   : ""
                               }
@@ -140,7 +101,7 @@ const primary = logoData[0]?.colour || "#fe0002";
                             ""
                           )}
                           <h3 color="#fe0002">
-                            {tenantSlug.toLocaleUpperCase()}
+                            {CName}
                           </h3>
                         </span>
                       </Link>

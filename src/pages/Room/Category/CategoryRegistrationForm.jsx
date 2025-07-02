@@ -119,6 +119,7 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
           }/api/${tenantSlug}/category/create`;
 
       const method = myCategory ? "POST" : "POST";
+      
 
       const response = await fetch(url, {
         method,

@@ -16,7 +16,7 @@ const LogoColor = () => {
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,9 +57,7 @@ const LogoColor = () => {
   };
 
 
-
-
-  const fetchData = async ( page = 1, pageSize = 10) => {
+ const fetchData = async ( page = 1, pageSize = 10) => {
     setLoading(true);
     setError(null);
     console.log("User Token:", user?.tenantToken);
@@ -110,28 +108,19 @@ const LogoColor = () => {
     }
   };
 
-
-
+  
   useEffect(() => {
     if (user?.tenantToken) {
         fetchData();
     }
   }, [user?.tenantToken]);
 
-    const primary = data[0]?.colour || "#fe0002";
-  const { colour: primaryColor } = useLogoColor();
+ 
 
-  function hexToRgba(hex, alpha = 0.08) {
-  let c = hex ? hex.replace("#", "") : "fe0002";
-  if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
-  const num = parseInt(c, 16);
-  const r = (num >> 16) & 255;
-  const g = (num >> 8) & 255;
-  const b = num & 255;
-  return `rgba(${r},${g},${b},${alpha})`;
-}
+    const { colour: primary, secondaryColor: secondary, logoImg: logoImg } = useLogoColor();
 
-const secondary = hexToRgba(data[0]?.colour || "#fe0002", 0.08)
+
+
 
 
   const handleEditClick = (myLogo) => {  
@@ -264,7 +253,7 @@ const columns = [
               <Row className="mb-2">
                 <Col sm={4}>
                   <Button
-                    style={{ background: primaryColor, borderColor: primaryColor, color: "#fff" }}
+                    style={{ background: primary, borderColor: primary, color: "#fff" }}
                     className="waves-effect waves-light"
                     onClick={() => {
                       setShow(true);

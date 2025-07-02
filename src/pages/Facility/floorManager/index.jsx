@@ -247,7 +247,7 @@ const Floors = () => {
       sort: false,
     },
     {
-      Header: "Floor Name",
+      Header: "Floor Name/Section Name",
       accessor: "name",
       sort: true,
     },

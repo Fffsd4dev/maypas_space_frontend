@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { useParams } from "react-router-dom";
+import {  Spinner } from "react-bootstrap";
+
 
 const LogoColorContext = createContext();
 
@@ -12,8 +14,10 @@ export const LogoColorProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   const { user } = useAuthContext();
+    const CName  = user?.CName;
   const { tenantSlug: tenantUrlSlug } = useParams();
-  const tenantSlug = user?.tenant || tenantUrlSlug;
+  const tenantSlug = user?.tenant || user?.CName || tenantUrlSlug;
+
 
   const fetchLogoData = useCallback(async () => {
     if (!tenantSlug) {
@@ -62,7 +66,19 @@ function hexToRgba(hex, alpha = 0.08) {
 }
 
   return (
-    <LogoColorContext.Provider
+    loadingLogo ? (
+     <div
+  className="d-flex justify-content-center align-items-center vh-100"
+>
+  <div className="text-center">
+    <Spinner animation="border" role="status">
+      <span className="visually-hidden">Loading...</span>
+    </Spinner>
+    <div>Loading...</div>
+  </div>
+</div>
+    ) : (
+       <LogoColorContext.Provider
       value={{
         logoImg: logoData?.logo || null,
         colour: logoData?.colour || "#fe0002",
@@ -74,5 +90,6 @@ function hexToRgba(hex, alpha = 0.08) {
     >
       {children}
     </LogoColorContext.Provider>
+    )
   );
 };

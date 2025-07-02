@@ -11,6 +11,7 @@ import CreateNotificationModal from "../pages/Settings/notifications/CreateNotif
 // auth
 const Login = React.lazy(() => import("../pages/auth/Login"));
 const Logout = React.lazy(() => import("../pages/auth/Logout"));
+const TenantLoginGuard = React.lazy(() => import("../pages/auth/TenantLoginGuard"));
 const VisitorLogout = React.lazy(() => import("../pages/auth-visitor/VisitorLogout"));
 const Confirm = React.lazy(() => import("../pages/auth/Confirm"));
 const ForgetPassword = React.lazy(() => import("../pages/auth/ForgetPassword"));
@@ -86,7 +87,7 @@ const Category = React.lazy(() => import("../pages/Room/Category"))
 const Rooms = React.lazy(() => import("../pages/Room/roomManager"))
 const Spot = React.lazy(() => import('../pages/Room/spot'))
 const OperatingTimes = React.lazy(() => import('../pages/Settings/operatingTimes'))
-const SetAccount = React.lazy(() => import('../pages/Settings/SetAccount'))
+const SetAccount = React.lazy(() => import('../pages/Settings/setAccount'))
 const SetLogoAndColor = React.lazy(() => import('../pages/Settings/setLogo'))
 const Invoices = React.lazy(() => import('../pages/Settings/invoices'))
 const CreateNotification = React.lazy(() => import('../pages/Settings/notifications'))
@@ -1060,7 +1061,7 @@ const authRoutes = [
   {
     path: "/:tenantSlug/auth/login",
     name: "Tenant Login",
-    element: <Login />,
+    element: <TenantLoginGuard />,
     route: Route
   },
   {

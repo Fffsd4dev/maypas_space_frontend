@@ -630,14 +630,20 @@ const VisitorCategory = () => {
     fetchLogoData();
   }, []);
 
-    const primary = logoData[0]?.colour || "#fe0002" ;
+  const primary = logoData[0]?.colour || "#fe0002";
   console.log(primary);
-  
 
   if (loading) return <div>Loading...</div>;
   if (notFound) return <Error404Alt />;
 
-  return (
+  return loadingLogo ? (
+    <div className="display-center text-center">
+      <Spinner animation="border" role="status">
+        <span className="visually-hidden">Loading...</span>
+      </Spinner>{" "}
+      Loading...
+    </div>
+  ) : (
     <div>
       {showLogin && (
         <div className="visitor-header">
@@ -705,6 +711,9 @@ const VisitorCategory = () => {
                     <Card.Body className="d-flex flex-column">
                       <Card.Title>{room.space_name}</Card.Title>
                       <Card.Text className="flex-grow-1">
+                        <div>
+                          <strong>Number:</strong> {room.spot_id}
+                        </div>
                         <span>
                           <strong>Fee:</strong> {room.space_fee}
                         </span>
@@ -714,9 +723,12 @@ const VisitorCategory = () => {
                         </span>
                         <br />
                         <span>
-                          <strong>Floor:</strong> {room.floor_name}
+                          <strong>Floor/Section:</strong> {room.floor_name}
                         </span>
                       </Card.Text>
+                      <div className="text-center mb-1">
+                        <strong>Charged {room.book_time} </strong>
+                      </div>
                       <div className="mt-auto">
                         <Button
                           variant="primary"

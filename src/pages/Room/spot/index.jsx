@@ -615,28 +615,6 @@ const SeatBookingSystem = () => {
 
                   {/* Room Selection */}
                   {formData.floor_id && (
-                    <Form.Group className="mb-3" controlId="room_id">
-                      <Form.Label>
-                        Select a specific room (optional)
-                      </Form.Label>
-                      <Form.Select
-                        name="room_id"
-                        value={formData.room_id}
-                        onChange={handleRoomChange}
-                      >
-                        <option value="">All Rooms</option>
-                        {Array.isArray(roomsData) &&
-                          roomsData.map((room) => (
-                            <option key={room.id} value={room.id}>
-                              {room.space_name} (No: {room.space_number})
-                            </option>
-                          ))}
-                      </Form.Select>
-                    </Form.Group>
-                  )}
-
-                  {/* Rooms Table */}
-                  {formData.floor_id && (
                     <>
                       {loading ? (
                         <p>Loading rooms...</p>
@@ -649,33 +627,75 @@ const SeatBookingSystem = () => {
                         </div>
                       ) : (
                         <>
+                          {/* Room Cards Section */}
+                          <h4 className="mb-3"> ROOMS</h4>
+                          {roomsData && roomsData.length > 0 ? (
+                            <Row>
+                              {roomsData.map((room) => (
+                                <Col key={room.id} md={4} className="mb-3">
+                                  <Card className="h-100">
+                                    <Card.Body className="d-flex flex-column">
+                                      <Card.Title className="d-flex justify-content-between align-items-center">
+                                        <span>{room.space_name} (No of Spots: {room.space_number})</span>
+                                        
+
+                                      </Card.Title>
+                                      <Card.Text className="flex-grow-1">
+                                                                                                                        <div>{room.category.category} </div>
+
+                                        {/* <div><strong>Type:</strong> {room.space_type}</div> */}
+                                        {/* <div><strong>Fee:</strong> ${room.space_fee}</div> */}
+                                        {/* <div><strong>Capacity:</strong> {room.capacity}</div> */}
+                                      </Card.Text>
+                                      <div className="mt-auto">
+                                        <Button 
+                                          variant="primary" 
+                                          size="sm"
+                                          className="w-100"
+                                          onClick={() => {
+                                            setSelectedRoom(room);
+                                            fetchRoomDetails(room.id);
+                                          }}
+                                          style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+                                        >
+                                          View Spots
+                                        </Button>
+                                      </div>
+                                    </Card.Body>
+                                  </Card>
+                                </Col>
+                              ))}
+                            </Row>
+                          ) : (
+                            <Alert variant="info">No rooms found for this floor/section.</Alert>
+                          )}
                           {/* Room Details and Spaces Section */}
                           {selectedRoom && (
                             <div className="mt-4">
                               {/* Spaces Section */}
-                              <h4 className="mb-3">Available Spaces</h4>
+                              <h4 className="mb-3">Available Spots</h4>
                               {loadingRoomDetails ? (
                                 <div className="text-center">
                                   <Spinner animation="border" role="status">
-                                    <span className="visually-hidden">Loading spaces...</span>
+                                    <span className="visually-hidden">Loading spots...</span>
                                   </Spinner>
                                 </div>
                               ) : spaceCards && spaceCards.length > 0 ? (
                                 <>
-                                  <p className="mb-3">Total spaces: {spaceCards.length}</p>
+                                  <p className="mb-3">Total spots: {spaceCards.length}</p>
                                   <Row>
                                     {spaceCards.map((space) => (
                                       <Col key={space.id} md={3} className="mb-3">
                                         <Card className="h-100">
                                           <Card.Body className="d-flex flex-column">
                                             <Card.Title className="d-flex justify-content-between align-items-center">
-                                              <span>Space {space.space_number}</span>
+                                              <span>Spot {space.space_number}</span>
                                               <Badge bg="success">Available</Badge>
                                             </Card.Title>
                                             <Card.Text className="flex-grow-1">
                                               <div><strong>Number:</strong> {space.space_number}</div>
                                               <div><strong>Fee:</strong> ${space.space_fee}</div>
-                                              <div><strong>Type:</strong> {space.space_type}</div>
+                                              {/* <div><strong>Type:</strong> {space.space_type}</div> */}
                                             </Card.Text>
                                             <div className="mt-auto">
                                               <Button 
@@ -683,8 +703,7 @@ const SeatBookingSystem = () => {
                                                 size="sm"
                                                 className="w-100"
                                                 onClick={() => handleBookNowClick(space)}
-                                                                                                              style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
+                                                style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
                                               >
                                                 Book Now
                                               </Button>

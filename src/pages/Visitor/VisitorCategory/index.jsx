@@ -518,9 +518,7 @@ const VisitorCategory = () => {
       try {
         // 1. Fetch locations
         const locRes = await fetch(
-          `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/${visitorUrlSlug}/get/locations`
+          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/locations`
         );
         const locData = await locRes.json();
         if (
@@ -535,42 +533,47 @@ const VisitorCategory = () => {
         // 2. Get first locationId
         const locationId = locData.data[0].id;
 
-        // 3. Fetch spaces for this location
-        const spaceRes = await fetch(
-          `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/${visitorUrlSlug}/get/spaces/${locationId}`
+        // 3. Find the category_id for the requested category name
+        let categoryId = null;
+        // Try to get all categories for this location
+        const allSpacesRes = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/spaces/${locationId}`
         );
-        const spaceData = await spaceRes.json();
-        if (!spaceRes.ok || !spaceData.data) {
+        const allSpacesData = await allSpacesRes.json();
+        if (allSpacesRes.ok && Array.isArray(allSpacesData.data)) {
+          const matchedCategory = allSpacesData.data.find(
+            (cat) => cat.category_name.toLowerCase() === decodedCategory.toLowerCase()
+          );
+          if (matchedCategory) {
+            categoryId = matchedCategory.category_id;
+          }
+        }
+        if (!categoryId) {
           setNotFound(true);
           setLoading(false);
           return;
         }
 
-        // 4. Find the category for the requested category
-        const categories = Object.keys(spaceData.data);
-
-        const matchedCategory = categories.find(
-          (cat) => cat.toLowerCase() === decodedCategory.toLowerCase()
+        // 4. Fetch spaces for this category in this location
+        const categorySpacesRes = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/spaces/category/${locationId}/?category_id=${categoryId}`
         );
-
-        if (!matchedCategory) {
+        const categorySpacesData = await categorySpacesRes.json();
+        if (!categorySpacesRes.ok || !Array.isArray(categorySpacesData.data) || categorySpacesData.data.length === 0) {
           setNotFound(true);
           setLoading(false);
           return;
         }
 
-        // 5. Extract space_category_id from the first room in the matched category
-        const categoryRooms = spaceData.data[matchedCategory];
-        if (!Array.isArray(categoryRooms) || categoryRooms.length === 0) {
-          setNotFound(true);
-          setLoading(false);
-          return;
-        }
-        // You can use space_category_id if needed for further fetches
-
-        setRoomsData({ [matchedCategory]: categoryRooms });
+        // 5. The API returns an array of spaces in this category. Wrap in a single category object for rendering.
+        setRoomsData([
+          {
+            category_id: categoryId,
+            category_name: decodedCategory,
+            images: matchedCategory?.images || [],
+            spots: categorySpacesData.data,
+          },
+        ]);
       } catch (error) {
         setNotFound(true);
       } finally {
@@ -579,7 +582,7 @@ const VisitorCategory = () => {
     };
 
     fetchCategoryAndRooms();
-  }, [visitorUrlSlug, category]);
+  }, [visitorSlug, category]);
 
   const [logoData, setLogoData] = useState([]);
   const [loadingLogo, setLoadingLogo] = useState(true);
@@ -630,8 +633,19 @@ const VisitorCategory = () => {
     fetchLogoData();
   }, []);
 
+  // Theming helpers (copied from main visitor page)
+  function hexToRgba(hex, alpha = 0.08) {
+    let c = hex ? hex.replace("#", "") : "fe0002";
+    if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+    const num = parseInt(c, 16);
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
   const primary = logoData[0]?.colour || "#fe0002";
-  console.log(primary);
+  const secondary = hexToRgba(primary, 0.08);
 
   if (loading) return <div>Loading...</div>;
   if (notFound) return <Error404Alt />;
@@ -652,9 +666,7 @@ const VisitorCategory = () => {
               <img
                 src={
                   logoData[0]?.logo
-                    ? `${
-                        import.meta.env.VITE_BACKEND_URL
-                      }/storage/uploads/tenant_logo/${logoData[0].logo}`
+                    ? `${import.meta.env.VITE_BACKEND_URL}/storage/uploads/tenant_logo/${logoData[0].logo}`
                     : profileImg
                 }
                 alt=""
@@ -697,60 +709,116 @@ const VisitorCategory = () => {
         Category: <span style={{ color: "#007bff" }}>{decodedCategory}</span>
       </h2>
 
-      <Row className="pagetitle">
-        {roomsData &&
-          Object.keys(roomsData).map((cat) =>
-            roomsData[cat].length === 0 ? (
-              <Col key={cat}>
-                <Alert variant="info">No spaces in this category.</Alert>
+      {/* Grouped by Category: Show category name, images, and spots as cards with original styling */}
+      <Row>
+        {roomsData && roomsData.length > 0 ? (
+  roomsData.map((category, idx) => (
+    <Col key={category.category_id || idx} xs={12} className="mb-4">
+      <div
+        className="mb-4 p-3 rounded"
+        style={{
+          background:
+            idx % 2 === 0
+              ? "linear-gradient(to right, #f8f9fa, #e9ecef)"
+              : "linear-gradient(to right, #f4f9e7, #e7f1ee)",
+        }}
+      >
+        {/* Category title as a link */}
+        <h4>
+          <Link
+            to={`/${visitorSlug}/${category.category_name
+              .toLowerCase()
+              .replace(/\s+/g, "_")}`}
+            style={{
+              textDecoration: "underline",
+              color: "#007bff",
+            }}
+          >
+            {category.category_name}
+          </Link>
+        </h4>
+        {/* Category images */}
+        {category.images && category.images.length > 0 && (
+          <div className="mb-3 d-flex flex-wrap align-items-center">
+            {category.images.map((img, imgIdx) => (
+              <img
+                key={imgIdx}
+                src={`${import.meta.env.VITE_BACKEND_URL}/storage/uploads/${img}`}
+                alt={category.category_name}
+                style={{
+                  width: 80,
+                  height: 80,
+                  objectFit: "cover",
+                  borderRadius: 8,
+                  marginRight: 8,
+                }}
+              />
+            ))}
+          </div>
+        )}
+        <Row>
+          {category.spots && category.spots.length > 0 ? (
+            category.spots.map((room) => (
+              <Col key={room.spot_id} md={3} className="mb-3">
+                <Card className="h-100">
+                  <Card.Body className="d-flex flex-column">
+                    <Card.Title>{room.space_name}</Card.Title>
+                    <Card.Text className="flex-grow-1">
+                      <div>
+                        <strong>Number:</strong> {room.spot_id}
+                      </div>
+                      <span>
+                        <strong>Fee:</strong> {room.space_fee}
+                      </span>
+                      <br />
+                      <span>
+                        <strong>Location:</strong> {room.location_name}
+                      </span>
+                      <br />
+                      <span>
+                        <strong>Floor/Section:</strong> {room.floor_name}
+                      </span>
+                    </Card.Text>
+                    <div className="text-center mb-1">
+                      <strong>Charged {room.book_time} </strong>
+                    </div>
+                    <div className="mt-auto">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="w-100"
+                        onClick={() => handleBookNowClick(room)}
+                        style={{
+                          backgroundColor: primary,
+                          borderColor: primary,
+                          color: "#fff",
+                        }}
+                      >
+                        Book Now
+                      </Button>
+                    </div>
+                  </Card.Body>
+                </Card>
               </Col>
-            ) : (
-              roomsData[cat].map((room) => (
-                <Col key={room.spot_id} md={3} className="mb-3">
-                  <Card className="h-100">
-                    <Card.Body className="d-flex flex-column">
-                      <Card.Title>{room.space_name}</Card.Title>
-                      <Card.Text className="flex-grow-1">
-                        <div>
-                          <strong>Number:</strong> {room.spot_id}
-                        </div>
-                        <span>
-                          <strong>Fee:</strong> {room.space_fee}
-                        </span>
-                        <br />
-                        <span>
-                          <strong>Location:</strong> {room.location_name}
-                        </span>
-                        <br />
-                        <span>
-                          <strong>Floor/Section:</strong> {room.floor_name}
-                        </span>
-                      </Card.Text>
-                      <div className="text-center mb-1">
-                        <strong>Charged {room.book_time} </strong>
-                      </div>
-                      <div className="mt-auto">
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          className="w-100"
-                          onClick={() => handleBookNowClick(room)}
-                          style={{
-                            backgroundColor: primary,
-                            borderColor: primary,
-                            color: "#fff",
-                          }}
-                        >
-                          Book Now
-                        </Button>
-                      </div>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              ))
-            )
+            ))
+          ) : (
+            <Col xs={12}>
+              <Alert variant="info">No spaces in this category.</Alert>
+            </Col>
           )}
+        </Row>
+      </div>
+    </Col>
+  ))
+) : null}
+        {/* Only show this if there are truly no rooms for any location and not loading */}
+        {!loading && roomsData && roomsData.every((cat) => !cat.spots || cat.spots.length === 0) && (
+  <Col xs={12} className="text-center mt-4">
+    <Alert variant="info">No room in this location</Alert>
+  </Col>
+)}
       </Row>
+
       {/* Booking Popup */}
       {showBookingPopup && selectedSpace && (
         <Popup

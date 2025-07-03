@@ -28,6 +28,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isBefore, addHours } from "date-fns";
 import { reference } from "@popperjs/core";
 import { useLogoColor } from "../../context/LogoColorContext";
+import Carousel from 'react-bootstrap/Carousel';
 
 const SeatBookingSystem = () => {
   const { removeSession } = useAuthContext();
@@ -314,6 +315,7 @@ const SeatBookingSystem = () => {
       }
       const result = await response.json();
       setRoomsData(result.data);
+      console.log("Rooms data:", result.data);
       setData(result.data);
       setPagination({
         currentPage: result.current_page,
@@ -991,12 +993,20 @@ const SeatBookingSystem = () => {
                     </div>
                   ) : (
                     locations.length > 1 && (
-                      <div>
-                        <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
-                          Select a location to view the room.
-                        </p>
+                      <div className="d-flex flex-column align-items-center mb-4">
+                        <label
+                          htmlFor="location-select"
+                          style={{
+                            fontWeight: 600,
+                            fontSize: "1.1rem",
+                            marginBottom: 8,
+                          }}
+                        >
+                          Select one of our locations
+                        </label>
                         <Form.Select
-                          style={{ marginBottom: "25px", fontSize: "1rem" }}
+                          id="location-select"
+                          style={{ maxWidth: 350, fontSize: "1rem" }}
                           value={selectedLocation || ""}
                           onChange={handleLocationChange}
                         >
@@ -1020,105 +1030,134 @@ const SeatBookingSystem = () => {
                         <Alert variant="warning" className="text-center">
                           No room in this location
                         </Alert>
-                      ) : (
-                        roomsData &&
-                        Object.keys(roomsData).map((category, idx) => (
-                          <div
-                            key={category}
-                            className="mb-4 p-3 rounded"
-                            style={{
-                              background:
-                                idx % 2 === 0
-                                  ? "linear-gradient(to right, #f8f9fa, #e9ecef)"
-                                  : "linear-gradient(to right, #f4f9e7, #e7f1ee)",
-                            }}
-                          >
-                            {/* Category title as a link */}
-                            <h4>
-                              <Link
-                                to={`/${visitorSlug}/${category
-                                  .toLowerCase()
-                                  .replace(/\s+/g, "_")}`}
-                                style={{
-                                  textDecoration: "underline",
-                                  color: "#007bff",
-                                }}
-                              >
-                                {category}
-                              </Link>
-                            </h4>
-                            <Row>
-                              {roomsData[category].length === 0 ? (
-                                <Col>
-                                  <Alert variant="info">
-                                    No spaces in this category.
-                                  </Alert>
-                                </Col>
-                              ) : (
-                                roomsData[category].map((room) => (
-                                  <Col
-                                    key={room.spot_id}
-                                    md={3}
-                                    className="mb-3"
-                                  >
-                                    <Card className="h-100">
-                                      <Card.Body className="d-flex flex-column">
-                                        <Card.Title>
-                                          {room.space_name}
-                                        </Card.Title>
-                                        <Card.Text className="flex-grow-1">
-                                          <div>
-                                            <strong>Number:</strong>{" "}
-                                            {room.spot_id}
-                                          </div>
-                                          <span>
-                                            <strong>Fee:</strong>{" "}
-                                            {room.space_fee}
-                                          </span>
-                                          <br />
-                                          <span>
-                                            <strong>Location:</strong>{" "}
-                                            {room.location_name}
-                                          </span>
-                                          <br />
-                                          <span>
-                                            <strong>Floor/Section:</strong>{" "}
-                                            {room.floor_name}
-                                          </span>
-                                        </Card.Text>
-                                        <div className="text-center mb-1">
-                                          <strong>
-                                            Charged {room.book_time}{" "}
-                                          </strong>
-                                        </div>
-                                        <div className="mt-auto">
-                                          <Button
-                                            variant="primary"
-                                            size="sm"
-                                            className="w-100"
-                                            onClick={() =>
-                                              handleBookNowClick(room)
-                                            }
-                                            style={{
-                                              backgroundColor: primary,
-                                              borderColor: primary,
-                                              color: "#fff",
-                                            }}
-                                          >
-                                            Book Now
-                                          </Button>
-                                        </div>
-                                      </Card.Body>
-                                    </Card>
-                                  </Col>
-                                ))
-                              )}
-                            </Row>
-                          </div>
-                        ))
-                      )}
+                      ) : null}
                     </Form.Group>
                   )}
+                  
+      {/* Grouped by Category: Show category name, images, and spots as cards with original styling */}
+      <Row>
+        {roomsData && roomsData.length > 0 && !noRooms ? (
+          roomsData.map((category, idx) => (
+            <Col key={category.category_id || idx} xs={12} className="mb-4">
+              <div
+                className="mb-4 p-3 rounded"
+                style={{
+                  background:
+                    idx % 2 === 0
+                      ? "linear-gradient(to right, #f8f9fa, #e9ecef)"
+                      : "linear-gradient(to right, #f4f9e7, #e7f1ee)",
+                }}
+              >
+                {/* Category header and images grouped together */}
+                <div
+                  className="d-flex flex-column flex-md-row align-items-center gap-3 mb-3"
+                  style={{ justifyContent: 'center' }}
+                >
+                  {/* Category title as a link */}
+                  <h4 className="mb-0 me-md-4 text-center text-md-start" style={{ minWidth: 420 }}>
+                     {/* Category images as a slider */}
+                  {category.images && category.images.length > 0 && (
+                    <div style={{ flex: 1, minWidth: 220, maxWidth: 420 }}>
+                      <Carousel
+                        indicators={category.images.length > 1}
+                        controls={category.images.length > 1}
+                        interval={4000}
+                        style={{ maxWidth: 520, margin: '0 auto' }}
+                      >
+                        {category.images.map((img, imgIdx) => (
+                          <Carousel.Item key={imgIdx}>
+                            <img
+                              src={`${import.meta.env.VITE_BACKEND_URL}/storage/${img}`}
+                              alt={category.category_name}
+                              style={{
+                                width: '100%',
+                                height: 220,
+                                objectFit: 'cover',
+                                borderRadius: 16,
+                                boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                                margin: '0 auto',
+                                display: 'block',
+                              }}
+                            />
+                          </Carousel.Item>
+                        ))}
+                      </Carousel>
+                    </div>
+                  )}
+                    <Link
+                      to={`/${visitorSlug}/${category.category_name
+                        .toLowerCase()
+                        .replace(/\s+/g, "_")}`}
+                      style={{
+                        textDecoration: "underline",
+                        color: "#007bff",
+                        fontWeight: 700,
+                        fontSize: '1.5rem',
+                      }}
+                    >
+                      {category.category_name}
+                    </Link>
+                  </h4>
+                 
+                </div>
+                {/* Spots grid */}
+                <Row>
+                  {category.spots && category.spots.length > 0 ? (
+                    category.spots.map((spot) => (
+                      <Col key={spot.spot_id} md={3} className="mb-3">
+                        <Card className="h-100">
+                          <Card.Body className="d-flex flex-column">
+                            <Card.Title>{spot.space_name}</Card.Title>
+                            <Card.Text className="flex-grow-1">
+                              <div>
+                                <strong>Number:</strong> {spot.spot_id}
+                              </div>
+                              <div>
+                                <strong>Fee:</strong> {spot.space_fee}
+                              </div>
+                              <div>
+                                <strong>Location:</strong> {spot.location_name}
+                              </div>
+                              <div>
+                                <strong>Floor/Section:</strong> {spot.floor_name}
+                              </div>
+                            </Card.Text>
+                            <div className="mt-auto">
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                className="w-100"
+                                onClick={() => handleBookNowClick(spot)}
+                                style={{
+                                  backgroundColor: primary,
+                                  borderColor: primary,
+                                  color: "#fff",
+                                }}
+                              >
+                                Book Now
+                              </Button>
+                            </div>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))
+                  ) : (
+                    <Col xs={12}>
+                      <Alert variant="info">No spaces in this category.</Alert>
+                    </Col>
+                  )}
+                </Row>
+              </div>
+            </Col>
+          ))
+        ) : null}
+        {/* Only show this if there are truly no rooms for any location and not loading */}
+        {!loading && !loadingLocations && noRooms && (
+          <Col xs={12} className="text-center mt-4">
+            <Alert variant="info">No room in this location</Alert>
+          </Col>
+        )}
+      </Row>
                 </Card.Body>
               </Card>
             </Card.Body>
@@ -1391,6 +1430,7 @@ const SeatBookingSystem = () => {
           </div>
         </Popup>
       )}
+
     </>
   );
 };

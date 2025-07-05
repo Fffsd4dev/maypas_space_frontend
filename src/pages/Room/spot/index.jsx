@@ -684,16 +684,16 @@ const SeatBookingSystem = () => {
                                 <>
                                   <p className="mb-3">Total spots: {spaceCards.length}</p>
                                   <Row>
-                                    {spaceCards.map((space) => (
+                                    {spaceCards.map((space, spaceIdx) => (
                                       <Col key={space.id} md={3} className="mb-3">
                                         <Card className="h-100">
                                           <Card.Body className="d-flex flex-column">
                                             <Card.Title className="d-flex justify-content-between align-items-center">
-                                              <span>Spot {space.space_number}</span>
+                                              <span>Spot {spaceIdx + 1}</span>
                                               <Badge bg="success">Available</Badge>
                                             </Card.Title>
                                             <Card.Text className="flex-grow-1">
-                                              <div><strong>Number:</strong> {space.space_number}</div>
+                                              <div><strong>Number:</strong> {spaceIdx + 1}</div>
                                               <div><strong>Fee:</strong> ${space.space_fee}</div>
                                               {/* <div><strong>Type:</strong> {space.space_type}</div> */}
                                             </Card.Text>

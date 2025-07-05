@@ -972,15 +972,15 @@ const SeatBookingSystem = () => {
 
       <Row>
         <Col>
-          <Card>
-            <Card.Body>
+          {/* <Card>
+            <Card.Body> */}
               <Card>
                 <Card.Body
                   style={{
                     background: secondary,
                     marginTop: "30px",
-                    marginLeft: "2rem",
-                    marginRight: "2rem",
+                    // marginLeft: "2rem",
+                    // marginRight: "2rem",
                   }}
                 >
                   {/* Location Selection */}
@@ -1054,10 +1054,24 @@ const SeatBookingSystem = () => {
                   style={{ justifyContent: 'center' }}
                 >
                   {/* Category title as a link */}
-                  <h4 className="mb-0 me-md-4 text-center text-md-start" style={{ minWidth: 420 }}>
-                     {/* Category images as a slider */}
+                  <h4 className="mb-0 me-md-4 text-center text-md-start" style={{ minWidth: 220, fontSize: '1.2rem', wordBreak: 'break-word' }}>
+                    <Link
+                      to={`/${visitorSlug}/${category.category_name
+                        .toLowerCase()
+                        .replace(/\s+/g, "_")}`}
+                      style={{
+                        textDecoration: "underline",
+                        color: "#007bff",
+                        fontWeight: 700,
+                        fontSize: '1.2rem',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {category.category_name}
+                    </Link>
+                  </h4>
                   {category.images && category.images.length > 0 && (
-                    <div style={{ flex: 1, minWidth: 220, maxWidth: 420 }}>
+                    <div style={{ flex: 1, minWidth: 120, maxWidth: 420, width: '100%' }}>
                       <Carousel
                         indicators={category.images.length > 1}
                         controls={category.images.length > 1}
@@ -1071,12 +1085,13 @@ const SeatBookingSystem = () => {
                               alt={category.category_name}
                               style={{
                                 width: '100%',
-                                height: 220,
+                                height: 180,
                                 objectFit: 'cover',
-                                borderRadius: 16,
+                                borderRadius: 12,
                                 boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
                                 margin: '0 auto',
                                 display: 'block',
+                                maxWidth: '100vw',
                               }}
                             />
                           </Carousel.Item>
@@ -1084,33 +1099,18 @@ const SeatBookingSystem = () => {
                       </Carousel>
                     </div>
                   )}
-                    <Link
-                      to={`/${visitorSlug}/${category.category_name
-                        .toLowerCase()
-                        .replace(/\s+/g, "_")}`}
-                      style={{
-                        textDecoration: "underline",
-                        color: "#007bff",
-                        fontWeight: 700,
-                        fontSize: '1.5rem',
-                      }}
-                    >
-                      {category.category_name}
-                    </Link>
-                  </h4>
-                 
                 </div>
-                {/* Spots grid */}
-                <Row>
+                {/* Spots grid - responsive */}
+                <Row className="g-2 g-md-3">
                   {category.spots && category.spots.length > 0 ? (
-                    category.spots.map((spot) => (
-                      <Col key={spot.spot_id} md={3} className="mb-3">
-                        <Card className="h-100">
+                    category.spots.map((spot, spotIdx) => (
+                      <Col key={spot.spot_id} xs={12} sm={6} md={3} className="mb-3 d-flex">
+                        <Card className="h-100 w-100">
                           <Card.Body className="d-flex flex-column">
-                            <Card.Title>{spot.space_name}</Card.Title>
+                            <Card.Title style={{ fontSize: '1rem', wordBreak: 'break-word' }}>{spot.space_name}</Card.Title>
                             <Card.Text className="flex-grow-1">
                               <div>
-                                <strong>Number:</strong> {spot.spot_id}
+                                <strong>Number:</strong> {spotIdx + 1}
                               </div>
                               <div>
                                 <strong>Fee:</strong> {spot.space_fee}
@@ -1160,8 +1160,8 @@ const SeatBookingSystem = () => {
       </Row>
                 </Card.Body>
               </Card>
-            </Card.Body>
-          </Card>
+            {/* </Card.Body>
+          </Card> */}
         </Col>
       </Row>
 

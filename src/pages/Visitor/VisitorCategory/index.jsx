@@ -9,6 +9,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isBefore, addHours } from "date-fns";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 import "../index.css";
 
@@ -555,9 +556,19 @@ const VisitorCategory = () => {
         }
 
         // 4. Fetch spaces for this category in this location
+      
+        // Add Authorization header if visitorToken exists
+        const headers = { get: {} };
+        
+        if (visitorToken) {
+          headers["Authorization"] = `Bearer ${visitorToken}`;
+        }
         const categorySpacesRes = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/spaces/category/${locationId}/?category_id=${categoryId}`
+          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/spaces/category/${locationId}/?category_id=${categoryId}`,
+          { headers },
+          { "Content-Type": "application/json" }
         );
+        console.log("categoryspaces", categorySpacesRes)
         const categorySpacesData = await categorySpacesRes.json();
         if (!categorySpacesRes.ok || !Array.isArray(categorySpacesData.data) || categorySpacesData.data.length === 0) {
           setNotFound(true);
@@ -758,14 +769,14 @@ const VisitorCategory = () => {
         )}
         <Row>
           {category.spots && category.spots.length > 0 ? (
-            category.spots.map((room) => (
+            category.spots.map((room, roomIdx) => (
               <Col key={room.spot_id} md={3} className="mb-3">
                 <Card className="h-100">
                   <Card.Body className="d-flex flex-column">
                     <Card.Title>{room.space_name}</Card.Title>
                     <Card.Text className="flex-grow-1">
                       <div>
-                        <strong>Number:</strong> {room.spot_id}
+                        <strong>Number:</strong> {roomIdx + 1}
                       </div>
                       <span>
                         <strong>Fee:</strong> {room.space_fee}

@@ -9,6 +9,7 @@
   border-radius: 16px;
   margin-bottom: 24px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  flex-wrap: wrap;
 }
 
 .visitor-header.logo img {
@@ -43,6 +44,63 @@
 }
 .visitor-header button[type="submit"]:hover {
   background: #0056b3;
+}
+
+.visitor-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  margin-left: 1rem;
+  cursor: pointer;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .visitor-header {
+    flex-direction: row;
+    padding: 16px 8px 12px 8px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  }
+  .visitor-header h3, .visitor-header h2 {
+    margin: 0 0.5rem;
+    font-size: 1rem;
+    text-align: left;
+  }
+  .visitor-header h3 {
+    font-size: 1.1rem;
+  }
+  .visitor-header h2 {
+    font-size: 0.95rem;
+  }
+  .visitor-header.logo img {
+    width: 48px;
+    height: 48px;
+  }
+  .visitor-header button[type="submit"] {
+    padding: 4px 10px;
+    font-size: 0.95rem;
+  }
+  .visitor-hamburger {
+    display: block;
+  }
+  .visitor-header .visitor-header-menu {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 16px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    z-index: 1000;
+    min-width: 160px;
+    padding: 12px 0;
+  }
+  .visitor-header .visitor-header-menu.open {
+    display: block;
+  }
 }
 
 .pagetitle{

@@ -198,10 +198,15 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
   disabled={images.length >= 3}
   onChange={e => {
     if (e.target.files && e.target.files.length > 0) {
-      const files = Array.from(e.target.files).filter(f =>
-        f instanceof File &&
-        !images.some(img => img.name === f.name && img.size === f.size)
-      );
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      const files = Array.from(e.target.files).filter(f => {
+        if (!(f instanceof File)) return false;
+        if (f.size > maxSize) {
+          toast.error(`${f.name} is larger than 2MB. Please select a smaller image.`);
+          return false;
+        }
+        return !images.some(img => img.name === f.name && img.size === f.size);
+      });
       // Only add up to 3 images total
       const availableSlots = 3 - images.length;
       if (availableSlots > 0) {

@@ -150,10 +150,10 @@ useEffect(() => {
             <tr key={index}>
               <td>{<b>Date: <br/> <br/> <p className="ms-4"> Start time:  {formatDateTime(invoice?.schedule[0].start_time)}   <br/> End time: {formatDateTime(invoice?.schedule[0].end_time)}</p></b>}</td>
               <td>{
-                space.space ? (
+                space?.space ? (
                                 <td>Reserved spot - The <b> {space?.space?.category?.category} </b> Category of <b> {space?.space?.space_name} </b> at <b>{space?.floor?.name}</b> of the <b>{space?.location?.name} </b> location</td>
                 ) : (
-                                <td>Reserved spot - No spot reserved yet, status is pending </td>
+                                <td>Reserved spot - No spot reserved yet, status might be pending</td>
                 )}
               </td>
               <td>{Number(invoice?.amount) || 'N/A' }</td>

@@ -22,6 +22,8 @@ import { toast } from "react-toastify";
 const UserBox = () => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
+  const tenantToken = user?.tenantToken;
+  console.log("User in UserBox:", user.tenantToken);
   const tenantFirstName = user?.tenantFirstName;
   const tenantLastName = user?.tenantLastName;
 

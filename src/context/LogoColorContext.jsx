@@ -16,7 +16,7 @@ export const LogoColorProvider = ({ children }) => {
   const { user } = useAuthContext();
     const CName  = user?.CName;
   const { tenantSlug: tenantUrlSlug } = useParams();
-  const tenantSlug = user?.tenant || user?.CName || tenantUrlSlug;
+  const tenantSlug = tenantUrlSlug || user?.slug || user?.CName  ;
 
 
   const fetchLogoData = useCallback(async () => {
@@ -30,6 +30,7 @@ export const LogoColorProvider = ({ children }) => {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-details`
       );
+      console.log("fetch logodetails", response)
       if (!response.ok) throw new Error("Failed to fetch logo data");
       const result = await response.json();
       if (Array.isArray(result.data)) {

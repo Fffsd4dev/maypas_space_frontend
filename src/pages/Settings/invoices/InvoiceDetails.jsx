@@ -11,6 +11,9 @@ const InvoiceDetails = () => {
   const location = useLocation();
   const { id } = useParams();
   const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken;
+  console.log("Tenant Token in InvoiceDetails:", tenantToken);
+  console.log("User in InvoiceDetails:", user);
   const [invoice, setInvoice] = useState(location.state?.invoice);
   const [bank, setBank] = useState("");
   const [space, setSpace] = useState("");
@@ -47,11 +50,14 @@ const InvoiceDetails = () => {
     };
     html2pdf().set(opt).from(element).save();
   };
-
+useEffect(() => {
+  console.log("Updated user context:", user);
+}, [user]);
  
 
   useEffect(() => {
     if (!invoice) {
+      
       const fetchInvoice = async () => {
         try {
           const response = await axios.get(
@@ -143,9 +149,15 @@ const InvoiceDetails = () => {
           {(invoice?.schedule || []).map((item, index) => (
             <tr key={index}>
               <td>{<b>Date: <br/> <br/> <p className="ms-4"> Start time:  {formatDateTime(invoice?.schedule[0].start_time)}   <br/> End time: {formatDateTime(invoice?.schedule[0].end_time)}</p></b>}</td>
-              <td>Reserved spot - The <b> {space?.space?.category?.category} </b> Category of <b> {space?.space?.space_name} </b> at <b>{space?.floor?.name}</b> of the <b>{space?.location?.name} </b> location</td>
-          <td>{Number(invoice?.amount) || 'N/A' }</td>
-          
+              <td>{
+                space.space ? (
+                                <td>Reserved spot - The <b> {space?.space?.category?.category} </b> Category of <b> {space?.space?.space_name} </b> at <b>{space?.floor?.name}</b> of the <b>{space?.location?.name} </b> location</td>
+                ) : (
+                                <td>Reserved spot - No spot reserved yet, status is pending </td>
+                )}
+              </td>
+              <td>{Number(invoice?.amount) || 'N/A' }</td>
+
             </tr>
           ))}
          

@@ -13,6 +13,7 @@ const useLogin = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuthContext();
   const { tenantSlug } = useParams();
+   const { visitorSlug } = useParams();
   const loginFormSchema = yup.object({
     email: yup.string().email('Please enter a valid email').required('Please enter your email'),
     password: yup.string().required('Please enter your password')
@@ -54,7 +55,66 @@ const useLogin = () => {
         console.log(result.user.tenant_id);
         saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id, tenantFirstName: result?.user?.first_name, tenantLastName: result?.user?.last_name, tenantEmail: result?.user?.email, tenantPhone: result?.user?.phone, tenantCompanyName: result?.user?.company_name });
         console.log(result)
-        setPopup({
+        console.log(result.user)
+       if (result?.user?.user_type?.user_type === "Admin") {
+          saveSession({
+            ...(result ?? {}),
+            tenantToken: result?.token,
+            tenant: tenantSlug,
+            tenant_id: result?.user?.tenant_id,
+            user_type_id: result?.user?.user_type_id,
+            tenantFirstName: result?.user?.first_name,
+            tenantLastName: result?.user?.last_name,
+            tenantEmail: result?.user?.email,
+            tenantPhone: result?.user?.phone,
+            tenantCompanyName: result?.user?.company_name,
+            CName: result?.company_name,
+            tenantLinkName: result?.slug
+          });
+          setPopup({
+            message: "Login successful!",
+            type: "success",
+            isVisible: true,
+            buttonLabel: "Proceed to the Admin Dashboard",
+            buttonRoute: `/${tenantSlug}/tenantDashboard`
+          });
+
+        } else if (result?.user?.user_type?.user_type === "Owner") {
+           saveSession({
+            ...(result ?? {}),
+            tenantToken: result?.token,
+            tenant: tenantSlug,
+            tenant_id: result?.user?.tenant_id,
+            user_type_id: result?.user?.user_type_id,
+            tenantFirstName: result?.user?.first_name,
+            tenantLastName: result?.user?.last_name,
+            tenantEmail: result?.user?.email,
+            tenantPhone: result?.user?.phone,
+            tenantCompanyName: result?.user?.company_name,
+            CName: result?.company_name,
+            tenantLinkName: result?.slug
+          });
+          setPopup({
+            message: "Login successful as workspace owner!",
+            type: "success",
+            isVisible: true,
+            buttonLabel: "Proceed to Your Dashboard",
+            buttonRoute: `/${tenantSlug}/tenantDashboard`
+          });
+
+        } else if (result?.user?.user_type?.user_type == "Client") {
+                    saveSession({ ...(result ?? {}), visitorToken: result?.token, visitor: visitorSlug, visitor_id: result?.user?.visitor_id, user_type_id: result?.user?.user_type_id, visitorFirstName: result?.user?.first_name, visitorLastName: result?.user?.last_name, visitorEmail: result?.user?.email, visitorPhone: result?.user?.phone });
+
+        console.log("My user type:", result?.user?.user_type?.user_type );
+          setPopup({
+            message: "Login successful!",
+            type: "success",
+            isVisible: true,
+            buttonLabel: "Continue",
+            buttonRoute: `/${tenantSlug}/home`
+          });
+        } else {  
+           setPopup({
           message: "Login successful!",
           type: "success",
           isVisible: true,
@@ -62,7 +122,9 @@ const useLogin = () => {
           buttonRoute: `/${tenantSlug}/tenantDashboard`,
         });
 
-        redirectUser();
+        saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id, tenantFirstName: result?.user?.first_name, tenantLastName: result?.user?.last_name, tenantEmail: result?.user?.email, tenantPhone: result?.user?.phone, tenantCompanyName: result?.user?.company_name, CName: result.company_name,
+            tenantLinkName: result.slug });
+      }
       } else {
         console.error('Login Failed:', res);
         const errorMessages = result.message;

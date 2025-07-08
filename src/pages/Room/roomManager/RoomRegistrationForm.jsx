@@ -281,7 +281,21 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               placeholder="Lavendier Room "
             />
           </Form.Group>
-          <Form.Group className="mb-3" controlId="space_number">
+         {
+          myRoom ? (
+             <Form.Group className="mb-3" controlId="space_number">
+            <Form.Label>Number of Spots in this Room/Space</Form.Label>
+            <Form.Control
+              type="number"
+              name="space_number"
+              value={formData.space_number}
+              onChange={handleInputChange}
+              placeholder="3"
+              disabled
+            />
+          </Form.Group>
+          ) : (
+             <Form.Group className="mb-3" controlId="space_number">
             <Form.Label>Number of Spots in this Room/Space</Form.Label>
             <Form.Control
               type="number"
@@ -291,6 +305,8 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               placeholder="3"
             />
           </Form.Group>
+          )
+         }
           <Form.Group className="mb-3" controlId="space_discount">
             <Form.Label>Space Discount(%) (optional)</Form.Label>
             <Form.Control

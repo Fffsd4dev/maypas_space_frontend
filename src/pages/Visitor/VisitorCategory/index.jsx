@@ -699,7 +699,7 @@ const VisitorCategory = () => {
           ) : (
             <h2>
               Already have an account?{" "}
-              <Link to={`/${visitorSlug}/auth/visitorLogin`} className="">
+              <Link to={`/${visitorSlug}/auth/login`} className="">
                 <button
                   type="submit"
                   style={{

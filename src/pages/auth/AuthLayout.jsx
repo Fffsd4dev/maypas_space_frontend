@@ -30,7 +30,7 @@ const AuthLayout = ({ helpText, bottomLinks, children, isCombineForm }) => {
   const { tenantSlug } = useParams();
   const { user } = useAuthContext();
   const CName  = user?.CName;
-  console.log(CName)
+  console.log("im here",CName)
       const { colour: primary, secondaryColor: secondary, logoImg } = useLogoColor();
 
 

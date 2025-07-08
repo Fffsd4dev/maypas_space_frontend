@@ -61,7 +61,7 @@ const SeatBookingSystem = () => {
     {
       label: "Logout",
       icon: "fe-log-out",
-      redirectTo: `/${visitorSlug}/auth/visitorLogout`,
+      redirectTo: `/${visitorSlug}/auth/logout`,
     },
   ];
 
@@ -942,7 +942,7 @@ const SeatBookingSystem = () => {
         ) : (
           <h2>
             Already have an account?{" "}
-            <Link to={`/${visitorSlug}/auth/visitorLogin`} className="">
+            <Link to={`/${visitorSlug}/auth/login`} className="">
               <button
                 type="submit"
                 style={{

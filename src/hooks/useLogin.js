@@ -56,7 +56,7 @@ const useLogin = () => {
         saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id, tenantFirstName: result?.user?.first_name, tenantLastName: result?.user?.last_name, tenantEmail: result?.user?.email, tenantPhone: result?.user?.phone, tenantCompanyName: result?.user?.company_name });
         console.log(result)
         console.log(result.user)
-       if (result?.user?.user_type?.user_type === "Admin") {
+       if (result?.user?.user_type_id === "2") {
           saveSession({
             ...(result ?? {}),
             tenantToken: result?.token,
@@ -79,7 +79,7 @@ const useLogin = () => {
             buttonRoute: `/${tenantSlug}/tenantDashboard`
           });
 
-        } else if (result?.user?.user_type?.user_type === "Owner") {
+        } else if (result?.user?.user_type_id === "1") {
            saveSession({
             ...(result ?? {}),
             tenantToken: result?.token,
@@ -102,7 +102,7 @@ const useLogin = () => {
             buttonRoute: `/${tenantSlug}/tenantDashboard`
           });
 
-        } else if (result?.user?.user_type?.user_type == "Client") {
+        } else if (result?.user?.user_type_id === "2") {
                     saveSession({ ...(result ?? {}), visitorToken: result?.token, visitor: visitorSlug, visitor_id: result?.user?.visitor_id, user_type_id: result?.user?.user_type_id, visitorFirstName: result?.user?.first_name, visitorLastName: result?.user?.last_name, visitorEmail: result?.user?.email, visitorPhone: result?.user?.phone });
 
         console.log("My user type:", result?.user?.user_type?.user_type );

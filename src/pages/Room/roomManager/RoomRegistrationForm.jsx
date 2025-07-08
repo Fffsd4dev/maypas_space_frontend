@@ -335,6 +335,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               value={formData.space_fee}
               onChange={handleInputChange}
               placeholder="30000"
+              required
             />
           </Form.Group>
 

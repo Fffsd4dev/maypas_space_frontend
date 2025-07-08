@@ -34,6 +34,7 @@ const MenuItemWithChildren = ({
   useEffect(() => {
     setOpen(activeMenuItems.includes(item.key));
   }, [activeMenuItems, item]);
+
   const toggleMenuItem = () => {
     const status = !open;
     setOpen(status);
@@ -77,26 +78,35 @@ const MenuItemWithChildren = ({
 const MenuItem = ({
   item,
   className,
-  linkClassName
+  linkClassName,
+   onMenuItemClick
 }) => {
+  
   return <li className={classNames("menu-item", className)}>
-      <MenuItemLink item={item} className={linkClassName} />
+      <MenuItemLink item={item} className={linkClassName} onMenuItemClick={onMenuItemClick} />
     </li>;
 };
 const MenuItemLink = ({
   item,
-  className
+  className,
+  onMenuItemClick 
 }) => {
   const Icon = item.icon;
-  return <Link to={item.url} target={item.target} className={classNames("side-nav-link-ref menu-link", className)} data-menu-key={item.key}>
-      {Icon && <span className="menu-icon">
-          <Icon />{" "}
-        </span>}
+  return (
+    <Link
+      to={item.url}
+      target={item.target}
+      className={classNames("side-nav-link-ref menu-link", className)}
+      data-menu-key={item.key}
+      onClick={() => {
+        if (onMenuItemClick) onMenuItemClick(item);
+      }}
+    >
+      {Icon && <span className="menu-icon"><Icon />{" "}</span>}
       <span className="menu-text"> {item.label} </span>
-      {item.badge && <span className={`badge bg-${item.badge.variant} `}>
-          {item.badge.text}
-        </span>}
-    </Link>;
+      {item.badge && <span className={`badge bg-${item.badge.variant} `}>{item.badge.text}</span>}
+    </Link>
+  );
 };
 
 /**
@@ -110,6 +120,13 @@ const AppMenu = ({
   const menuRef = useRef(null);
   const [activeMenuItems, setActiveMenuItems] = useState([]);
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
+
+  
+const handleMenuItemClick = (item) => {
+  if (!item.children) {
+    setActiveMenuItems([]); // Close all menus when a direct link is clicked
+  }
+};
 
   // Inject dynamic style for menu-item and menuitem-active
 useEffect(() => {
@@ -131,10 +148,24 @@ useEffect(() => {
   /*
    * toggle the menus
    */
-  const toggleMenu = (menuItem, show) => {
-    if (show) setActiveMenuItems([menuItem["key"], ...findAllParent(menuItems, menuItem)]);
+ const toggleMenu = (menuItem, show) => {
+    if (show) {
+      // Open: only this menu and its parents are active
+      setActiveMenuItems([menuItem["key"], ...findAllParent(menuItems, menuItem)]);
+    } else {
+      // Close: remove this menu and all its children from activeMenuItems
+      setActiveMenuItems((prev) =>
+        prev.filter(
+          (key) =>
+            key !== menuItem["key"] &&
+            !(
+              menuItem.children &&
+              menuItem.children.some((child) => key === child.key)
+            )
+        )
+      );
+    }
   };
-
   /**
    * activate the menuitems
    */
@@ -173,7 +204,9 @@ useEffect(() => {
           })}>
                   {item.label}
                 </li> : <>
-                  {item.children ? <MenuItemWithChildren item={item} toggleMenu={toggleMenu} subMenuClassNames="sub-menu" activeMenuItems={activeMenuItems} linkClassName="menu-link" /> : <MenuItem item={item} linkClassName="menu-link" className={activeMenuItems.includes(item.key) ? "menuitem-active" : ""} />}
+                  {item.children ? <MenuItemWithChildren item={item} toggleMenu={toggleMenu} subMenuClassNames="sub-menu" activeMenuItems={activeMenuItems} linkClassName="menu-link" /> : <MenuItem item={item} 
+                  onMenuItemClick={handleMenuItemClick}
+                  linkClassName="menu-link" className={activeMenuItems.includes(item.key) ? "menuitem-active" : ""} />}
                 </>}
             </React.Fragment>;
       })}

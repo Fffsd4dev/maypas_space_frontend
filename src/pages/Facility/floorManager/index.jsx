@@ -6,11 +6,14 @@ import FloorRegistrationModal from "./FloorRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const Floors = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
+
+  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -100,7 +103,9 @@ const Floors = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       const result = await response.json();
@@ -139,7 +144,12 @@ const Floors = () => {
     if (user?.tenantToken && selectedLocation) {
       fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
     }
-  }, [user?.tenantToken, selectedLocation, pagination.currentPage, pagination.pageSize]);
+  }, [
+    user?.tenantToken,
+    selectedLocation,
+    pagination.currentPage,
+    pagination.pageSize,
+  ]);
 
   const handleEditClick = (myFloor) => {
     setSelectedUser(myFloor);
@@ -173,7 +183,9 @@ const Floors = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       setData((prevData) =>
@@ -214,6 +226,9 @@ const Floors = () => {
     handleDelete(myFloorID);
     setDeletePopup({ isVisible: false, myFloorID: null });
   };
+  const [formData, setFormData] = useState({
+    location_id: "",
+  });
 
   const handleLocationChange = (e) => {
     const locationId = e.target.value;
@@ -232,7 +247,7 @@ const Floors = () => {
       sort: false,
     },
     {
-      Header: "Floor Name",
+      Header: "Floor Name/Section Name",
       accessor: "name",
       sort: true,
     },
@@ -277,7 +292,11 @@ const Floors = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "My Floors/Sections", path: "/location/floor", active: true },
+          {
+            label: "My Floors/Sections",
+            path: "/location/floor",
+            active: true,
+          },
         ]}
         title="My Floors"
       />
@@ -295,6 +314,11 @@ const Floors = () => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
+                    style={{
+                      backgroundColor: primary,
+                      borderColor: primary,
+                      color: "#fff",
+                    }}
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a Floor
                   </Button>
@@ -302,7 +326,13 @@ const Floors = () => {
               </Row>
 
               <Card>
-                <Card.Body style={{ background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", marginTop: "30px" }}>
+                <Card.Body
+                  style={{
+                    background: 
+                      secondary,
+                    marginTop: "30px",
+                  }}
+                >
                   {loadingLocations ? (
                     <div className="text-center">
                       <Spinner animation="border" role="status">
@@ -312,7 +342,9 @@ const Floors = () => {
                     </div>
                   ) : (
                     <div>
-                      <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select a location to view or update the floor.</p>
+                      <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+                        Select a location to view or update the floor.
+                      </p>
                       <Form.Select
                         style={{ marginBottom: "25px", fontSize: "1rem" }}
                         value={selectedLocation || ""}
@@ -330,49 +362,47 @@ const Floors = () => {
                       </Form.Select>
                     </div>
                   )}
-                
-                 {selectedLocation && (
-                <>
-                  {error ? (
-                    <p className="text-danger">Error: {error}</p>
-                  ) : loading ? (
-                    <p>Loading floors...</p>
-                  ) : isLoading ? (
-                    <div className="text-center">
-                      <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Deleting...</span>
-                      </Spinner>{" "}
-                      Deleting...
-                    </div>
-                  ) : (
-                    <Table2
-                      columns={columns}
-                      data={data}
-                      pageSize={pagination.pageSize}
-                      isSortable
-                      pagination
-                      isSearchable
-                      tableClass="table-striped dt-responsive nowrap w-100"
-                      searchBoxClass="my-2"
-                      paginationProps={{
-                        currentPage: pagination.currentPage,
-                        totalPages: pagination.totalPages,
-                        onPageChange: (page) =>
-                          setPagination((prev) => ({
-                            ...prev,
-                            currentPage: page,
-                          })),
-                        onPageSizeChange: (pageSize) =>
-                          setPagination((prev) => ({ ...prev, pageSize })),
-                      }}
-                    />
+
+                  {selectedLocation && (
+                    <>
+                      {error ? (
+                        <p className="text-danger">Error: {error}</p>
+                      ) : loading ? (
+                        <p>Loading floors...</p>
+                      ) : isLoading ? (
+                        <div className="text-center">
+                          <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Deleting...</span>
+                          </Spinner>{" "}
+                          Deleting...
+                        </div>
+                      ) : (
+                        <Table2
+                          columns={columns}
+                          data={data}
+                          pageSize={pagination.pageSize}
+                          isSortable
+                          pagination
+                          isSearchable
+                          tableClass="table-striped dt-responsive nowrap w-100"
+                          searchBoxClass="my-2"
+                          paginationProps={{
+                            currentPage: pagination.currentPage,
+                            totalPages: pagination.totalPages,
+                            onPageChange: (page) =>
+                              setPagination((prev) => ({
+                                ...prev,
+                                currentPage: page,
+                              })),
+                            onPageSizeChange: (pageSize) =>
+                              setPagination((prev) => ({ ...prev, pageSize })),
+                          }}
+                        />
+                      )}
+                    </>
                   )}
-                </>
-              )}
                 </Card.Body>
               </Card>
-
-             
             </Card.Body>
           </Card>
         </Col>

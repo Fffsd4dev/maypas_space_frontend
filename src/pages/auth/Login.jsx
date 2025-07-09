@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import classNames from "classnames";
 import Popup from "../../components/Popup/Popup";
 import { useParams } from "react-router-dom";
+import { useLogoColor } from "../../context/LogoColorContext";
 
 // components
 
@@ -11,7 +12,7 @@ import AuthLayout from "./AuthLayout";
 import useLogin from "@/hooks/useLogin.js";
 import { Controller } from "react-hook-form";
 import Feedback from "react-bootstrap/esm/Feedback";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 /* bottom links */
@@ -71,7 +72,6 @@ const SocialLinks = () => {
 };
 const Login = () => {
 
-  const { tenantSlug } = useParams();
 
   const {
     t
@@ -84,15 +84,22 @@ const Login = () => {
     loading
   } = useLogin();
 
+
+  
+     const { tenantSlug } = useParams();
+    const { colour: primary, secondaryColor: secondary } = useLogoColor();
+  
+  
+
   
 
   const [showPassword, setShowPassword] = useState(false);
   return <>
-            <AuthLayout helpText={t("Enter your email address and password to access admin panel.")} bottomLinks={<BottomLink />}>
+            <AuthLayout helpText={t("Enter your email address and password to access admin panel.")} bottomLinks={<BottomLink />} >
 
                 <form onSubmit={login}>
 
-                    <div className="mb-3">
+                    <div className="mb-3" >
                         <Controller name="email" control={control} render={({
             field,
             fieldState
@@ -125,7 +132,7 @@ const Login = () => {
                     </div>
 
                     <div className="text-center d-grid">
-                    <Button variant="primary" type="submit" disabled={loading}>
+                    <Button style={{ background: primary, borderColor: primary, color: "#fff" }} type="submit" disabled={loading}>
   {loading ? (
     <Spinner
       as="span"

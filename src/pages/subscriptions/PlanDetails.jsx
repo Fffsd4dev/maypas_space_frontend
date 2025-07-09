@@ -78,7 +78,6 @@ const PlanDetails = () => {
               <p><strong>Plan ID:</strong> {plan.id}</p>
               <p><strong>Subscription Plan Name:</strong> {plan.name}</p>
               <p><strong>Price:</strong> {plan.price}</p>
-              <p><strong>Duration (months):</strong> {plan.duration}</p>
               <p><strong>Created At:</strong> {formatDateTime(plan.created_at)}</p>
               <p><strong>Updated At:</strong> {formatDateTime(plan.updated_at)}</p>
             </Card.Body>

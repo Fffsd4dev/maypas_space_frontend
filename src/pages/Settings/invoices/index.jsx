@@ -8,11 +8,13 @@ import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
 import { m } from "framer-motion";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const Invoices = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
+  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -186,17 +188,16 @@ const Invoices = () => {
         }
       );
 
-     
-
       const result = await response.json();
       console.log(result);
 
-       if (!response.ok) {
-        throw new Error( result?.message || 
-          `Contact Support! HTTP error! Status: ${response.status}`
+      if (!response.ok) {
+        throw new Error(
+          result?.message ||
+            `Contact Support! HTTP error! Status: ${response.status}`
         );
       }
-      
+
       if (Array.isArray(result.invoices)) {
         // Sort the data by space_payment[0].created_at or created_at
         const sortedData = result.invoices.sort(
@@ -213,12 +214,11 @@ const Invoices = () => {
         //   currentPage: page,
         //   totalPages: Math.ceil(result.length / pageSize),
         // }));
-      } 
-      else {
-        throw new Error(result?.message || "Invalid response format" );
+      } else {
+        throw new Error(result?.message || "Invalid response format");
       }
     } catch (error) {
-      console.error(error)
+      console.error(error);
       toast.error(error.message);
       setError(error.message);
     } finally {
@@ -255,7 +255,7 @@ const Invoices = () => {
     setFormData({}); // Reset inputs after success
   };
 
-  const handleCloseInvoice = async ( myInvoiceID, myInvoiceRef) => {
+  const handleCloseInvoice = async (myInvoiceID, myInvoiceRef) => {
     if (!user?.tenantToken) return;
     console.log(myInvoiceID);
 
@@ -290,7 +290,7 @@ const Invoices = () => {
         type: "success",
         isVisible: true,
       });
-      if (user?.tenantToken ) {
+      if (user?.tenantToken) {
         fetchData(); // Reload users after deleting a user
       }
     } catch (error) {
@@ -352,14 +352,10 @@ const Invoices = () => {
     });
   };
 
-  const handleCloseInvoiceButton = (
-    
-    myInvoiceID,
-    myInvoiceRef
-  ) => {
+  const handleCloseInvoiceButton = (myInvoiceID, myInvoiceRef) => {
     setCloseInvoicePopup({
       isVisible: true,
-      
+
       myInvoiceID,
       myInvoiceRef,
     });
@@ -367,7 +363,7 @@ const Invoices = () => {
 
   const confirmCloseInvoice = () => {
     const { myInvoiceID, myInvoiceRef } = closeInvoicePopup;
-    handleCloseInvoice( myInvoiceID, myInvoiceRef);
+    handleCloseInvoice(myInvoiceID, myInvoiceRef);
     setCloseInvoicePopup({
       isVisible: false,
       myInvoiceID: null,
@@ -438,17 +434,21 @@ const Invoices = () => {
       sort: false,
       Cell: ({ row }) => (
         <>
-          {row.original.space_payment[0].payment_status === "pending" && ( 
+          {row.original.space_payment[0].payment_status === "pending" && (
             <Button
               variant="danger"
               className="waves-effect waves-light"
               onClick={() =>
                 handleCloseInvoiceButton(
-                  
                   row.original.id,
                   row.original.invoice_ref
                 )
               }
+              style={{
+                backgroundColor: primary,
+                borderColor: primary,
+                color: "#fff",
+              }}
             >
               Close Invoice
             </Button>
@@ -488,7 +488,7 @@ const Invoices = () => {
                 <Card.Body
                   style={{
                     background:
-                      "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))",
+                      secondary,
                     marginTop: "30px",
                   }}
                 >
@@ -500,36 +500,46 @@ const Invoices = () => {
                     ) : isLoading ? (
                       <div className="text-center">
                         <Spinner animation="border" role="status">
-                          <span className="visually-hidden">Closing Invoice...</span>
+                          <span className="visually-hidden">
+                            Closing Invoice...
+                          </span>
                         </Spinner>{" "}
                         Closing Invoice...
                       </div>
                     ) : (
-                    
                       <Table2
-  columns={columns}
-  data={data}
-  pageSize={5}
-  pagination
-  isSortable
-  isSearchable
-  sizePerPageList={sizePerPageList}
-  tableClass="table-striped dt-responsive nowrap w-100"
-  searchBoxClass="my-2"
-  getRowProps={(row) => ({
-    style: { 
-      cursor: "pointer",
-      backgroundColor: row.original.space_payment[0].payment_status?.toString().toLowerCase() === "completed" ? "#E8F5E9" : "inherit",
-      opacity: rowLoading === row.original.id ? 0.4 : 1, // visually indicate loading
-      
-      transition: "opacity 0.3s ease",
-      position: "relative",
-      display: rowLoading === row.original.id ? "hidden" : "table-row",
-    },
-    onClick: (event) =>
-      handleRowClick(row.original.id, event),
-  })}
-  //   paginationProps={{
+                        columns={columns}
+                        data={data}
+                        pageSize={5}
+                        pagination
+                        isSortable
+                        isSearchable
+                        sizePerPageList={sizePerPageList}
+                        tableClass="table-striped dt-responsive nowrap w-100"
+                        searchBoxClass="my-2"
+                        getRowProps={(row) => ({
+                          style: {
+                            cursor: "pointer",
+                              backgroundColor:
+                              row.original.space_payment[0].payment_status
+                                ?.toString()
+                                .toLowerCase() === "completed"
+                                ? secondary
+                                : "inherit",
+                                
+                            opacity: rowLoading === row.original.id ? 0.4 : 1, // visually indicate loading
+
+                            transition: "opacity 0.3s ease",
+                            position: "relative",
+                            display:
+                              rowLoading === row.original.id
+                                ? "hidden"
+                                : "table-row",
+                          },
+                          onClick: (event) =>
+                            handleRowClick(row.original.id, event),
+                        })}
+                        //   paginationProps={{
                         //     currentPage: pagination.currentPage,
                         //     totalPages: pagination.totalPages,
                         //     onPageChange: (page) =>
@@ -540,8 +550,8 @@ const Invoices = () => {
                         //     onPageSizeChange: (pageSize) =>
                         //       setPagination((prev) => ({ ...prev, pageSize })),
                         //   }}
-  rowLoading={rowLoading}
-/>
+                        rowLoading={rowLoading}
+                      />
                     )}
                   </>
                 </Card.Body>

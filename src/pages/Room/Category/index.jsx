@@ -7,11 +7,14 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const Categories = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
+
+  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -156,6 +159,21 @@ const Categories = () => {
     setShow(true);
   };
 
+  const handleCopy = (myCategory) => {
+    const baseUrl = window.location.origin;
+    const categorySlug = myCategory.category.toLowerCase().replace(/\s+/g, "_");
+    const url = `${baseUrl}/${tenantSlug}/${categorySlug}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setPopup({
+        message: "Link copied",
+        type: "success",
+        isVisible: true,
+        buttonLabel: "OK",
+        buttonRoute: "",
+      });
+    });
+  };
+
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
@@ -282,6 +300,14 @@ const Categories = () => {
           >
             <i className="mdi mdi-delete"></i>
           </Link>
+
+          <Link
+            to="#"
+            className="action-icon"
+            onClick={() => handleCopy(row.original)}
+          >
+            <i className="mdi mdi-content-copy"></i>
+          </Link>
         </>
       ),
     },
@@ -309,6 +335,11 @@ const Categories = () => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
+                    style={{
+                      backgroundColor: primary,
+                      borderColor: primary,
+                      color: "#fff",
+                    }}
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a Category
                   </Button>
@@ -319,7 +350,7 @@ const Categories = () => {
                 <Card.Body
                   style={{
                     background:
-                      "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))",
+                      secondary,
                     marginTop: "30px",
                   }}
                 >

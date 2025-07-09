@@ -8,11 +8,13 @@ import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
 import { m } from "framer-motion";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
-const OperatingTimes = () => {
+const BankAccount = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
+  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -324,6 +326,8 @@ const OperatingTimes = () => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
+                                                                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add Your Bank Account
                   </Button>
@@ -333,8 +337,7 @@ const OperatingTimes = () => {
               <Card>
                 <Card.Body
                   style={{
-                    background:
-                      "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))",
+                    background: secondary,
                     marginTop: "30px",
                   }}
                 >
@@ -439,4 +442,4 @@ const OperatingTimes = () => {
   );
 };
 
-export default OperatingTimes;
+export default BankAccount;

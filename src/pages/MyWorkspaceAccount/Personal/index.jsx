@@ -6,11 +6,15 @@ import UsersRegistrationModal from "./UsersRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
+import { useLogoColor } from "../../../context/LogoColorContext";
+
 
 const Personal = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlugg = user?.tenant;
+
+  const { colour: primary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -137,14 +141,14 @@ const Personal = () => {
         prevData.filter((myUser) => myUser.id !== myUserID)
       );
       setPopup({
-        message: "Plan deleted successfully!",
+        message: "User deleted successfully!",
         type: "success",
         isVisible: true,
       });
       fetchData(); // Reload users after deleting a user
     } catch (error) {
       setPopup({
-        message: "Failed to delete plan!",
+        message: "Failed to delete user!",
         type: "error",
         isVisible: true,
       });
@@ -263,6 +267,8 @@ const Personal = () => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
+                                                            style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a User
                   </Button>
@@ -322,7 +328,7 @@ const Personal = () => {
             
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this application?"
+          message="Are you sure you want to delete this user?"
           type="confirm"
           onClose={() => setDeletePopup({ isVisible: false, myUserID: null })}
           buttonLabel="Yes"

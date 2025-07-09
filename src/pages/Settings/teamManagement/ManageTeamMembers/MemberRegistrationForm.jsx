@@ -3,10 +3,14 @@ import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLogoColor } from "../../../../context/LogoColorContext";
 
 const MemberRegistrationModal = ({ show, onHide, myTeam, onSubmit }) => {
     const { user } = useAuthContext();
     const tenantSlug = user?.tenant;
+
+  const { colour: primary } = useLogoColor();
+
       const [loadingUsers, setLoadingUsers] = useState(true);
     
 
@@ -202,7 +206,8 @@ const MemberRegistrationModal = ({ show, onHide, myTeam, onSubmit }) => {
                     </Form.Group>
                     
 
-                    <Button variant="primary" type="submit" className="w-100" disabled={isLoading}>
+                    <Button variant="primary" type="submit" className="w-100" disabled={isLoading}                                         style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+>
                         {isLoading ? <Spinner as="span" animation="border" size="sm" teams="status" aria-hidden="true" /> : myTeam ? "Update" : "Add"} Member
                     </Button>
                 </Form>

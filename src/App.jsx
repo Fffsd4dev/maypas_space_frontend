@@ -10,15 +10,18 @@ import "@/assets/scss/Icons.scss";
 import AllRoutes from "@/routes/Routes.jsx";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AppProvidersWrapper from "@/components/AppProvidersWrapper.jsx";
-
+import { LogoColorProvider } from "./context/LogoColorContext";
 function App() {
   return (
     <>
+ 
       <Fragment>
         <AppProvidersWrapper>
-          <ErrorBoundary>
-            <AllRoutes />
-          </ErrorBoundary>
+          <LogoColorProvider>
+            <ErrorBoundary>
+              <AllRoutes />
+            </ErrorBoundary>
+          </LogoColorProvider>
         </AppProvidersWrapper>
         <ToastContainer
           position="top-right"
@@ -32,6 +35,7 @@ function App() {
           pauseOnHover
         />
       </Fragment>
+
     </>
   );
 }

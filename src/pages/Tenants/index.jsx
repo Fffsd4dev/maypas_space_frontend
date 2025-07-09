@@ -6,6 +6,7 @@ import PageTitle from "../../components/PageTitle";
 import WorkspaceRegistrationForm from "../Tenants/WorkspaceRegistrationForm";
 import { useAuthContext } from '@/context/useAuthContext.jsx';
 import Table2 from "../../components/Table2";
+import Popup from "../../components/Popup/Popup";
 
 const Tenants = () => {
   const { user } = useAuthContext();
@@ -33,6 +34,20 @@ const Tenants = () => {
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
+
+    const [popup, setPopup] = useState({
+    message: "",
+    type: "",
+    isVisible: false,
+    buttonLabel: "",
+    buttonRoute: "",
+  });
+
+  const [deletePopup, setDeletePopup] = useState({
+    isVisible: false,
+    myUserID: null,
+  });
+
 
   const columns = [
     {
@@ -154,40 +169,61 @@ const Tenants = () => {
     setShow(true);
   };
 
-  const handleDeleteClick = async (workspaceId) => {
-    if (!user?.token) return;
+const handleDeleteClick = (workspaceId) => {
+  setPopup({
+    message: "Are you sure you want to delete this workspace?",
+    type: "confirm",
+    isVisible: true,
+    buttonLabel: "Yes",
+    buttonRoute: "",
+    onAction: () => confirmDelete(workspaceId),
+  });
+};
 
-    if (!window.confirm("Are you sure you want to delete this workspace?"))
-      return;
+const confirmDelete = async (workspaceId) => {
+  if (!user?.token) return;
 
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/delete-workspace`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${user?.token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ id: workspaceId }),
-        }
-      );
+  setPopup({ ...popup, isVisible: false }); // Hide the confirmation popup
 
-      if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/delete-workspace`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: workspaceId }),
       }
+    );
 
-      setData((prevData) =>
-        prevData.filter((workspace) => workspace.id !== workspaceId)
+    if (!response.ok) {
+      throw new Error(
+        `Contact Support! HTTP error! Status: ${response.status}`
       );
-      alert("Workspace deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting workspace:", error);
-      alert("Failed to delete workspace. Please try again.");
     }
-  };
+
+    setData((prevData) =>
+      prevData.filter((workspace) => workspace.id !== workspaceId)
+    );
+    setPopup({
+      message: "Workspace deleted successfully!",
+      type: "success",
+      isVisible: true,
+      buttonLabel: "OK",
+      buttonRoute: "",
+    });
+  } catch (error) {
+    setPopup({
+      message: "Failed to delete workspace. Please try again.",
+      type: "error",
+      isVisible: true,
+      buttonLabel: "OK",
+      buttonRoute: "",
+    });
+  }
+};
 
   const handleClose = () => {
     setShow(false);
@@ -257,6 +293,28 @@ const Tenants = () => {
         onSubmit={() => setShow(false)}
         workspace={selectedWorkspace}
       />
+
+      {popup.isVisible && (
+  <Popup
+    message={popup.message}
+    type={popup.type}
+    onClose={() => setPopup({ ...popup, isVisible: false })}
+    buttonLabel={popup.buttonLabel}
+    buttonRoute={popup.buttonRoute}
+    onAction={popup.onAction}
+  />
+)}
+                  
+            {deletePopup.isVisible && (
+              <Popup
+                message="Are you sure you want to delete this workspace?"
+                type="confirm"
+                onClose={() => setDeletePopup({ isVisible: false, myUserID: null })}
+                buttonLabel="Yes"
+                onAction={confirmDelete}
+              />
+            )}
+
     </>
   );
 };

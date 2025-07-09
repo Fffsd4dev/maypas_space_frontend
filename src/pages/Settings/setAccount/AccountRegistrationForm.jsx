@@ -3,10 +3,13 @@ import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const AccountRegistrationModal = ({ show, onHide, myBankAccount, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
+    const { colour: primary } = useLogoColor();
+
 
   const [locations, setLocations] = useState([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
@@ -224,6 +227,8 @@ const AccountRegistrationModal = ({ show, onHide, myBankAccount, onSubmit }) => 
             type="submit"
             className="w-100"
             disabled={isLoading}
+                                                                          style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+
           >
             {isLoading ? (
               <Spinner

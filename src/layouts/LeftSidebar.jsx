@@ -15,11 +15,15 @@ import logoLight2 from "@/assets/images/logo-light-2.png";
 import { FiUser, FiSettings, FiLock, FiLogOut } from "react-icons/fi";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
+import { toast } from "react-toastify";
+
 
 /* user box */
 const UserBox = () => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
+  const tenantToken = user?.tenantToken;
+  console.log("User in UserBox:", user.tenantToken);
   const tenantFirstName = user?.tenantFirstName;
   const tenantLastName = user?.tenantLastName;
 
@@ -60,10 +64,72 @@ const UserBox = () => {
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
+
+    const [data, setData] = useState([]);
+      const [loading, setLoading] = useState(true);
+        const [error, setError] = useState(null);
+      
+    
+  
+    const fetchData = async ( page = 1, pageSize = 10) => {
+      setLoading(true);
+      setError(null);
+      console.log("User Token:", user?.tenantToken);
+      try {
+        const response = await fetch(
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/${tenantSlug}/view-details`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${user?.tenantToken}`,
+            },
+          }
+        );
+    
+        if (!response.ok) {
+          throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        }
+    
+        const result = await response.json();
+        console.log(result);
+    
+        if (Array.isArray(result.data)) {
+          // Sort the data by updated_at or created_at
+          const sortedData = result.data.sort(
+            (a, b) =>
+              new Date(b.updated_at || b.created_at) -
+              new Date(a.updated_at || a.created_at)
+          );
+          setData(sortedData);
+          console.log("Sorted Data:", sortedData);
+    
+      
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (error) {
+        toast.error(error.message);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+useEffect(() => {
+    if (user?.tenantToken) {
+      fetchData();
+    }   
+  }, [user?.tenantToken, tenantSlug]);
+
   return (
     <div className="user-box text-center">
       <img
-        src={profileImg}
+        src={
+          data[0]?.logo
+            ? `${import.meta.env.VITE_BACKEND_URL}/storage/uploads/tenant_logo/${data[0].logo}`
+            : profileImg
+        }
         alt=""
         title={`${tenantFirstName} ${tenantLastName}`}
         className="rounded-circle avatar-md"

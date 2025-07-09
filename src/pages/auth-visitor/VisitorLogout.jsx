@@ -23,7 +23,7 @@ const BottomLink = () => {
       <Col className="text-center">
         <p className="text-black-50">
           {t("Back to")}{" "}
-          <Link to={`/${visitorSlug}/auth/visitorLogin`} className="text-black ms-1">
+          <Link to={`/${visitorSlug}/auth/login`} className="text-black ms-1">
             <b>{t("Sign In")}</b>
           </Link>
         </p>

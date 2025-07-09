@@ -2,24 +2,21 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-import AccountRegistrationModal from "./AccountRegistrationForm";
+import AccountRegistrationModal from "./LogoAndColorRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
-import { m } from "framer-motion";
-import { useLogoColor } from "../../../context/LogoColorContext";
+import { useLogoColor } from "../../../context/LogoColorContext.jsx";
 
-const BankAccount = () => {
+const LogoColor = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
-  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingLocations, setLoadingLocations] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,22 +28,13 @@ const BankAccount = () => {
     buttonRoute: "",
   });
   const [isError, setIsError] = useState(false);
-  const [locations, setLocations] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const [formData, setFormData] = useState({
 
-    location_id: "",
-    bank_name: "",
-    account_number: "",
-    account_name: "" 
+    logo: "",
+    colour: "",
 });
 
-
-  const [deletePopup, setDeletePopup] = useState({
-    isVisible: false,
-    myBankAccountID: null,
-  });
 
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -68,44 +56,16 @@ const BankAccount = () => {
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
 
-  const fetchLocations = async () => {
-    setLoadingLocations(true);
-    try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/location/list-locations`,
-        {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
-        }
-      );
-      const result = await response.json();
-      if (response.ok) {
-        console.log("Location:", result.data.data);
-        setLocations(result.data.data || []);
-      } else {
-        throw new Error(result.message || "Failed to fetch locations.");
-      }
-    } catch (error) {
-      toast.error(error.message);
-      setIsError(true);
-    } finally {
-      setLoadingLocations(false);
-    }
-  };
 
-  const fetchData = async ( page = 1, pageSize = 10) => {
+ const fetchData = async ( page = 1, pageSize = 10) => {
     setLoading(true);
     setError(null);
     console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        // `${
-        //   import.meta.env.VITE_BACKEND_URL
-        // }/api/${tenantSlug}/settings/workspace/time/all?location_id=${locationId}&page=${page}&per_page=${pageSize}`
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/banks`,
+        }/api/${tenantSlug}/view-details`,
         {
           method: "GET",
           headers: {
@@ -148,21 +108,23 @@ const BankAccount = () => {
     }
   };
 
+  
   useEffect(() => {
     if (user?.tenantToken) {
-      fetchLocations();
-    }
-  }, [user?.tenantToken]);
-
-  useEffect(() => {
-    if (user?.tenantToken) {
-        //fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
         fetchData();
     }
   }, [user?.tenantToken]);
 
-  const handleEditClick = (myBankAccount) => {  
-    setSelectedUser(myBankAccount);
+ 
+
+    const { colour: primary, secondaryColor: secondary, logoImg: logoImg } = useLogoColor();
+
+
+
+
+
+  const handleEditClick = (myLogo) => {  
+    setSelectedUser(myLogo);
   
     setShow(true);
   };
@@ -170,8 +132,8 @@ const BankAccount = () => {
   const handleClose = () => {
     setShow(false);
     setSelectedUser(null);
-    if (user?.tenantToken && selectedLocation) {
-      fetchData(selectedLocation);
+    if (user?.tenantToken) {
+      fetchData();
       // Reload users after closing the modal
     }
     setFormData({}); // Reset inputs after success
@@ -179,60 +141,13 @@ const BankAccount = () => {
   };
 
 
-  const handleDelete = async (myBankAccountID) => {
-    if (!user?.tenantToken) return;
-  
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/bank/delete`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ id: myBankAccountID  }),
-        }
-      );
-      const result = await response.json();
-      console.log(result);
-      if (!response.ok) throw new Error(result.message || "Failed to delete.");
-  
-      setPopup({
-        message: "Bank detail deleted successfully!",
-        type: "success",
-        isVisible: true,
-      });
-  
-      fetchData();
-    } catch (error) {
-      toast.error("Failed to delete this bank details!");
-      console.error("Error deleting bank details:", error);
-      setPopup({
-        message: "Failed to this bank details!",
-        type: "error",
-        isVisible: true,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
+ 
 
 
 
-  const handleDeleteButton = (myBankAccountID) => {
-    setDeletePopup({
-      isVisible: true,
-      myBankAccountID
-    });
-  };
+
   
-  const confirmDelete = () => {
-    handleDelete(deletePopup.myBankAccountID);
-    setDeletePopup({ isVisible: false, myBankAccountID: null });
-  };
+
   
   const formatTime = (time) => {
     if (!time) return ""; // Handle empty or undefined time
@@ -243,74 +158,92 @@ const BankAccount = () => {
   };
  
 
-  const handleLocationChange = (e) => {
-    const locationId = e.target.value;
-    setSelectedLocation(locationId);
-    setFormData((prev) => ({
-      ...prev,
-      location_id: locationId, // Update formData with the selected location ID
-    }));
-  };
-  const columns = [
-    {
-      Header: "S/N",
-      accessor: (row, i) => i + 1,
-      id: "serialNo",
-      sort: false,
-    },
-    {
-      Header: "Bank Name",
-      accessor: "bank_name",
-      sort: true,
-    },
-    {
-      Header: "Account Number",
-      accessor: "account_number",
-      sort: true,
-    },
-    {
-      Header: "Account Name",
-      accessor: "account_name",
-      sort: true,
-    },
-    {
-      Header: "Updated On",
-      accessor: "updated_at",
-      sort: true,
-      Cell: ({ row }) => formatDateTime(row.original.updated_at),
-    },
 
-    {
-      Header: "Action",
-      accessor: "action",
-      sort: false,
-      Cell: ({ row }) => (
-        <>
-          <Link
-            to="#"
-            className="action-icon"
-            onClick={() => handleEditClick(row.original)}
-          >
-            <i className="mdi mdi-square-edit-outline"></i>
-          </Link>
-          <Link
-            to="#"
-            className="action-icon"
-            onClick={() => handleDeleteButton(row.original.id)}
-          >
-            <i className="mdi mdi-delete"></i>
-          </Link>
-        </>
+const columns = [
+  {
+    Header: "S/N",
+    accessor: (row, i) => i + 1,
+    id: "serialNo",
+    sort: false,
+  },
+  {
+    Header: "Logo",
+    accessor: "logo",
+    sort: true,
+    Cell: ({ value }) =>
+      value ? (
+        <img
+          src={`${
+          import.meta.env.VITE_BACKEND_URL
+        }/storage/uploads/tenant_logo/${value}`}
+          alt="Logo"
+          style={{
+            maxWidth: 60,
+            maxHeight: 60,
+            borderRadius: 25,
+            border: "1px solid #ccc",
+            objectFit: "contain",
+            background: "#fff",
+          }}
+        />
+      ) : (
+        <span>No Logo</span>
       ),
-    },
-  ];
+  },
+  {
+    Header: "Colour",
+    accessor: "colour",
+    sort: true,
+    Cell: ({ value }) =>
+      value ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span
+            style={{
+              display: "inline-block",
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
+              background: value,
+              border: "2px solid #ccc",
+            }}
+            title={value}
+          />
+          <span>{value}</span>
+        </div>
+      ) : (
+        <span>No Color</span>
+      ),
+  },
+  {
+    Header: "Updated On",
+    accessor: "updated_at",
+    sort: true,
+    Cell: ({ row }) => formatDateTime(row.original.updated_at),
+  },
+  {
+    Header: "Action",
+    accessor: "action",
+    sort: false,
+    Cell: ({ row }) => (
+      <>
+        <Link
+          to="#"
+          className="action-icon"
+          onClick={() => handleEditClick(row.original)}
+        >
+          <i className="mdi mdi-square-edit-outline"></i>
+        </Link>
+      </>
+    ),
+  },
+];
   return (
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Bank Account", path: "/Settings/set-account", active: true },
+          { label: "Company's Logo and Color", path: "/Settings/set-logo-and-color", active: true },
         ]}
-        title="Bank Account"
+        title="Company's Logo and Color"
       />
 
       <Row>
@@ -320,16 +253,14 @@ const BankAccount = () => {
               <Row className="mb-2">
                 <Col sm={4}>
                   <Button
-                    variant="danger"
+                    style={{ background: primary, borderColor: primary, color: "#fff" }}
                     className="waves-effect waves-light"
                     onClick={() => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
-                                                                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add Your Bank Account
+                    <i className="mdi mdi-plus-circle me-1"></i> Add Your Company's Logo & Color
                   </Button>
                 </Col>
               </Row>
@@ -348,7 +279,7 @@ const BankAccount = () => {
                   {error ? (
                     <p className="text-danger">Error: {error}</p>
                   ) : loading ? (
-                    <p>Loading your bank details...</p>
+                    <p>Loading your Company's Logo and Color...</p>
                   ) : isLoading ? (
                     <div className="text-center">
                       <Spinner animation="border" role="status">
@@ -379,24 +310,6 @@ const BankAccount = () => {
                     />
                   )}
 
-{/* <Row className="mt-3">
-  <Col>
-  <Button
-  variant="primary"
-  disabled={!selectedLocation}
-  onClick={() => handleEditClick(selectedLocation)}
->
-  Edit Working Hours
-</Button>{" "}
-    <Button
-      variant="danger"
-      disabled={!selectedLocation}
-      onClick={() => handleDeleteButton(selectedLocation)}
-    >
-      Delete Working Hours
-    </Button>
-  </Col>
-</Row> */}
 
                   </>
               
@@ -411,10 +324,11 @@ const BankAccount = () => {
       <AccountRegistrationModal
   show={show}
   onHide={handleClose}
-  myBankAccount={selectedUser} // Pass the selected user data
-  onSubmit={() =>
-    fetchData(selectedLocation)
+  myLogo={selectedUser} // Pass the selected user data
+    onSubmit={() =>
+    fetchData()
   }
+
 />
 
       {popup.isVisible && (
@@ -427,19 +341,9 @@ const BankAccount = () => {
         />
       )}
 
-      {deletePopup.isVisible && (
-        <Popup
-          message="Are you sure you want to delete this bank details?"
-          type="confirm"
-          onClose={() =>
-            setDeletePopup({ isVisible: false, myBankAccountID: null })
-          }
-          buttonLabel="Yes"
-          onAction={confirmDelete}
-        />
-      )}
+  
     </>
   );
 };
 
-export default BankAccount;
+export default LogoColor;

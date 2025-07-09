@@ -2,6 +2,22 @@ import React, { useRef, useEffect, forwardRef, useState, useCallback } from "rea
 import { useTable, useSortBy, usePagination, useRowSelect, useGlobalFilter, useAsyncDebounce, useExpanded } from "react-table";
 import classNames from "classnames";
 import 'regenerator-runtime/runtime';
+import { useLogoColor } from "../context/LogoColorContext";
+
+
+// Inject dynamic style for page-link and page-link.active
+const pageLinkDynamicStyle = `
+  .pagination .page-link.active, .pagination .page-item.active .page-link {
+    background-color: var(--primary-pagination, #fe0002) !important;
+    border-color: var(--primary-pagination, #fe0002) !important;
+    color: #fff !important;
+  }
+  .pagination .page-link:hover, .pagination .page-link:focus {
+    color: var(--primary-pagination, #fe0002) !important;
+    border-color: var(--primary-pagination, #fe0002) !important;
+  }
+`;
+
 
 // Define a default UI for filtering
 const GlobalFilter = ({
@@ -44,6 +60,24 @@ const IndeterminateCheckbox = forwardRef(({
 });
 
 const Table2 = props => {
+  const { colour: primary } = useLogoColor();
+    // Inject dynamic style for pagination
+  useEffect(() => {
+    const styleId = "dynamic-pagination-primary";
+    let styleTag = document.getElementById(styleId);
+    if (!styleTag) {
+      styleTag = document.createElement("style");
+      styleTag.id = styleId;
+      document.head.appendChild(styleTag);
+    }
+    styleTag.innerHTML = pageLinkDynamicStyle;
+    document.documentElement.style.setProperty("--primary-pagination", primary || "#fe0002");
+    return () => {
+      if (styleTag) styleTag.remove();
+    };
+  }, [primary]);
+
+
   const isSearchable = props["isSearchable"] || false;
   const isSortable = props["isSortable"] || false;
   const pagination = props["pagination"] || false;

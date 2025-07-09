@@ -3,9 +3,58 @@ import { Row, Col, Card, Button, ButtonGroup, DropdownButton, Dropdown } from "r
 
 // components
 import PageTitle from "../../components/PageTitle";
+
+   // Fetch logo data
+  const [logoData, setLogoData] = useState([]);
+  const [loadingLogo, setLoadingLogo] = useState(false);
+
+  const fetchLogoData = async (page = 1, pageSize = 10) => {
+    setLoadingLogo(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-details`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
+      }
+
+      const result = await response.json();
+      if (Array.isArray(result.data)) {
+        const sortedLogoData = result.data.sort(
+          (a, b) =>
+            new Date(b.updated_at || b.created_at) -
+            new Date(a.updated_at || a.created_at)
+        );
+        setLogoData(sortedLogoData);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoadingLogo(false);
+    }
+  };
+
+    useEffect(() => {
+    fetchLogoData();
+  }, []);
+
+
+const primary = logoData[0]?.colour || "#fe0002";
+console.log(primary);
+
+
 const buttonVariants = [{
   name: "Primary",
-  color: "primary"
+  color: {primary}
 }, {
   name: "Success",
   color: "success"
@@ -41,7 +90,7 @@ const DefaultButtons = () => {
 
       <div className="button-list">
         {(buttonVariants || []).map((button, index) => {
-        return <Button key={index} variant={button.color} className="waves-effect waves-light">
+        return <Button key={index} style={{ background: primary, borderColor: primary, color: "#fff" }} className="waves-effect waves-light">
               {button.name}
             </Button>;
       })}
@@ -64,7 +113,7 @@ const RoundedButtons = () => {
 
       <div className="button-list">
         {(buttonVariants || []).map((button, index) => {
-        return <Button key={index} variant={button.color} className="rounded-pill waves-effect waves-light">
+        return <Button key={index} style={{ background: primary, borderColor: primary, color: "#fff" }} className="rounded-pill waves-effect waves-light">
               {button.name}
             </Button>;
       })}

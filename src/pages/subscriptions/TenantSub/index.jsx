@@ -260,7 +260,6 @@ const TenantSub = () => {
     },
     { Header: "Subscribed Plan", accessor: "plan.name", sort: true },
     { Header: "Price", accessor: "plan.price", sort: true },
-    { Header: "Duration (months)", accessor: "plan.duration", sort: true },
     { Header: "Status", accessor: "status", sort: true, Cell: StatusColumn },
     { Header: "Updated At", accessor: "updated_at", sort: true, Cell: ({ row }) => formatDateTime(row.original.updated_at) },
     { Header: "Subscription Ends At", accessor: "ends_at", sort: true, Cell: ({ row }) => formatDateTime(row.original.ends_at) },

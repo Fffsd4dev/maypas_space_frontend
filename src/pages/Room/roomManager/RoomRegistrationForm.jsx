@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
+
+  const { colour: primary } = useLogoColor();
 
   const [locations, setLocations] = useState([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
@@ -33,7 +36,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   useEffect(() => {
     if (myRoom) {
       setFormData({
-        name: myRoom.name || "",
+        name: myRoom.space_name || "",
         space_number: myRoom.space_number || "",
         floor_id: myRoom.space || "",
         location_id: myRoom.location_id || "",
@@ -66,6 +69,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
         }
       );
       const result = await response.json();
+      console.log('locations in fetch location: ', result.data.data)
       if (response.ok) {
         setLocations(result.data.data || []);
       } else {
@@ -189,27 +193,34 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
     }));
   };
 
-  useEffect(() => {
-    locations.map((location) => {
-      if (location.id === myRoom?.location_id) {
-        setSelectedLocation(location.id); // Set the selected location ID
-        setIsLocationName(location.name); // Set the location name
-      }
-    });
-  }, [user?.tenantToken, locations]);
+ useEffect(() => {
+  if (show && myRoom && Array.isArray(locations) && locations.length > 0) {
+    const found = locations.find(location => String(location.id) === String(myRoom.location_id));
+    if (found) {
+      setSelectedLocation(found.id);
+      setIsLocationName(found.name);
+    } else {
+      setIsLocationName(""); // fallback if not found
+    }
+  }
+}, [show, myRoom, locations]);
+          console.log('isLocationName: ', isLocationName);
 
-  useEffect(() => {
-    floorData.map((floor) => {
-      if (floor.id === myRoom?.floor_id) {
-        // setSelectedLocation(location.id); // Set the selected location ID
-        setFormData((prev) => ({
-          ...prev,
-          floor_id: floor.id, // Update formData with the selected floor ID
-        }));
-        setIsFloorName(floor.name); // Set the location name
-      }
-    });
-  }, [user?.tenantToken, floorData]);
+
+ useEffect(() => {
+  if (show && myRoom && Array.isArray(floorData) && floorData.length > 0) {
+    const found = floorData.find(floor => String(floor.id) === String(myRoom.floor_id));
+    if (found) {
+      setFormData(prev => ({
+        ...prev,
+        floor_id: found.id,
+      }));
+      setIsFloorName(found.name);
+    } else {
+      setIsFloorName(""); // fallback if not found
+    }
+  }
+}, [show, myRoom, floorData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -270,7 +281,21 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               placeholder="Lavendier Room "
             />
           </Form.Group>
-          <Form.Group className="mb-3" controlId="space_number">
+         {
+          myRoom ? (
+             <Form.Group className="mb-3" controlId="space_number">
+            <Form.Label>Number of Spots in this Room/Space</Form.Label>
+            <Form.Control
+              type="number"
+              name="space_number"
+              value={formData.space_number}
+              onChange={handleInputChange}
+              placeholder="3"
+              disabled
+            />
+          </Form.Group>
+          ) : (
+             <Form.Group className="mb-3" controlId="space_number">
             <Form.Label>Number of Spots in this Room/Space</Form.Label>
             <Form.Control
               type="number"
@@ -280,6 +305,8 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               placeholder="3"
             />
           </Form.Group>
+          )
+         }
           <Form.Group className="mb-3" controlId="space_discount">
             <Form.Label>Space Discount(%) (optional)</Form.Label>
             <Form.Control
@@ -308,6 +335,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               value={formData.space_fee}
               onChange={handleInputChange}
               placeholder="30000"
+              required
             />
           </Form.Group>
 
@@ -449,11 +477,11 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               backgroundColor:
                 isLoading || loadingLocations || loadingFloor || loadingCategory
                   ? "#d3d3d3"
-                  : "#fe0002", // Use primary color or disabled color
+                  : primary, // Use primary color or disabled color
               borderColor:
                 isLoading || loadingLocations || loadingFloor || loadingCategory
                   ? "#d3d3d3"
-                  : "#fe0002", // Match border color
+                  : primary, // Match border color
             }}
             type="submit"
             className="w-100"

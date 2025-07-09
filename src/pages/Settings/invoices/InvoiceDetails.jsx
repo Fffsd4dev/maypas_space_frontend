@@ -11,7 +11,12 @@ const InvoiceDetails = () => {
   const location = useLocation();
   const { id } = useParams();
   const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken;
+  console.log("Tenant Token in InvoiceDetails:", tenantToken);
+  console.log("User in InvoiceDetails:", user);
   const [invoice, setInvoice] = useState(location.state?.invoice);
+  const [bank, setBank] = useState("");
+  const [space, setSpace] = useState("");
   const [loading, setLoading] = useState(!invoice);
   const tenantSlug = user?.tenant;
   const printRef = useRef();
@@ -45,11 +50,14 @@ const InvoiceDetails = () => {
     };
     html2pdf().set(opt).from(element).save();
   };
-
+useEffect(() => {
+  console.log("Updated user context:", user);
+}, [user]);
  
 
   useEffect(() => {
     if (!invoice) {
+      
       const fetchInvoice = async () => {
         try {
           const response = await axios.get(
@@ -60,9 +68,14 @@ const InvoiceDetails = () => {
               headers: { Authorization: `Bearer ${user?.tenantToken}` },
             }
           );
-          if (response.data.invoice) {
+          console.log(response);
+          
+          if (response.data.invoice || response.data.bank) {
             console.log(response.data.invoice);
             setInvoice(response.data.invoice);
+            console.log(response.data.bank);
+            setBank(response.data.bank);
+            setSpace(response.data.space_info);
           } else {
             toast.error("No invoice details found.");
           }
@@ -104,7 +117,7 @@ const InvoiceDetails = () => {
   <Card.Body>
     {/* Only this div will be converted to PDF */}
     <div ref={printRef}>
-      <div className="mb-4">
+      <div className="mb-2">
         <h3 className="text-center">Invoice</h3>
         <div className="d-flex justify-content-between">
           <div>
@@ -132,12 +145,19 @@ const InvoiceDetails = () => {
           
         </thead>
         <tbody>
+
           {(invoice?.schedule || []).map((item, index) => (
             <tr key={index}>
-              <td>{<b>Days & Time: <br/> <p>{formatDateTime(invoice.created_at)}</p></b>}</td>
-              <td>Reserved spot - </td>
-          <td>{Number(invoice.amount) || 'N/A' }</td>
-          
+              <td>{<b>Date: <br/> <br/> <p className="ms-4"> Start time:  {formatDateTime(invoice?.schedule[0].start_time)}   <br/> End time: {formatDateTime(invoice?.schedule[0].end_time)}</p></b>}</td>
+              <td>{
+                space?.space ? (
+                                <td>Reserved spot - The <b> {space?.space?.category?.category} </b> Category of <b> {space?.space?.space_name} </b> at <b>{space?.floor?.name}</b> of the <b>{space?.location?.name} </b> location</td>
+                ) : (
+                                <td>Reserved spot - No spot reserved yet, status might be pending</td>
+                )}
+              </td>
+              <td>{Number(invoice?.amount) || 'N/A' }</td>
+
             </tr>
           ))}
          
@@ -150,7 +170,13 @@ const InvoiceDetails = () => {
           </tr>
         </tfoot>
       </table>
+      {bank ? (
+        <div className="text-center">
+              <p className="ms-4"> <b> Bank Name: </b>  {bank?.bank_name}   <br/> <b> Account Name: </b> {bank?.account_name} <br/> <b> Account Number: </b> {bank?.account_number} </p>
 
+      </div>
+      ) : ("") }
+      
       <div className="mt-4">
         <p>
           <strong>Status:</strong>{" "}

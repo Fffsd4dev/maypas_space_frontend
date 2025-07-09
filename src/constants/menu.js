@@ -48,10 +48,7 @@ export const MENU_ITEMS = (tenantSlug = "") => [
     isTitle: false,
     icon: FiAirplay,
     url: `/${tenantSlug}/tenantDashboard`,
-    badge: {
-      variant: "success",
-     
-    },
+  
     
   },
   {
@@ -179,6 +176,16 @@ export const MENU_ITEMS = (tenantSlug = "") => [
     icon: FiBriefcase ,
     url: `/${tenantSlug}/settings/set-account`,
   },
+
+   {
+    key: "set-logo-and-color",
+    label: "Set Logo and Color",
+    isTitle: false,
+    icon: FiAperture ,
+    url: `/${tenantSlug}/settings/set-logo-and-color`,
+  },
+
+
 {
     key: "invoices",
     label: "Invoices",

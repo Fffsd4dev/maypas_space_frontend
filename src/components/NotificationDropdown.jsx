@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Dropdown } from "react-bootstrap";
 import SimpleBar from "simplebar-react";
 import classNames from "classnames";
+import { useLogoColor } from "../context/LogoColorContext";
 
 //interface
 
@@ -19,6 +20,35 @@ const NotificationDropdown = ({ notifications, fetchNotification }) => {
   const [notificationContentStyle, setNotificationContentStyles] = useState(
     notificationContainerStyle
   );
+
+    const { colour: primary, secondaryColor: secondary } = useLogoColor();
+  
+    // Inject dynamic nav-link style for primary color
+    useEffect(() => {
+      const styleId = "dynamic-nav-link";
+      let styleTag = document.getElementById(styleId);
+      if (!styleTag) {
+        styleTag = document.createElement("style");
+        styleTag.id = styleId;
+        document.head.appendChild(styleTag);
+      }
+      styleTag.innerHTML = `
+        .nav-link {
+          transition: color 0.2s;
+        }
+        .nav-link.show {
+          color: ${primary} !important;
+        }
+        .nav-link:hover,
+        .nav-link:focus {
+          color: ${primary} !important;
+        }
+      `;
+      return () => {
+        if (styleTag) styleTag.remove();
+      };
+    }, [primary]);
+  
 
   /*
    * toggle notification-dropdown
@@ -38,12 +68,13 @@ const NotificationDropdown = ({ notifications, fetchNotification }) => {
     notifications.splice(index, 1);
   };
   return <Dropdown show={dropdownOpen} onToggle={toggleDropdown}>
-      <Dropdown.Toggle id="dropdown-notification" role="button" as="a" onClick={toggleDropdown} className={classNames("nav-link waves-effect waves-light arrow-none notification-list", {
+      <Dropdown.Toggle id="dropdown-notification" role="button" as="a" onClick={toggleDropdown} className={classNames("nav-link waves-effect light arrow-none notification-list", {
       show: dropdownOpen
     })}>
         <i className="fe-bell noti-icon font-22"></i>
         <span className="badge bg-danger rounded-circle noti-icon-badge">
-          9
+            {notifications?.length || 0}
+
         </span>
       </Dropdown.Toggle>
       <Dropdown.Menu className="dropdown-menu dropdown-menu-end dropdown-menu-animated dropdown-lg py-0">
@@ -66,7 +97,7 @@ const NotificationDropdown = ({ notifications, fetchNotification }) => {
                 className="dropdown-item p-0 notify-item card shadow-none mb-1"
                 key={i}
                 style={{
-                  backgroundColor: item.is_read ? "#E8F5E9" : "#FFEBEE", // Green for read, red for unread
+                  backgroundColor: item.is_read ? secondary : "#FFEBEE", // Green for read, red for unread
                 }}
               >
                 <div className="card-body">

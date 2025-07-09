@@ -3,22 +3,25 @@ import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
+  const { colour: primary } = useLogoColor();
 
   const [locations, setLocations] = useState([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [floorData, setFloorData] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isLocationName, setIsLocationName] = useState("");
+  const [images, setImages] = useState([]);
 
   const [formData, setFormData] = useState({
     category: "",
     location_id: "",
     booking_type: "",
-    min_duration: ""
+    min_duration: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -117,14 +120,24 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
           }/api/${tenantSlug}/category/create`;
 
       const method = myCategory ? "POST" : "POST";
+      
+    const formDataToSend = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      formDataToSend.append(key, value);
+    });
+    images.forEach((img, idx) => {
+      formDataToSend.append("category_image[]", img);
+    });
+
+    console.log("formdata to send ", formDataToSend.get("category"))
+
 
       const response = await fetch(url, {
         method,
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${user?.tenantToken}`,
         },
-        body: JSON.stringify(formData),
+        body: formDataToSend,
       });
 
       const result = await response.json();
@@ -136,7 +149,12 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
             ? "Category updated successfully!"
             : "Category registered successfully!"
         );
-        setFormData({ category: "", location_id: "", booking_type: "", min_duration: "" });
+        setFormData({
+          category: "",
+          location_id: "",
+          booking_type: "",
+          min_duration: "",
+        });
         setTimeout(() => {
           onSubmit();
           onHide();
@@ -170,6 +188,80 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
       </Modal.Header>
       <Modal.Body className="p-4">
         <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3" controlId="category_images">
+  <Form.Label>Category Images</Form.Label>
+
+<Form.Control
+  type="file"
+  multiple
+  accept="image/*"
+  disabled={images.length >= 3}
+  onChange={e => {
+    if (e.target.files && e.target.files.length > 0) {
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      const files = Array.from(e.target.files).filter(f => {
+        if (!(f instanceof File)) return false;
+        if (f.size > maxSize) {
+          toast.error(`${f.name} is larger than 2MB. Please select a smaller image.`);
+          return false;
+        }
+        return !images.some(img => img.name === f.name && img.size === f.size);
+      });
+      // Only add up to 3 images total
+      const availableSlots = 3 - images.length;
+      if (availableSlots > 0) {
+        setImages(prev => [...prev, ...files.slice(0, availableSlots)]);
+      }
+      e.target.value = "";
+    }
+  }}
+/>
+  {images.length >= 3 && (
+  <div className="text-danger mb-2">You can only upload up to 3 images.</div>
+)}
+</Form.Group>
+{images.length > 0 && (
+  <div className="mb-3">
+    <div>Preview:</div>
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {images.map((img, idx) => (
+        <div key={idx} style={{ position: "relative", display: "inline-block" }}>
+          {img instanceof File ? (
+            <img
+              src={URL.createObjectURL(img)}
+              alt={`preview-${idx}`}
+              style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 4 }}
+            />
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setImages(images.filter((_, i) => i !== idx))}
+            style={{
+              position: "absolute",
+              top: -8,
+              right: -8,
+              background: "#fff",
+              border: "1px solid #ccc",
+              borderRadius: "50%",
+              width: 20,
+              height: 20,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
+              fontSize: 14,
+              lineHeight: 1,
+            }}
+            aria-label="Remove image"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
           <Form.Group className="mb-3" controlId="name">
             <Form.Label>Category Name</Form.Label>
             <Form.Control
@@ -215,17 +307,17 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
                 <option value="monthly">monthly</option>
               </Form.Select>
             </Form.Group>
-            
+
             <Form.Group className="mb-3" controlId="min_duration">
-              <Form.Label>Minimum duration for the booking type</Form.Label>
+              <Form.Label>Minimum duration for the booking type *</Form.Label>
               <Form.Control
                 type="number"
                 name="min_duration"
+                required
                 value={formData.min_duration}
                 onChange={handleInputChange}
                 placeholder="1"
-              >
-              </Form.Control>
+              ></Form.Control>
             </Form.Group>
 
             {/* {myCategory ? (
@@ -270,6 +362,11 @@ const CategoryRegistrationModal = ({ show, onHide, myCategory, onSubmit }) => {
             type="submit"
             className="w-100"
             disabled={isLoading}
+            style={{
+              backgroundColor: primary,
+              borderColor: primary,
+              color: "#fff",
+            }}
           >
             {isLoading ? (
               <Spinner

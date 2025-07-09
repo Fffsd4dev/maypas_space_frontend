@@ -12,6 +12,7 @@ const SubscribeTenantForm = ({ show, onHide, onSubmit }) => {
     const [formData, setFormData] = useState({
         tenant_id: "",
         plan_id: "",
+        duration: "",
     });
 
     // State for tenants(workspaces) and plans
@@ -87,7 +88,7 @@ const SubscribeTenantForm = ({ show, onHide, onSubmit }) => {
         e.preventDefault();
         setIsLoading(true);
 
-        const { tenant_id, plan_id } = formData;
+        const { tenant_id, plan_id, duration } = formData;
         try {
             if (!user?.token) {
                 throw new Error("Authorization token is missing.");
@@ -95,7 +96,7 @@ const SubscribeTenantForm = ({ show, onHide, onSubmit }) => {
 
             const response = await axios.post(
                 `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/subscribe-tenant`,
-                { tenant_id, plan_id },
+                { tenant_id, plan_id, duration },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -106,7 +107,7 @@ const SubscribeTenantForm = ({ show, onHide, onSubmit }) => {
 
             if (response.status === 200 || response.status === 201) {
                 toast.success("Tenant subscribed successfully!");
-                setFormData({ tenant_id: "", plan_id: "" });
+                setFormData({ tenant_id: "", plan_id: "", duration: "" });
                 setTimeout(() => {
                     onSubmit();
                     onHide();
@@ -126,7 +127,7 @@ const SubscribeTenantForm = ({ show, onHide, onSubmit }) => {
 
     // Reset form
     const resetForm = () => {
-        setFormData({ tenant_id: "", plan_id: "" });
+        setFormData({ tenant_id: "", plan_id: "", duration: "" });
     };
 
     return (
@@ -176,6 +177,19 @@ const SubscribeTenantForm = ({ show, onHide, onSubmit }) => {
                             ))}
                         </Form.Select>
                     </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Subscription Duration (in months)</Form.Label>
+                        <Form.Control
+                            type="number"
+                            name="duration"
+                            value={formData.duration}
+                            onChange={handleInputChange}
+                            placeholder="Enter duration in months"
+                            required
+                        />
+                    </Form.Group>
+
 
                     <Button variant="primary" type="submit" className="w-100" disabled={isLoading}>
                         {isLoading ? (

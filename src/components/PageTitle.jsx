@@ -1,22 +1,47 @@
 import { Row, Col, Breadcrumb } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { useParams } from "react-router-dom";
+import { useLogoColor } from "../context/LogoColorContext";
+import { useEffect } from "react";
+
+const breadcrumbLinkStyle = `
+  .breadcrumb .breadcrumb-primary-link {
+    color: var(--primary-breadcrumb, ) important;
+    text-decoration: underline;
+  }
+`;
 
 const PageTitle = (props) => {
   const { user } = useAuthContext();
   const { tenantSlug: tenantUrlSlug } = useParams();
+  const { visitorSlug: visitorUrlSlug } = useParams();
 
   // Prefer user.tenant but fall back to URL param
   const tenantSlug = user?.tenant || tenantUrlSlug;
+  const visitorSlug = user?.visitorSlug || visitorUrlSlug;
   const tenantFirstName = user?.tenantFirstName || "";
   const tenantLastName = user?.tenantLastName || "";
   const companyName = user?.tenantCompanyName || "";
+  console.log(companyName);
+  const { logoImg } = useLogoColor();
+  const { colour: primary } = useLogoColor();
+
+  useEffect(() => {
+    if (!document.getElementById("breadcrumb-primary-style")) {
+      const style = document.createElement("style");
+      style.id = "breadcrumb-primary-style";
+      style.innerHTML = breadcrumbLinkStyle;
+      document.head.appendChild(style);
+    }
+    document.documentElement.style.setProperty("--primary-breadcrumb", primary);
+  }, [primary]);
 
   const tenantDisplayName = companyName
     ? companyName.charAt(0).toUpperCase()
     : "";
 
   const hasTenant = !!tenantSlug;
+  const hasVisitor = !!visitorSlug;
   const hasToken = !!user?.token;
 
   return (
@@ -24,15 +49,20 @@ const PageTitle = (props) => {
       <Col>
         <div className="page-title-box">
           <div className="page-title-right">
-            <Breadcrumb className="m-0">
+            <Breadcrumb>
               <Breadcrumb.Item
                 href={
                   hasTenant
                     ? `/${tenantSlug}/${hasToken ? "tenantDashboard" : "home"}`
+                    : hasVisitor
+                    ? `/${visitorSlug}/home`
                     : "/dashboard"
                 }
+                className="breadcrumb-primary-link"
               >
-                {hasTenant
+                {hasVisitor
+                  ? `${visitorSlug.charAt(0).toUpperCase()}${visitorSlug.slice(1)} Booking`
+                  : hasTenant
                   ? `${tenantDisplayName} Booking`
                   : hasToken
                   ? "MayPas Booking"
@@ -45,7 +75,11 @@ const PageTitle = (props) => {
                     {item.label}
                   </Breadcrumb.Item>
                 ) : (
-                  <Breadcrumb.Item key={index} href={item.path}>
+                  <Breadcrumb.Item
+                    key={index}
+                    href={item.path}
+                    className="breadcrumb-primary-link"
+                  >
                     {item.label}
                   </Breadcrumb.Item>
                 );

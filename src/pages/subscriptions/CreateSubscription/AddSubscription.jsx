@@ -11,7 +11,8 @@ const AddSubscription = ({ show, onHide, onSubmit, loading }) => {
   const schemaResolver = yupResolver(
     yup.object().shape({
       name: yup.string().required("Please enter name"),
-      duration: yup.string().required("Please enter duration (in months)"),
+      num_of_locations: yup.string().required("Please enter number of locations"),
+      num_of_users: yup.string().required("Please enter number of users"),
       price: yup.string().required("Please enter fee/charges"),
     })
   );
@@ -19,7 +20,7 @@ const AddSubscription = ({ show, onHide, onSubmit, loading }) => {
   const handleSubmit = async (data) => {
     try {
       await onSubmit(data);
-      toast.success("Subscription plan created successfully!");
+      // toast.success("Subscription plan created successfully!");
     } catch (error) {
       toast.error(error.message || "Failed to create subscription plan.");
     }
@@ -33,7 +34,8 @@ const AddSubscription = ({ show, onHide, onSubmit, loading }) => {
       <Modal.Body className="p-4">
         <VerticalForm onSubmit={handleSubmit} resolver={schemaResolver}>
           <FormInput label="Plan Name" type="text" name="name" placeholder="Enter subscription plan name" containerClass={"mb-3"} />
-          <FormInput label="Duration (in months)" type="number" name="duration" placeholder="Enter duration in months" containerClass={"mb-3"} />
+          <FormInput label="Number of Locations" type="number" name="num_of_locations" placeholder="Enter the Number of Locations" containerClass={"mb-3"} />
+          <FormInput label="Number of Users" type="number" name="num_of_users" placeholder="Enter the Number of Users" containerClass={"mb-3"} />
           <FormInput label="Fee/Charges" type="number" name="price" placeholder="Enter fee/charges" containerClass={"mb-3"} />
           <div className="text-end">
             <Button variant="success" type="submit" className="waves-effect waves-light me-1">

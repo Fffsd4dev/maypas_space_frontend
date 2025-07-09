@@ -6,11 +6,13 @@ import CreateNotificationModal from "./CreateNotificationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
+import { useLogoColor } from "../../../context/LogoColorContext.jsx";
 
 const Notification = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlugg = user?.tenant;
+  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -26,16 +28,15 @@ const Notification = () => {
     buttonRoute: "",
   });
 
-
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
     myNotificationID: null,
   });
 
-   const [publishPopup, setPublishPopup] = useState({
-      isVisible: false,
-      myNotifcationID: null,
-    });
+  const [publishPopup, setPublishPopup] = useState({
+    isVisible: false,
+    myNotifcationID: null,
+  });
 
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -63,7 +64,9 @@ const Notification = () => {
     console.log("Notification Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/notification/list-notifications`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlugg}/notification/list-notifications`,
         {
           method: "GET",
           headers: {
@@ -74,7 +77,9 @@ const Notification = () => {
 
       console.log("Notification Response:", response);
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       const result = await response.json();
@@ -127,7 +132,9 @@ const Notification = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/notification/toggle-publish/${myNotifcationID}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlugg}/notification/toggle-publish/${myNotifcationID}`,
         {
           method: "POST",
           headers: {
@@ -137,12 +144,14 @@ const Notification = () => {
           // body: JSON.stringify({ id: myNotifcationID}),
         }
       );
-      console.log("body", { id: myNotifcationID});
+      console.log("body", { id: myNotifcationID });
 
       console.log("Promote Response:", response);
-    
+
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       setData((prevData) =>
@@ -154,10 +163,7 @@ const Notification = () => {
         isVisible: true,
       });
       if (user?.tenantToken) {
-        fetchData(
-          pagination.currentPage,
-          pagination.pageSize
-        ); // Reload users after deleting a user
+        fetchData(pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
       }
     } catch (error) {
       console.error("Error promoting member:", error);
@@ -189,11 +195,15 @@ const Notification = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       setData((prevData) =>
-        prevData.filter((myNotification) => myNotification.id !== myNotificationID)
+        prevData.filter(
+          (myNotification) => myNotification.id !== myNotificationID
+        )
       );
       setPopup({
         message: "Plan deleted successfully!",
@@ -211,7 +221,7 @@ const Notification = () => {
       setIsLoading(false);
     }
   };
-  const handlePublishButton = ( myNotifcationID) => {
+  const handlePublishButton = (myNotifcationID) => {
     setPublishPopup({
       isVisible: true,
       myNotifcationID,
@@ -244,7 +254,7 @@ const Notification = () => {
       id: "serialNo",
       sort: false,
     },
-  
+
     {
       Header: "Name",
       accessor: "name",
@@ -260,8 +270,7 @@ const Notification = () => {
       accessor: "publish",
       sort: true,
     },
-  ,
-    
+    ,
     // {
     //   Header: "Created On",
     //   accessor: "created_at",
@@ -274,26 +283,28 @@ const Notification = () => {
       sort: true,
       Cell: ({ row }) => formatDateTime(row.original.updated_at),
     },
-   
+
     {
       Header: "Action",
       accessor: "action",
       sort: false,
       Cell: ({ row }) => (
         <>
-            
-              {row.original.publish === "no" && ( // Only show the button if Manager is "no"
-                <Button
-                  variant="danger"
-                  className="waves-effect waves-light"
-                  onClick={() => handlePublishButton(row.original.id)}
-                >
-                  Publish Notification
-                </Button>
-              )}
+          {row.original.publish === "no" && ( // Only show the button if Manager is "no"
+            <Button
+              variant="danger"
+              className="waves-effect waves-light"
+              onClick={() => handlePublishButton(row.original.id)}
+              style={{
+                backgroundColor: primary,
+                borderColor: primary,
+                color: "#fff",
+              }}
+            >
+              Publish Notification
+            </Button>
+          )}
 
-            
-        
           <Link
             to="#"
             className="action-icon"
@@ -301,7 +312,6 @@ const Notification = () => {
           >
             <i className="mdi mdi-square-edit-outline"></i>
           </Link>
-
 
           <Link
             to="#"
@@ -319,7 +329,11 @@ const Notification = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Notifications", path: "/settings/create-notifications", active: true },
+          {
+            label: "Notifications",
+            path: "/settings/create-notifications",
+            active: true,
+          },
         ]}
         title="Create Notifications"
       />
@@ -337,8 +351,14 @@ const Notification = () => {
                       setShow(true);
                       setSelectedNotification(null);
                     }}
+                    style={{
+                      backgroundColor: primary,
+                      borderColor: primary,
+                      color: "#fff",
+                    }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a New Notification
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a New
+                    Notification
                   </Button>
                 </Col>
               </Row>
@@ -367,15 +387,18 @@ const Notification = () => {
                   getRowProps={(row) => ({
                     style: {
                       backgroundColor:
-                        row.original.publish?.toString().toLowerCase() === "yes" ? "#E8F5E9" : "inherit",
-
+                        row.original.publish?.toString().toLowerCase() === "yes"
+                          ? secondary
+                          : "inherit",
                     },
                   })}
                   paginationProps={{
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
-                    onPageChange: (page) => setPagination((prev) => ({ ...prev, currentPage: page })),
-                    onPageSizeChange: (pageSize) => setPagination((prev) => ({ ...prev, pageSize })),
+                    onPageChange: (page) =>
+                      setPagination((prev) => ({ ...prev, currentPage: page })),
+                    onPageSizeChange: (pageSize) =>
+                      setPagination((prev) => ({ ...prev, pageSize })),
                   }}
                 />
               )}
@@ -391,35 +414,39 @@ const Notification = () => {
         onSubmit={fetchData} // Reload users after adding or editing a user
       />
 
-       {popup.isVisible && (
-              <Popup
-                message={popup.message}
-                type={popup.type}
-                onClose={() => setPopup({ ...popup, isVisible: false })}
-                buttonLabel={popup.buttonLabel}
-                buttonRoute={popup.buttonRoute}
-              />
-            )}
-            
+      {popup.isVisible && (
+        <Popup
+          message={popup.message}
+          type={popup.type}
+          onClose={() => setPopup({ ...popup, isVisible: false })}
+          buttonLabel={popup.buttonLabel}
+          buttonRoute={popup.buttonRoute}
+        />
+      )}
+
       {deletePopup.isVisible && (
         <Popup
           message="Are you sure you want to delete this application?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myNotificationID: null })}
+          onClose={() =>
+            setDeletePopup({ isVisible: false, myNotificationID: null })
+          }
           buttonLabel="Yes"
           onAction={confirmDelete}
         />
       )}
 
       {publishPopup.isVisible && (
-              <Popup
-                message="Are you sure you want to send this notification?"
-                type="confirm"
-                onClose={() => setPublishPopup({ isVisible: false, myNotifcationID: null })}
-                buttonLabel="Yes"
-                onAction={confirmPublish}
-              />
-            )}
+        <Popup
+          message="Are you sure you want to send this notification?"
+          type="confirm"
+          onClose={() =>
+            setPublishPopup({ isVisible: false, myNotifcationID: null })
+          }
+          buttonLabel="Yes"
+          onAction={confirmPublish}
+        />
+      )}
     </>
   );
 };

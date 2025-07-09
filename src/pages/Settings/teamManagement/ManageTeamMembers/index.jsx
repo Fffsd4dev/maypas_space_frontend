@@ -7,11 +7,13 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../../components/Popup/Popup";
 import Table2 from "../../../../components/Table2";
 import { color } from "framer-motion";
+import { useLogoColor } from "../../../../context/LogoColorContext";
 
 const Members = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
+  const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -66,9 +68,7 @@ const Members = () => {
     setLoadingTeams(true);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/teams`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/teams`,
         {
           headers: { Authorization: `Bearer ${user.tenantToken}` },
         }
@@ -76,9 +76,9 @@ const Members = () => {
       const result = await response.json();
       if (response.ok) {
         if (result && Array.isArray(result[1])) {
-        console.log("Teams:", result);
-        setTeams(result[1] || []);
-        }  else {
+          console.log("Teams:", result);
+          setTeams(result[1] || []);
+        } else {
           throw new Error("Invalid response format");
         }
       } else {
@@ -110,12 +110,14 @@ const Members = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       const result = await response.json();
       console.log("Members:", result);
-     
+
       if (result && Array.isArray(result.data)) {
         const data = result.data;
         data.sort(
@@ -151,7 +153,12 @@ const Members = () => {
     if (user?.tenantToken && selectedTeam) {
       fetchData(selectedTeam, pagination.currentPage, pagination.pageSize);
     }
-  }, [user?.tenantToken, selectedTeam, pagination.currentPage, pagination.pageSize]);
+  }, [
+    user?.tenantToken,
+    selectedTeam,
+    pagination.currentPage,
+    pagination.pageSize,
+  ]);
 
   const handleEditClick = (myMember) => {
     setSelectedUser(myMember);
@@ -187,9 +194,11 @@ const Members = () => {
       console.log("body", { id: myMemberID, team_id: teamId });
 
       console.log("Promote Response:", response);
-    
+
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       setData((prevData) =>
@@ -201,11 +210,7 @@ const Members = () => {
         isVisible: true,
       });
       if (user?.tenantToken && selectedTeam) {
-        fetchData(
-          selectedTeam,
-          pagination.currentPage,
-          pagination.pageSize
-        ); // Reload users after deleting a user
+        fetchData(selectedTeam, pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
       }
     } catch (error) {
       console.error("Error promoting member:", error);
@@ -226,7 +231,9 @@ const Members = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/team/member/delete/${teamId}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/team/member/delete/${teamId}`,
         {
           method: "POST",
           headers: {
@@ -238,9 +245,11 @@ const Members = () => {
       );
 
       console.log("Delete Response:", response);
-    
+
       if (!response.ok) {
-        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        throw new Error(
+          `Contact Support! HTTP error! Status: ${response.status}`
+        );
       }
 
       setData((prevData) =>
@@ -252,11 +261,7 @@ const Members = () => {
         isVisible: true,
       });
       if (user?.tenantToken && selectedTeam) {
-        fetchData(
-          selectedTeam,
-          pagination.currentPage,
-          pagination.pageSize
-        ); // Reload users after deleting a user
+        fetchData(selectedTeam, pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
       }
     } catch (error) {
       console.error("Error deleting member:", error);
@@ -277,7 +282,7 @@ const Members = () => {
       myMemberID,
     });
   };
-  
+
   const handlePromoteMemberButton = (selectedTeam, myMemberID) => {
     setPromotePopup({
       isVisible: true,
@@ -345,16 +350,25 @@ const Members = () => {
             <Button
               variant="danger"
               className="waves-effect waves-light"
-              onClick={() => handlePromoteMemberButton(selectedTeam, row.original.user_id)}
+              onClick={() =>
+                handlePromoteMemberButton(selectedTeam, row.original.user_id)
+              }
+              style={{
+                backgroundColor: primary,
+                borderColor: primary,
+                color: "#fff",
+              }}
             >
               Make Team Manager
             </Button>
           )}
-  
+
           <Link
             to="#"
             className="action-icon"
-            onClick={() => handleDeleteMemberButton(selectedTeam, row.original.user_id)}
+            onClick={() =>
+              handleDeleteMemberButton(selectedTeam, row.original.user_id)
+            }
           >
             <i className="mdi mdi-delete"></i>
           </Link>
@@ -367,7 +381,11 @@ const Members = () => {
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Team Members/Sections", path: "/location/floor", active: true },
+          {
+            label: "Team Members/Sections",
+            path: "/location/floor",
+            active: true,
+          },
         ]}
         title="Team Members"
       />
@@ -385,14 +403,25 @@ const Members = () => {
                       setShow(true);
                       setSelectedUser(null);
                     }}
+                    style={{
+                      backgroundColor: primary,
+                      borderColor: primary,
+                      color: "#fff",
+                    }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a Member to a Team
+                    <i className="mdi mdi-plus-circle me-1"></i> Add a Member to
+                    a Team
                   </Button>
                 </Col>
               </Row>
 
               <Card>
-                <Card.Body style={{ background: "linear-gradient(to left,rgb(243, 233, 231),rgb(239, 234, 230))", marginTop: "30px" }}>
+                <Card.Body
+                  style={{
+                    background: secondary,
+                    marginTop: "30px",
+                  }}
+                >
                   {loadingTeams ? (
                     <div className="text-center">
                       <Spinner animation="border" role="status">
@@ -402,7 +431,9 @@ const Members = () => {
                     </div>
                   ) : (
                     <div>
-                      <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select the team to view or update the members.</p>
+                      <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+                        Select the team to view or update the members.
+                      </p>
                       <Form.Select
                         style={{ marginBottom: "25px", fontSize: "1rem" }}
                         value={selectedTeam || ""}
@@ -414,61 +445,63 @@ const Members = () => {
                         </option>
                         {teams.map((team) => (
                           <option key={team.id} value={team.id}>
-                            {team.company} 
+                            {team.company}
                           </option>
                         ))}
                       </Form.Select>
                     </div>
                   )}
-                
-                 {selectedTeam && (
-                <>
-                  {error ? (
-                    <p className="text-danger">Error: {error}</p>
-                  ) : loading ? (
-                    <p>Loading members...</p>
-                  ) : isLoading ? (
-                    <div className="text-center">
-                      <Spinner animation="border" role="status">
-                        <span className="visually-hidden">loading...</span>
-                      </Spinner>{" "}
-                      please wait...
-                    </div>
-                  ) : (
-                    <Table2
-                    columns={columns}
-                    data={data}
-                    pageSize={pagination.pageSize}
-                    isSortable
-                    pagination
-                    isSearchable
-                    tableClass="table-striped dt-responsive nowrap w-100"
-                    searchBoxClass="my-2"
-                    getRowProps={(row) => ({
-                      style: {
-                        backgroundColor:
-                          row.original.manager?.toString().toLowerCase() === "yes" ? "#E8F5E9" : "inherit",
-                      },
-                    })}
-                      // paginationProps={{
-                      //   currentPage: pagination.currentPage,
-                      //   totalPages: pagination.totalPages,
-                      //   onPageChange: (page) =>
-                      //     setPagination((prev) => ({
-                      //       ...prev,
-                      //       currentPage: page,
-                      //     })),
-                      //   onPageSizeChange: (pageSize) =>
-                      //     setPagination((prev) => ({ ...prev, pageSize })),
-                      // }}
-                    />
+
+                  {selectedTeam && (
+                    <>
+                      {error ? (
+                        <p className="text-danger">Error: {error}</p>
+                      ) : loading ? (
+                        <p>Loading members...</p>
+                      ) : isLoading ? (
+                        <div className="text-center">
+                          <Spinner animation="border" role="status">
+                            <span className="visually-hidden">loading...</span>
+                          </Spinner>{" "}
+                          please wait...
+                        </div>
+                      ) : (
+                        <Table2
+                          columns={columns}
+                          data={data}
+                          pageSize={pagination.pageSize}
+                          isSortable
+                          pagination
+                          isSearchable
+                          tableClass="table-striped dt-responsive nowrap w-100"
+                          searchBoxClass="my-2"
+                          getRowProps={(row) => ({
+                            style: {
+                              backgroundColor:
+                                row.original.manager
+                                  ?.toString()
+                                  .toLowerCase() === "yes"
+                                  ? secondary
+                                  : "inherit",
+                            },
+                          })}
+                          // paginationProps={{
+                          //   currentPage: pagination.currentPage,
+                          //   totalPages: pagination.totalPages,
+                          //   onPageChange: (page) =>
+                          //     setPagination((prev) => ({
+                          //       ...prev,
+                          //       currentPage: page,
+                          //     })),
+                          //   onPageSizeChange: (pageSize) =>
+                          //     setPagination((prev) => ({ ...prev, pageSize })),
+                          // }}
+                        />
+                      )}
+                    </>
                   )}
-                </>
-              )}
                 </Card.Body>
               </Card>
-
-             
             </Card.Body>
           </Card>
         </Col>
@@ -479,11 +512,7 @@ const Members = () => {
         onHide={handleClose}
         myTeam={selectedUser}
         onSubmit={() =>
-          fetchData(
-            selectedTeam,
-            pagination.currentPage,
-            pagination.pageSize
-          )
+          fetchData(selectedTeam, pagination.currentPage, pagination.pageSize)
         } // Reload users after adding or editing a user
       />
 
@@ -507,12 +536,13 @@ const Members = () => {
         />
       )}
 
-
-{promotePopup.isVisible && (
+      {promotePopup.isVisible && (
         <Popup
           message="Are you sure you want to make this member the team manager?"
           type="confirm"
-          onClose={() => setPromotePopup({ isVisible: false, myMemberID: null })}
+          onClose={() =>
+            setPromotePopup({ isVisible: false, myMemberID: null })
+          }
           buttonLabel="Yes"
           onAction={confirmPromoteMember}
         />

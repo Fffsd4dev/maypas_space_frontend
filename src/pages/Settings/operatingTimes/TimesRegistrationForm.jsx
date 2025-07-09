@@ -3,10 +3,12 @@ import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
+  const { colour: primary } = useLogoColor();
 
   const [locations, setLocations] = useState([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
@@ -21,7 +23,6 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
     { day: "saturday", open_time: "14:00", close_time: "18:00" },
     { day: "sunday", open_time: "14:00", close_time: "18:00" },
   ];
-  
 
   const [formData, setFormData] = useState({
     location_id: "",
@@ -50,7 +51,7 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
             }
           : hour; // Retain default values if no match is found
       });
-  
+
       console.log("Updated Hours:", updatedHours); // Debugging
       setFormData({
         location_id: myOperatingTime.location_id || "",
@@ -58,13 +59,14 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
       });
     }
   }, [myOperatingTime]);
-  
 
   const fetchLocations = async () => {
     setLoadingLocations(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/${tenantSlug}/location/list-locations`,
         {
           headers: { Authorization: `Bearer ${user.tenantToken}` },
         }
@@ -88,16 +90,14 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
     }
   }, [show, user?.tenantToken]);
 
-
   useEffect(() => {
     if (!show) {
       setFormData({
         location_id: "",
-        hours: defaultHours, 
+        hours: defaultHours,
       });
     }
   }, [show]);
-  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -121,23 +121,26 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
     setIsLoading(true);
 
     const isValidTimeRange = formData.hours.every(
-      ({ open_time, close_time }) => open_time <= close_time 
+      ({ open_time, close_time }) => open_time <= close_time
     );
 
     if (!isValidTimeRange) {
-      
       toast.error("Open time must be before close time for all days.");
       setIsLoading(false);
       return;
     }
-    
 
     try {
-      if (!user?.tenantToken) throw new Error("Authorization token is missing.");
+      if (!user?.tenantToken)
+        throw new Error("Authorization token is missing.");
 
       const url = myOperatingTime
-        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/settings/workspace/time/update`
-        : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/settings/workspace/time/create`;
+        ? `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/${tenantSlug}/settings/workspace/time/update`
+        : `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/${tenantSlug}/settings/workspace/time/create`;
 
       const method = myOperatingTime ? "POST" : "POST";
 
@@ -165,7 +168,7 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
             hours: defaultHours,
           });
         }
-        
+
         setTimeout(() => {
           onSubmit();
           onHide();
@@ -224,47 +227,50 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
                   readOnly
                   className="me-2"
                 />
-  <Form.Select
-  value={hour.open_time} // Ensure this matches the generated options
-  onChange={(e) => handleHoursChange(index, "open_time", e.target.value)}
-  className="me-2"
-  required
->
-  <option value="">Select Open Time</option>
-  {Array.from({ length: 48 }, (_, i) => {
-    const hour = Math.floor(i / 2)
-      .toString()
-      .padStart(2, "0");
-    const minutes = i % 2 === 0 ? "00" : "30";
-    const timeString = `${hour}:${minutes}`;
-    return (
-      <option key={i} value={timeString}>
-        {timeString}
-      </option>
-    );
-  })}
-</Form.Select>
+                <Form.Select
+                  value={hour.open_time} // Ensure this matches the generated options
+                  onChange={(e) =>
+                    handleHoursChange(index, "open_time", e.target.value)
+                  }
+                  className="me-2"
+                  required
+                >
+                  <option value="">Select Open Time</option>
+                  {Array.from({ length: 48 }, (_, i) => {
+                    const hour = Math.floor(i / 2)
+                      .toString()
+                      .padStart(2, "0");
+                    const minutes = i % 2 === 0 ? "00" : "30";
+                    const timeString = `${hour}:${minutes}`;
+                    return (
+                      <option key={i} value={timeString}>
+                        {timeString}
+                      </option>
+                    );
+                  })}
+                </Form.Select>
 
-<Form.Select
-  value={hour.close_time} // Ensure this matches the generated options
-  onChange={(e) => handleHoursChange(index, "close_time", e.target.value)}
-  required
->
-  <option value="">Select Close Time</option>
-  {Array.from({ length: 48 }, (_, i) => {
-    const hour = Math.floor(i / 2)
-      .toString()
-      .padStart(2, "0");
-    const minutes = i % 2 === 0 ? "00" : "30";
-    const timeString = `${hour}:${minutes}`;
-    return (
-      <option key={i} value={timeString}>
-        {timeString}
-      </option>
-    );
-  })}
-</Form.Select>
-
+                <Form.Select
+                  value={hour.close_time} // Ensure this matches the generated options
+                  onChange={(e) =>
+                    handleHoursChange(index, "close_time", e.target.value)
+                  }
+                  required
+                >
+                  <option value="">Select Close Time</option>
+                  {Array.from({ length: 48 }, (_, i) => {
+                    const hour = Math.floor(i / 2)
+                      .toString()
+                      .padStart(2, "0");
+                    const minutes = i % 2 === 0 ? "00" : "30";
+                    const timeString = `${hour}:${minutes}`;
+                    return (
+                      <option key={i} value={timeString}>
+                        {timeString}
+                      </option>
+                    );
+                  })}
+                </Form.Select>
               </div>
             ))}
           </div>
@@ -274,6 +280,11 @@ const TimeRegistrationModal = ({ show, onHide, myOperatingTime, onSubmit }) => {
             type="submit"
             className="w-100"
             disabled={isLoading}
+            style={{
+              backgroundColor: primary,
+              borderColor: primary,
+              color: "#fff",
+            }}
           >
             {isLoading ? (
               <Spinner

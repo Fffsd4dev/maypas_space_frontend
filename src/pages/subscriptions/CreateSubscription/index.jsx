@@ -11,6 +11,7 @@ import axios from "axios";
 import PageTitle from "../../../components/PageTitle";
 import Table2 from "../../../components/Table2";
 import AddSubscription from "./AddSubscription";
+import { number } from "yup";
 
 // dummy data
 // import { subscriptions } from "./data";
@@ -393,11 +394,7 @@ const sizePerPageList = [
       accessor: "price",
       sort: true,
     },
-    {
-      Header: "Duration",
-      accessor: "duration",
-      sort: true,
-    },
+   
     {
       Header: "Created At",
       accessor: "created_at",
@@ -435,8 +432,8 @@ const sizePerPageList = [
         const payload = {
           name: data.name,
           price: data.price,
-          duration: data.duration,
-        };
+          num_of_locations: data.num_of_locations,
+          num_of_users: data.num_of_users,};
   
         const res = await axios.post (
           `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/create-plan`, payload,

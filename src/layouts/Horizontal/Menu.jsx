@@ -3,6 +3,11 @@ import { useLocation } from "react-router-dom";
 import classNames from "classnames";
 
 const AppMenu = ({ menuItems }) => {
+    const handleMenuItemClick = (item) => {
+    if (!item.children) {
+      setActiveMenuItems([]); // Close all menus
+    }
+  };
   const location = useLocation();
   const menuRef = useRef(null);
 
@@ -32,15 +37,12 @@ const safeMenuItems = Array.isArray(menuItems) ? menuItems : [];
               toggleMenu={toggleMenu}
             />
           ) : (
-            <MenuItem
-              item={item}
-              className={classNames({
-                "menuitem-active": activeMenuItems.includes(item.key),
-              })}
-              linkClassName={classNames({
-                "menuitem-active": activeMenuItems.includes(item.key),
-              })}
-            />
+            <menuItems
+                  item={item}
+                  linkClassName="menu-link"
+                  className={activeMenuItems.includes(item.key) ? "menuitem-active" : ""}
+                  onMenuItemClick={handleMenuItemClick} // <-- pass handler
+                />
           )}
         </React.Fragment>
       ))}

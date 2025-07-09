@@ -6,11 +6,14 @@ import MyRolesRegistrationForm from "./MyRolesRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
+import { useLogoColor } from "../../../context/LogoColorContext";
 
 const WorkspaceRoles = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
   const tenantSlugg = user?.tenant;
+
+  const { colour: primary } = useLogoColor();
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -292,6 +295,8 @@ const WorkspaceRoles = () => {
                       setShow(true);
                       setSelectedRole(null);
                     }}
+                                        style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a Role
                   </Button>

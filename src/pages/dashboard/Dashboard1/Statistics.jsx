@@ -1,26 +1,26 @@
-import { Row, Col } from "react-bootstrap";
+// import { Row, Col } from "react-bootstrap";
 
-// componets
-import StatisticsWidget from "../../../components/StatisticsWidget";
-const Statistics = () => {
-  return <>
-      <Row>
-        <Col md={6} xl={4}>
-          <StatisticsWidget variant="primary" counterOptions={{
-          prefix: "₦"
-        }} description="Total Revenue" stats="5833487" icon="fe-shopping-cart" />
-        </Col>
-        <Col md={6} xl={4}>
-          <StatisticsWidget variant="success" description="Total Hours" stats="127" icon="fe-shopping-cart" />
-        </Col>
-        <Col md={6} xl={4}>
-          <StatisticsWidget variant="info" description="Total Users that Book" stats="0.58" counterOptions={{
-        }} icon="fe-bar-chart-line-" />
-        </Col>
-      </Row>
-    </>;
-};
-export default Statistics;
+// // componets
+// import StatisticsWidget from "../../../components/StatisticsWidget";
+// const Statistics = () => {
+//   return <>
+//       <Row>
+//         <Col md={6} xl={4}>
+//           <StatisticsWidget variant="primary" counterOptions={{
+//           prefix: "₦"
+//         }} description="Total Revenue" stats="5833487" icon="fe-shopping-cart" />
+//         </Col>
+//         <Col md={6} xl={4}>
+//           <StatisticsWidget variant="success" description="Total Hours" stats="127" icon="fe-shopping-cart" />
+//         </Col>
+//         <Col md={6} xl={4}>
+//           <StatisticsWidget variant="info" description="Total Users that Book" stats="0.58" counterOptions={{
+//         }} icon="fe-bar-chart-line-" />
+//         </Col>
+//       </Row>
+//     </>;
+// };
+// export default Statistics;
 
 
 
@@ -377,120 +377,120 @@ export default Statistics;
 
 
 
-// import { Row, Col } from "react-bootstrap";
-// import { useState, useEffect } from "react";
-// import { useAuthContext } from "@/context/useAuthContext.jsx";
-// import StatisticsWidget from "../../../components/StatisticsWidget";
+import { Row, Col } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { useAuthContext } from "@/context/useAuthContext.jsx";
+import StatisticsWidget from "../../../components/StatisticsWidget";
 
-// const Statistics = () => {
-//   const { user } = useAuthContext();
-//   const [stats, setStats] = useState({
-//     totalCategories: 0,
-//     totalPayments: 0,
-//     totalAmount: 0,
-//     loading: true,
-//     error: null
-//   });
+const Statistics = () => {
+  const { user } = useAuthContext();
+  const [stats, setStats] = useState({
+    totalCategories: 0,
+    totalPayments: 0,
+    totalAmount: 0,
+    loading: true,
+    error: null
+  });
 
-//   useEffect(() => {
-//     const fetchStats = async () => {
-//       try {
-//         if (!user?.token) return;
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        if (!user?.token) return;
 
-//         // Get current year for the analytics queries
-//         const currentYear = new Date().getFullYear();
-//         const startDate = `${currentYear}-01-01`;
-//         const endDate = `${currentYear}-12-31`;
+        // Get current year for the analytics queries
+        const currentYear = new Date().getFullYear();
+        const startDate = `${currentYear}-01-01`;
+        const endDate = `${currentYear}-12-31`;
 
-//         // Fetch categories count
-//         const categoriesResponse = await fetch(
-//           `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/analytics/list?startTimeA=${startDate}&endTimeA=${endDate}&categoryId=1`,
-//           {
-//             method: "GET",
-//             headers: {
-//               Authorization: `Bearer ${user.token}`,
-//             },
-//           }
-//         );
-//         console.log(categoriesResponse)
+        // Fetch categories count
+        const categoriesResponse = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/analytics/list?startTimeA=${startDate}&endTimeA=${endDate}&categoryId=1`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
+        );
+        console.log(categoriesResponse)
 
-//         if (!categoriesResponse.ok) {
-//           throw new Error('Failed to fetch categories data');
-//         }
+        if (!categoriesResponse.ok) {
+          throw new Error('Failed to fetch categories data');
+        }
 
-//         const categoriesData = await categoriesResponse.json();
-//         const categoriesCount = categoriesData.data?.length || 0;
+        const categoriesData = await categoriesResponse.json();
+        const categoriesCount = categoriesData.data?.length || 0;
 
-//         // Fetch payment analytics
-//         const paymentsResponse = await fetch(
-//           `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/analytics/payment?startTimeA=${startDate}&endTimeA=${endDate}`,
-//           {
-//             method: "GET",
-//             headers: {
-//               Authorization: `Bearer ${user.token}`,
-//             },
-//           }
-//         );
+        // Fetch payment analytics
+        const paymentsResponse = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/analytics/payment?startTimeA=${startDate}&endTimeA=${endDate}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
+        );
 
-//         if (!paymentsResponse.ok) {
-//           throw new Error('Failed to fetch payments data');
-//         }
+        if (!paymentsResponse.ok) {
+          throw new Error('Failed to fetch payments data');
+        }
 
-//         const paymentsData = await paymentsResponse.json();
-//         const paymentsCount = paymentsData.data?.count || 0;
-//         const totalAmount = paymentsData.data?.total || 0;
+        const paymentsData = await paymentsResponse.json();
+        const paymentsCount = paymentsData.data?.count || 0;
+        const totalAmount = paymentsData.data?.total || 0;
 
-//         setStats({
-//           totalCategories: categoriesCount,
-//           totalPayments: paymentsCount,
-//           totalAmount: totalAmount,
-//           loading: false,
-//           error: null
-//         });
-//       } catch (error) {
-//         setStats(prev => ({
-//           ...prev,
-//           loading: false,
-//           error: error.message
-//         }));
-//         console.error("Error fetching statistics:", error);
-//       }
-//     };
+        setStats({
+          totalCategories: categoriesCount,
+          totalPayments: paymentsCount,
+          totalAmount: totalAmount,
+          loading: false,
+          error: null
+        });
+      } catch (error) {
+        setStats(prev => ({
+          ...prev,
+          loading: false,
+          error: error.message
+        }));
+        console.error("Error fetching statistics:", error);
+      }
+    };
 
-//     fetchStats();
-//   }, [user?.token]);
+    fetchStats();
+  }, [user?.token]);
 
-//   if (stats.loading) return <div>Loading statistics...</div>;
-//   if (stats.error) return <div>Error: {stats.error}</div>;
+  if (stats.loading) return <div>Loading statistics...</div>;
+  if (stats.error) return <div>Error: {stats.error}</div>;
 
-//   return (
-//     <Row>
-//       <Col md={6} xl={4}>
-//         <StatisticsWidget 
-//           variant="primary" 
-//           description="Total Categories" 
-//           stats={stats.totalCategories.toString()} 
-//           icon="fe-list" 
-//         />
-//       </Col>
-//       <Col md={6} xl={4}>
-//         <StatisticsWidget 
-//           variant="success" 
-//           description="Total Payments" 
-//           stats={stats.totalPayments.toString()} 
-//           icon="fe-credit-card" 
-//         />
-//       </Col>
-//       <Col md={6} xl={4}>
-//         <StatisticsWidget 
-//           variant="info" 
-//           description="Total Amount" 
-//           stats={`$${stats.totalAmount.toLocaleString()}`} 
-//           icon="fe-dollar-sign" 
-//         />
-//       </Col>
-//     </Row>
-//   );
-// };
+  return (
+    <Row>
+      <Col md={6} xl={4}>
+        <StatisticsWidget 
+          variant="primary" 
+          description="Total Categories" 
+          stats={stats.totalCategories.toString()} 
+          icon="fe-list" 
+        />
+      </Col>
+      <Col md={6} xl={4}>
+        <StatisticsWidget 
+          variant="success" 
+          description="Total Payments" 
+          stats={stats.totalPayments.toString()} 
+          icon="fe-credit-card" 
+        />
+      </Col>
+      <Col md={6} xl={4}>
+        <StatisticsWidget 
+          variant="info" 
+          description="Total Amount" 
+          stats={`$${stats.totalAmount.toLocaleString()}`} 
+          icon="fe-dollar-sign" 
+        />
+      </Col>
+    </Row>
+  );
+};
 
-// export default Statistics;
+export default Statistics;

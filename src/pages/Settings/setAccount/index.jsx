@@ -36,6 +36,7 @@ const BankAccount = () => {
 
   const [formData, setFormData] = useState({
 
+    
     location_id: "",
     bank_name: "",
     account_number: "",

@@ -86,7 +86,8 @@ const Floors = React.lazy(() => import("../pages/Facility/floorManager"))
 const Category = React.lazy(() => import("../pages/Room/Category"))
 const Rooms = React.lazy(() => import("../pages/Room/roomManager"))
 const Spot = React.lazy(() => import('../pages/Room/spot'))
-const OperatingTimes = React.lazy(() => import('../pages/Settings/operatingTimes'))
+const OperatingHours = React.lazy(() => import('../pages/Settings/operatingTimes'))
+const TimeZone = React.lazy(() => import('../pages/Settings/TimeZone'))
 const SetAccount = React.lazy(() => import('../pages/Settings/setAccount'))
 const SetLogoAndColor = React.lazy(() => import('../pages/Settings/setLogo'))
 const Invoices = React.lazy(() => import('../pages/Settings/invoices'))
@@ -406,9 +407,15 @@ const workspacesRoutes = {
       route: PrivateRoute
     },
     {
-      path: "/:tenantSlug/settings/operating-time",
-      name: "Operating Time",
-      element: <OperatingTimes />,
+      path: "/:tenantSlug/settings/operating-hours",
+      name: "Operating Hours",
+      element: <OperatingHours />,
+      route: PrivateRoute
+    },
+     {
+      path: "/:tenantSlug/settings/time-zone",
+      name: "Time Zone",
+      element: <TimeZone />,
       route: PrivateRoute
     },
     {

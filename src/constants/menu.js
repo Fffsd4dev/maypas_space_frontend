@@ -162,13 +162,24 @@ export const MENU_ITEMS = (tenantSlug = "") => [
     label: "SETTINGS",
     isTitle: true,
   },
+
+
   {
     key: "operating-time",
-    label: "Set Operating Time",
+    label: "Set Operating Hours",
     isTitle: false,
     icon: FiClock,
-    url: `/${tenantSlug}/settings/operating-time`,
+    url: `/${tenantSlug}/settings/operating-hours`,
   },
+
+    {
+    key: "time-zone",
+    label: "Set Operating Time Zone",
+    isTitle: false,
+    icon: FiClock,
+    url: `/${tenantSlug}/settings/time-zone`,
+  },
+  
   {
     key: "set-account",
     label: "Set Bank Account",

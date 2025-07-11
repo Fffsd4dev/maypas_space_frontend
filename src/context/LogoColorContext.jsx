@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import {  Spinner } from "react-bootstrap";
 
 
+
 const LogoColorContext = createContext();
 
 export const useLogoColor = () => useContext(LogoColorContext);
@@ -16,10 +17,10 @@ export const LogoColorProvider = ({ children }) => {
   const { user } = useAuthContext();
     const CName  = user?.CName;
   const { tenantSlug: tenantUrlSlug } = useParams();
-  const tenantSlug = tenantUrlSlug || user?.slug || user?.CName  ;
-
+ const tenantSlug = user?.tenant || user?.CName || tenantUrlSlug;
 
   const fetchLogoData = useCallback(async () => {
+    console.log(tenantSlug);
     if (!tenantSlug) {
       setLoadingLogo(false);
       return;
@@ -67,30 +68,27 @@ function hexToRgba(hex, alpha = 0.08) {
 }
 
   return (
-    loadingLogo ? (
-     <div
-  className="d-flex justify-content-center align-items-center vh-100"
->
-  <div className="text-center">
-    <Spinner animation="border" role="status">
-      <span className="visually-hidden">Loading...</span>
-    </Spinner>
-    <div>Loading...</div>
-  </div>
-</div>
-    ) : (
-       <LogoColorContext.Provider
-      value={{
-        logoImg: logoData?.logo || null,
-        colour: logoData?.colour || "#fe0002",
-        secondaryColor: hexToRgba(logoData?.colour || "#fe0002", 0.08),
-        loadingLogo,
-        error,
-        refetchLogoData: fetchLogoData, // <-- expose this
-      }}
-    >
-      {children}
-    </LogoColorContext.Provider>
-    )
-  );
+  <LogoColorContext.Provider
+    value={{
+      logoImg: logoData?.logo || null,
+      colour: logoData?.colour || "#fe0002",
+      secondaryColor: hexToRgba(logoData?.colour || "#fe0002", 0.08),
+      loadingLogo,
+      error,
+      refetchLogoData: fetchLogoData,
+    }}
+  >
+    {children}
+    {loadingLogo && (
+      <div className="d-flex justify-content-center align-items-center vh-100 position-fixed top-0 start-0 w-100 h-100" style={{zIndex: 9999, background: "rgba(255,255,255,0.7)"}}>
+        <div className="text-center">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+          <div>Loading...</div>
+        </div>
+      </div>
+    )}
+  </LogoColorContext.Provider>
+);
 };

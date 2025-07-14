@@ -138,103 +138,103 @@
 
 
 
-// // import { useState, useEffect } from 'react';
-// // import { Row, Col } from "react-bootstrap";
-// // import StatisticsWidget from "../../../components/StatisticsWidget";
-// // import { useAuthContext } from "@/context/useAuthContext.jsx";
+// import { useState, useEffect } from 'react';
+// import { Row, Col } from "react-bootstrap";
+// import StatisticsWidget from "../../../components/StatisticsWidget";
+// import { useAuthContext } from "@/context/useAuthContext.jsx";
 
-// // const Statistics = () => {
-// //   const { user } = useAuthContext();
-// //   const [statsData, setStatsData] = useState({
-// //     totalRevenue: 0,
-// //     totalHours: 0,
-// //     totalBookings: 0
-// //   });
-// //   const [loading, setLoading] = useState(true);
-// //   const [error, setError] = useState(null);
+// const Statistics = () => {
+//   const { user } = useAuthContext();
+//   const [statsData, setStatsData] = useState({
+//     totalRevenue: 0,
+//     totalHours: 0,
+//     totalBookings: 0
+//   });
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
 
-// //   console.log(user); // Changed from currentUser to user
+//   console.log(user); // Changed from currentUser to user
 
-// //   useEffect(() => {
-// //     const fetchStatistics = async () => {
-// //       try {
-// //         if (!user || !user.tenantToken) { // Changed check to use user.tenantToken
-// //           throw new Error("User not authenticated");
-// //         }
+//   useEffect(() => {
+//     const fetchStatistics = async () => {
+//       try {
+//         if (!user || !user.tenantToken) { // Changed check to use user.tenantToken
+//           throw new Error("User not authenticated");
+//         }
 
-// //         const apiUrl = 'https://test.maypaspace.com/api/emekaandsons/analytics/payment?startTimeA=2025-06-01&endTimeA=2025-06-30';
+//         const apiUrl = 'https://test.maypaspace.com/api/emekaandsons/analytics/payment?startTimeA=2025-06-01&endTimeA=2025-06-30';
         
-// //         console.log('Fetching data from:', apiUrl);
+//         console.log('Fetching data from:', apiUrl);
         
-// //         const response = await fetch(apiUrl, {
-// //           headers: {
-// //             'Authorization': `Bearer ${user.tenantToken}`, // Using tenantToken from user
-// //             'Content-Type': 'application/json'
-// //           }
-// //         });
+//         const response = await fetch(apiUrl, {
+//           headers: {
+//             'Authorization': `Bearer ${user.tenantToken}`, // Using tenantToken from user
+//             'Content-Type': 'application/json'
+//           }
+//         });
         
-// //         if (!response.ok) {
-// //           throw new Error(`HTTP error! status: ${response.status}`);
-// //         }
+//         if (!response.ok) {
+//           throw new Error(`HTTP error! status: ${response.status}`);
+//         }
         
-// //         const data = await response.json();
+//         const data = await response.json();
         
-// //         console.log('API Response:', data);
+//         console.log('API Response:', data);
         
-// //         // Update these based on your actual API response structure
-// //         setStatsData({
-// //           totalRevenue: data.totalAmount || 0,
-// //           totalHours: data.totalHours || 0,
-// //           totalBookings: data.totalBookings || 0
-// //         });
+//         // Update these based on your actual API response structure
+//         setStatsData({
+//           totalRevenue: data.totalAmount || 0,
+//           totalHours: data.totalHours || 0,
+//           totalBookings: data.totalBookings || 0
+//         });
         
-// //       } catch (err) {
-// //         console.error('Error fetching statistics:', err);
-// //         setError(err.message);
-// //       } finally {
-// //         setLoading(false);
-// //       }
-// //     };
+//       } catch (err) {
+//         console.error('Error fetching statistics:', err);
+//         setError(err.message);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
 
-// //     fetchStatistics();
-// //   }, [user]); // Changed dependency to user instead of currentUser
+//     fetchStatistics();
+//   }, [user]); // Changed dependency to user instead of currentUser
 
-// //   if (loading) return <div>Loading statistics...</div>;
-// //   if (error) return <div>Error: {error}</div>;
+//   if (loading) return <div>Loading statistics...</div>;
+//   if (error) return <div>Error: {error}</div>;
 
-// //   return (
-// //     <Row>
-// //       <Col md={6} xl={4}>
-// //         <StatisticsWidget 
-// //           variant="primary" 
-// //           counterOptions={{ prefix: "₦" }} 
-// //           description="Total Revenue" 
-// //           stats={statsData.totalRevenue.toString()} 
-// //           icon="fe-heart" 
-// //         />
-// //       </Col>
-// //       <Col md={6} xl={4}>
-// //         <StatisticsWidget 
-// //           variant="success" 
-// //           description="Total Hours" 
-// //           stats={statsData.totalHours.toString()} 
-// //           icon="fe-shopping-cart" 
-// //         />
-// //       </Col>
-// //       <Col md={6} xl={4}>
-// //         <StatisticsWidget 
-// //           variant="info" 
-// //           description="Total Bookings" 
-// //           stats={statsData.totalBookings.toString()} 
-// //           counterOptions={{}} 
-// //           icon="fe-bar-chart-line-" 
-// //         />
-// //       </Col>
-// //     </Row>
-// //   );
-// // };
+//   return (
+//     <Row>
+//       <Col md={6} xl={4}>
+//         <StatisticsWidget 
+//           variant="primary" 
+//           counterOptions={{ prefix: "₦" }} 
+//           description="Total Revenue" 
+//           stats={statsData.totalRevenue.toString()} 
+//           icon="fe-heart" 
+//         />
+//       </Col>
+//       <Col md={6} xl={4}>
+//         <StatisticsWidget 
+//           variant="success" 
+//           description="Total Hours" 
+//           stats={statsData.totalHours.toString()} 
+//           icon="fe-shopping-cart" 
+//         />
+//       </Col>
+//       <Col md={6} xl={4}>
+//         <StatisticsWidget 
+//           variant="info" 
+//           description="Total Bookings" 
+//           stats={statsData.totalBookings.toString()} 
+//           counterOptions={{}} 
+//           icon="fe-bar-chart-line-" 
+//         />
+//       </Col>
+//     </Row>
+//   );
+// };
 
-// // export default Statistics;
+// export default Statistics;
 
 
 
@@ -377,19 +377,284 @@
 
 
 
+// import { Row, Col } from "react-bootstrap";
+// import { useState, useEffect } from "react";
+// import { useAuthContext } from "@/context/useAuthContext.jsx";
+// import StatisticsWidget from "../../../components/StatisticsWidget";
+// import { useParams } from "react-router-dom";
+
+
+  
+
+// const Statistics = () => {
+//   const { user } = useAuthContext();
+//   const [stats, setStats] = useState({
+//     totalCategories: 0,
+//     totalPayments: 0,
+//     totalAmount: 0,
+//     loading: true,
+//     error: null
+//   });
+
+//   const { tenantSlug } = useParams();
+
+//   console.log("ww", tenantSlug)
+
+//   useEffect(() => {
+//     const fetchStats = async () => {
+//       try {
+//         if (!user?.token) return;
+
+//         // Get current year for the analytics queries
+//         const currentYear = new Date().getFullYear();
+//         const startDate = `${currentYear}-01-01`;
+//         const endDate = `${currentYear}-12-31`;
+
+//         // Fetch categories count
+//         const categoriesResponse = await fetch(
+//           `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/analytics/list?startTimeA=${startDate}&endTimeA=${endDate}&categoryId=1`,
+//           {
+//             method: "GET",
+//             headers: {
+//               Authorization: `Bearer ${user.token}`,
+//             },
+//           }
+//         );
+//         console.log(categoriesResponse)
+
+//         if (!categoriesResponse.ok) {
+//           throw new Error('Failed to fetch categories data');
+//         }
+
+//         const categoriesData = await categoriesResponse.json();
+//         const categoriesCount = categoriesData.booking?.bookingA || 0;
+//         const hoursCount = categoriesData.hour?.hourA || 0;
+//         console.log("Ss", hoursCount)
+
+        
+//         console.log("cayegory data from categories", categoriesData)
+
+//         // Fetch payment analytics
+//         const paymentsResponse = await fetch(
+//           `${import.meta.env.VITE_BACKEND_URL}/api/distinct/analytics/payment?startTimeA=${startDate}&endTimeA=${endDate}`,
+//           {
+//             method: "GET",
+//             headers: {
+//               Authorization: `Bearer ${user.token}`,
+//             },
+//           }
+//         );
+
+//         if (!paymentsResponse.ok) {
+//           throw new Error('Failed to fetch payments data');
+//         }
+
+//         const paymentsData = await paymentsResponse.json();
+//         const paymentsCount = paymentsData.duration?.totalAmountForDurationA || 1;
+//         // const totalAmount = paymentsData.data?.total || 0;
+
+//         console.log("payment data from categories", paymentsData)
+
+//         setStats({
+//           totalCategories: categoriesCount,
+//           totalPayments: paymentsCount,
+//           totalAmount: hoursCount,
+//           loading: false,
+//           error: null
+//         });
+//       } catch (error) {
+//         setStats(prev => ({
+//           ...prev,
+//           loading: false,
+//           error: error.message
+//         }));
+//         console.error("Error fetching statistics:", error);
+//       }
+//     };
+
+//     fetchStats();
+//   }, [user?.token]);
+
+//   if (stats.loading) return <div>Loading statistics...</div>;
+//   if (stats.error) return <div>Error: {stats.error}</div>;
+
+//   return (
+//     <Row>
+//       <Col md={6} xl={4}>
+//         <StatisticsWidget 
+//           variant="primary" 
+//           description="Total Bookings" 
+//           stats={stats.totalCategories.toString()} 
+//           icon="fe-list" 
+//         />
+//       </Col>
+//       <Col md={6} xl={4}>
+//         <StatisticsWidget 
+//           variant="success" 
+//           description="Total Payments" 
+//           stats={stats.totalPayments.toString()} 
+//           icon="fe-credit-card" 
+//         />
+//       </Col>
+//       <Col md={6} xl={4}>
+//         <StatisticsWidget 
+//           variant="info" 
+//           description="Total Hours Booked" 
+//           stats={stats.totalAmount.toLocaleString()}
+//           icon="fe-dollar-sign" 
+//         />
+//       </Col>
+//     </Row>
+//   );
+// };
+
+// export default Statistics;
+
+
+
+// import { Row, Col } from "react-bootstrap";
+// import { useState, useEffect } from "react";
+// import { useAuthContext } from "@/context/useAuthContext.jsx";
+// import StatisticsWidget from "../../../components/StatisticsWidget";
+// import { useParams } from "react-router-dom";
+
+// const Statistics = () => {
+//   const { user } = useAuthContext();
+//   const [stats, setStats] = useState({
+//     totalCategories: 0,
+//     totalPayments: 0,
+//     totalAmount: 0,
+//     loading: true,
+//     error: null
+//   });
+
+//   const { tenantSlug } = useParams();
+
+//   useEffect(() => {
+//     const fetchStats = async () => {
+//       try {
+//         if (!user?.token) return;
+
+//         const currentYear = new Date().getFullYear();
+//         const startDate = `${currentYear}-01-01`;
+//         const endDate = `${currentYear}-12-31`;
+
+//         const categoryIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // Replace with real category IDs from your backend
+
+//         const fetchCategoryData = async (id) => {
+//           const res = await fetch(
+//             `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/analytics/list?startTimeA=${startDate}&endTimeA=${endDate}&categoryId=${id}`,
+//             {
+//               method: "GET",
+//               headers: {
+//                 Authorization: `Bearer ${user.token}`,
+//               },
+//             }
+//           );
+//           if (!res.ok) throw new Error(`Failed to fetch for category ${id}`);
+//           return res.json();
+//         };
+
+//         const allCategoryData = await Promise.all(categoryIds.map(fetchCategoryData));
+
+//         // Sum up bookingA and hourA
+//         let totalBookings = 0;
+//         let totalHours = 0;
+//         allCategoryData.forEach((data) => {
+//           totalBookings += data.booking?.bookingA || 0;
+//           totalHours += data.hour?.hourA || 0;
+//         });
+
+//         // Fetch payment analytics separately
+//         const paymentsResponse = await fetch(
+//           `${import.meta.env.VITE_BACKEND_URL}/api/distinct/analytics/payment?startTimeA=${startDate}&endTimeA=${endDate}`,
+//           {
+//             method: "GET",
+//             headers: {
+//               Authorization: `Bearer ${user.token}`,
+//             },
+//           }
+//         );
+
+//         if (!paymentsResponse.ok) {
+//           throw new Error("Failed to fetch payments data");
+//         }
+
+//         const paymentsData = await paymentsResponse.json();
+//         const paymentsCount = paymentsData.duration?.totalAmountForDurationA || 0;
+
+//         setStats({
+//           totalCategories: totalBookings,
+//           totalPayments: paymentsCount,
+//           totalAmount: totalHours,
+//           loading: false,
+//           error: null,
+//         });
+//       } catch (error) {
+//         setStats((prev) => ({
+//           ...prev,
+//           loading: false,
+//           error: error.message,
+//         }));
+//         console.error("Error fetching statistics:", error);
+//       }
+//     };
+
+//     fetchStats();
+//   }, [user?.token, tenantSlug]);
+
+//   if (stats.loading) return <div>Loading statistics...</div>;
+//   if (stats.error) return <div>Error: {stats.error}</div>;
+
+//   return (
+//     <Row>
+//       <Col md={6} xl={4}>
+//         <StatisticsWidget 
+//           variant="primary" 
+//           description="Total Bookings" 
+//           stats={stats.totalCategories.toString()} 
+//           icon="fe-list" 
+//         />
+//       </Col>
+//       <Col md={6} xl={4}>
+//         <StatisticsWidget 
+//           variant="success" 
+//           description="Total Payments" 
+//           stats={stats.totalPayments.toString()} 
+//           icon="fe-credit-card" 
+//         />
+//       </Col>
+//       <Col md={6} xl={4}>
+//         <StatisticsWidget 
+//           variant="info" 
+//           description="Total Hours Booked" 
+//           stats={stats.totalAmount.toLocaleString()}
+//           icon="fe-clock" 
+//         />
+//       </Col>
+//     </Row>
+//   );
+// };
+
+// export default Statistics;
+
+
 import { Row, Col } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import StatisticsWidget from "../../../components/StatisticsWidget";
+import { useParams } from "react-router-dom";
 
 const Statistics = () => {
   const { user } = useAuthContext();
+  const { tenantSlug } = useParams();
+
   const [stats, setStats] = useState({
     totalCategories: 0,
     totalPayments: 0,
     totalAmount: 0,
     loading: true,
-    error: null
+    error: null,
   });
 
   useEffect(() => {
@@ -397,14 +662,13 @@ const Statistics = () => {
       try {
         if (!user?.token) return;
 
-        // Get current year for the analytics queries
         const currentYear = new Date().getFullYear();
         const startDate = `${currentYear}-01-01`;
         const endDate = `${currentYear}-12-31`;
 
-        // Fetch categories count
-        const categoriesResponse = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/analytics/list?startTimeA=${startDate}&endTimeA=${endDate}&categoryId=1`,
+        // 🔍 Step 1: Fetch Categories
+        const categoriesRes = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/category/list-categories`,
           {
             method: "GET",
             headers: {
@@ -412,18 +676,46 @@ const Statistics = () => {
             },
           }
         );
-        console.log(categoriesResponse)
 
-        if (!categoriesResponse.ok) {
-          throw new Error('Failed to fetch categories data');
-        }
+        if (!categoriesRes.ok) throw new Error("Failed to fetch categories");
 
-        const categoriesData = await categoriesResponse.json();
-        const categoriesCount = categoriesData.data?.length || 0;
+        const categoriesData = await categoriesRes.json();
+        console.log("Fetched Categories:", categoriesData);
 
-        // Fetch payment analytics
+        // 🧠 Determine actual array of categories
+        const categoryArray = Array.isArray(categoriesData)
+          ? categoriesData
+          : categoriesData.data || categoriesData.categories || [];
+
+        const categoryIds = categoryArray.map((cat) => cat.id);
+
+        // 🧮 Step 2: Fetch analytics for each category
+        const fetchCategoryData = async (id) => {
+          const res = await fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/analytics/list?startTimeA=${startDate}&endTimeA=${endDate}&categoryId=${id}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${user.token}`,
+              },
+            }
+          );
+          if (!res.ok) throw new Error(`Failed to fetch for category ${id}`);
+          return res.json();
+        };
+
+        const allCategoryData = await Promise.all(categoryIds.map(fetchCategoryData));
+
+        let totalBookings = 0;
+        let totalHours = 0;
+        allCategoryData.forEach((data) => {
+          totalBookings += data.booking?.bookingA || 0;
+          totalHours += data.hour?.hourA || 0;
+        });
+
+        // 💳 Step 3: Fetch Payments
         const paymentsResponse = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/distinctshoot/analytics/payment?startTimeA=${startDate}&endTimeA=${endDate}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/analytics/payment?startTimeA=${startDate}&endTimeA=${endDate}`,
           {
             method: "GET",
             headers: {
@@ -433,32 +725,32 @@ const Statistics = () => {
         );
 
         if (!paymentsResponse.ok) {
-          throw new Error('Failed to fetch payments data');
+          throw new Error("Failed to fetch payments data");
         }
 
         const paymentsData = await paymentsResponse.json();
-        const paymentsCount = paymentsData.data?.count || 0;
-        const totalAmount = paymentsData.data?.total || 0;
+        const paymentsCount = paymentsData.duration?.totalAmountForDurationA || 0;
 
+        // ✅ Set final stats
         setStats({
-          totalCategories: categoriesCount,
+          totalCategories: totalBookings,
           totalPayments: paymentsCount,
-          totalAmount: totalAmount,
+          totalAmount: totalHours,
           loading: false,
-          error: null
+          error: null,
         });
       } catch (error) {
-        setStats(prev => ({
+        setStats((prev) => ({
           ...prev,
           loading: false,
-          error: error.message
+          error: error.message,
         }));
         console.error("Error fetching statistics:", error);
       }
     };
 
     fetchStats();
-  }, [user?.token]);
+  }, [user?.token, tenantSlug]);
 
   if (stats.loading) return <div>Loading statistics...</div>;
   if (stats.error) return <div>Error: {stats.error}</div>;
@@ -466,27 +758,27 @@ const Statistics = () => {
   return (
     <Row>
       <Col md={6} xl={4}>
-        <StatisticsWidget 
-          variant="primary" 
-          description="Total Categories" 
-          stats={stats.totalCategories.toString()} 
-          icon="fe-list" 
+        <StatisticsWidget
+          variant="primary"
+          description="Total Bookings"
+          stats={stats.totalCategories.toString()}
+          icon="fe-list"
         />
       </Col>
       <Col md={6} xl={4}>
-        <StatisticsWidget 
-          variant="success" 
-          description="Total Payments" 
-          stats={stats.totalPayments.toString()} 
-          icon="fe-credit-card" 
+        <StatisticsWidget
+          variant="success"
+          description="Total Payments"
+          stats={stats.totalPayments.toString()}
+          icon="fe-credit-card"
         />
       </Col>
       <Col md={6} xl={4}>
-        <StatisticsWidget 
-          variant="info" 
-          description="Total Amount" 
-          stats={`$${stats.totalAmount.toLocaleString()}`} 
-          icon="fe-dollar-sign" 
+        <StatisticsWidget
+          variant="info"
+          description="Total Hours Booked"
+          stats={stats.totalAmount.toLocaleString()}
+          icon="fe-clock"
         />
       </Col>
     </Row>

@@ -503,7 +503,7 @@ const SeatBookingSystem = () => {
       
       // Refresh the space data
       if (selectedRoom) {
-        await fetchRoomDetails(selectedRoom);
+        await fetchRoomDetails(selectedRoom.id);
       }
     } catch (error) {
       toast.error(error.message || "Failed to book space");

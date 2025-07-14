@@ -2401,6 +2401,7 @@ const TIMEZONES =
 
 
 
+
 const ZoneRegistrationModal = ({ show, onHide, myTimeZone, onSubmit }) => {
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
@@ -2408,10 +2409,7 @@ const ZoneRegistrationModal = ({ show, onHide, myTimeZone, onSubmit }) => {
 
   const [locations, setLocations] = useState([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
-  const [formData, setFormData] = useState({
-    location_id: "",
-    utc_time_zone: "",
-  });
+
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -2468,22 +2466,32 @@ const ZoneRegistrationModal = ({ show, onHide, myTimeZone, onSubmit }) => {
     }));
   };
 
+
+
   // react-select expects options as { value, label }
-  const timezoneOptions = TIMEZONES.map((tz) => ({
-    value: tz.utc_time_zone,
-    label: `${tz.timezone} (UTC${tz.utc_time_zone})`,
+const timezoneOptions = TIMEZONES.map((tz) => ({
+  value: tz.timezone, // Use the unique timezone name
+  label: `${tz.timezone} (UTC${tz.utc_time_zone})`,
+}));
+
+
+// When setting formData
+const [formData, setFormData] = useState({
+  location_id: "",
+  timezone: "", // use 'timezone' instead of 'utc_time_zone'
+});
+
+// When selecting
+const selectedTimezoneOption = timezoneOptions.find(
+  (opt) => opt.value === formData.timezone
+);
+
+const handleTimezoneChange = (selectedOption) => {
+  setFormData((prev) => ({
+    ...prev,
+    timezone: selectedOption ? selectedOption.value : "",
   }));
-
-  const selectedTimezoneOption = timezoneOptions.find(
-    (opt) => opt.value === formData.utc_time_zone
-  );
-
-  const handleTimezoneChange = (selectedOption) => {
-    setFormData((prev) => ({
-      ...prev,
-      utc_time_zone: selectedOption ? selectedOption.value : "",
-    }));
-  };
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -2500,10 +2508,13 @@ const ZoneRegistrationModal = ({ show, onHide, myTimeZone, onSubmit }) => {
       const method = "POST";
 
       // Only send location_id and utc_time_zone
-      const payload = {
-        location_id: formData.location_id,
-        utc_time_zone: formData.utc_time_zone,
-      };
+     // Find the selected timezone object
+    const selectedTz = TIMEZONES.find(tz => tz.timezone === formData.timezone);
+
+    const payload = {
+      location_id: formData.location_id,
+      utc_time_zone: selectedTz ? selectedTz.utc_time_zone : "",
+    };
 
       const response = await fetch(url, {
         method,

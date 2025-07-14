@@ -21,7 +21,7 @@ const PageTitle = (props) => {
   const visitorSlug = user?.visitorSlug || visitorUrlSlug;
   const tenantFirstName = user?.tenantFirstName || "";
   const tenantLastName = user?.tenantLastName || "";
-  const companyName = user?.tenantCompanyName || "";
+  const companyName = user?.CName || "";
   console.log(companyName);
   const { logoImg } = useLogoColor();
   const { colour: primary } = useLogoColor();

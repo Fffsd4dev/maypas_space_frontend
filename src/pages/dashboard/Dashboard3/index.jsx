@@ -18,10 +18,10 @@ const Dashboard3 = () => {
       label: "Dashboards",
       path: "/dashboard"
     }, {
-      label: "Dashboard 3",
+      label: "Dashboard",
       path: "/dashboard",
       active: true
-    }]} title={"Dashboard 3"} />
+    }]} title={"Dashboard"} />
 
       <Statistics />
       {/* <Row>

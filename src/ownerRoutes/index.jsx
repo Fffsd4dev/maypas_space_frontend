@@ -194,7 +194,7 @@ const dashboardRoutes = {
     route: PrivateRoute
   }, {
     path: "/dashboard-3",
-    name: "Dashboard 3",
+    name: "Dashboard",
     element: <Dashboard3 />,
     route: PrivateRoute
   }, {

@@ -315,7 +315,7 @@ const Topbar2 = ({ hideLogo, navCssClasses }) => {
                             <LanguageDropdown />
                         </li> */}
             <li className="dropdown notification-list">
-              <NotificationDropdown notifications={Notifications} />
+              {/* <NotificationDropdown notifications={Notifications} /> */}
             </li>
             <li className="dropdown">
               <ProfileDropdown

@@ -235,7 +235,7 @@ export const HORIZONTAL_MENU_ITEMS = (tenantSlug) => [
       },
       {
         key: "ds-dashboard-3",
-        label: "Dashboard 3",
+        label: "Dashboard",
         url: "/dashboard-3",
         parentKey: "dashboard",
       },

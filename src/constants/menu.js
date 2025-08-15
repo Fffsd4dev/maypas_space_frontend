@@ -182,7 +182,7 @@ export const MENU_ITEMS = (tenantSlug = "") => [
   
   {
     key: "set-account",
-    label: "Set Bank Account",
+    label: "Set Account & Paystack",
     isTitle: false,
     icon: FiBriefcase ,
     url: `/${tenantSlug}/settings/set-account`,

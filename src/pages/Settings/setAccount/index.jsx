@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
 import AccountRegistrationModal from "./AccountRegistrationForm";
+import PaystackRegistrationModal from "./PaystackRegistrationModal";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
@@ -17,6 +18,7 @@ const BankAccount = () => {
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
   const [show, setShow] = useState(false);
+  const [showPaystack, setShowPaystack] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingLocations, setLoadingLocations] = useState(true);
@@ -167,9 +169,16 @@ const BankAccount = () => {
   
     setShow(true);
   };
-  
+
+  const handlePaystackClick = (myPaystack) => {
+    
+    setSelectedUser(myPaystack);
+    setShow(true);
+  };
+
   const handleClose = () => {
     setShow(false);
+    setShowPaystack(false);
     setSelectedUser(null);
     if (user?.tenantToken && selectedLocation) {
       fetchData(selectedLocation);
@@ -332,7 +341,21 @@ const BankAccount = () => {
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add Your Bank Account
                   </Button>
+                  
                 </Col>
+                <Col>
+                      <Button
+                    variant="danger"
+                    className="waves-effect waves-light"
+                    onClick={() => {
+                      setShowPaystack(true);
+                      setSelectedUser(null);
+                    }}
+                                                                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+
+                  >
+                    <i className="mdi mdi-plus-circle me-1"></i> Set Paystack Key                  </Button>
+                  </Col>
               </Row>
 
               <Card>
@@ -416,6 +439,13 @@ const BankAccount = () => {
   onSubmit={() =>
     fetchData(selectedLocation)
   }
+/>
+
+<PaystackRegistrationModal
+  showPaystack={showPaystack}
+  onHide={handleClose}
+  myPaystack={selectedUser} // Pass the selected user data
+  onSubmit={() => fetchData(selectedLocation)}
 />
 
       {popup.isVisible && (

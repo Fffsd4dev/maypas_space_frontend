@@ -122,26 +122,42 @@ const OperatingTimes = () => {
 
       const result = await response.json();
       console.log(result);
+       const dayOrder = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+  ];
 
-      if (Array.isArray(result)) {
-        // Sort the data by updated_at or created_at
-        const sortedData = result.sort(
-          (a, b) =>
-            new Date(b.updated_at || b.created_at) -
-            new Date(a.updated_at || a.created_at)
-        );
-        setData(sortedData);
-        console.log("Sorted Data:", sortedData);
+  if (Array.isArray(result)) {
+    // Sort the data by updated_at or created_at
+    let sortedData = result.sort(
+      (a, b) =>
+        new Date(b.updated_at || b.created_at) -
+        new Date(a.updated_at || a.created_at)
+    );
 
-        // Update pagination state (if needed)
-        setPagination((prev) => ({
-          ...prev,
-          currentPage: page,
-          totalPages: Math.ceil(result.length / pageSize),
-        }));
-      } else {
-        throw new Error("Invalid response format");
-      }
+     // Sort sortedData by dayOrder 
+    sortedData = sortedData.sort(
+      (a, b) =>
+        dayOrder.indexOf(a.day.toLowerCase()) -
+        dayOrder.indexOf(b.day.toLowerCase())
+    );
+    setData(sortedData);
+    console.log("Sorted Data:", sortedData);
+
+    // Update pagination state (if needed)
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: page,
+      totalPages: Math.ceil(result.length / pageSize),
+    }));
+  } else {
+    throw new Error("Invalid response format");
+  }
     } catch (error) {
       toast.error(error.message);
       setError(error.message);
@@ -167,36 +183,46 @@ const OperatingTimes = () => {
     pagination.pageSize,
   ]);
 
-  const handleEditClick = (locationId) => {
-    const operatingTimesForLocation = data.filter(
-      (item) => item.location_id === parseInt(locationId)
+const handleEditClick = (locationId) => {
+  const operatingTimesForLocation = data.filter(
+    (item) => String(item.location_id) === String(locationId)
+  );
+  console.log("operatingTimesForLocation", operatingTimesForLocation);
+
+  const dayOrder = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+  ];
+
+  const fullWeek = dayOrder.map((day) => {
+    const found = operatingTimesForLocation.find(
+      (item) => item.day.toLowerCase() === day
     );
+    return found
+      ? {
+          day,
+          open_time: found.open_time ? found.open_time.slice(0, 5) : null,
+          close_time: found.close_time ? found.close_time.slice(0, 5) : null,
+        }
+      : { day, open_time: null, close_time: null };
+  });
 
-    // Define the order of days
-    const dayOrder = [
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-      "sunday",
-    ];
+  
 
-    // Sort the data by the day field
-    const sortedOperatingTimes = operatingTimesForLocation.sort(
-      (a, b) =>
-        dayOrder.indexOf(a.day.toLowerCase()) -
-        dayOrder.indexOf(b.day.toLowerCase())
-    );
+  setSelectedUser({
+    location_id: locationId,
+    hours: fullWeek,
+  });
 
-    setSelectedUser({
-      location_id: locationId,
-      hours: sortedOperatingTimes,
-    });
-
-    setShow(true);
-  };
+  setShow(true);
+};
+    // setShow(true);
+  // };
 
   const handleClose = () => {
     setShow(false);

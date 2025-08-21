@@ -260,6 +260,7 @@ const Rooms = () => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
+    console.log("Deleting Room ID:", myRoomID);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,

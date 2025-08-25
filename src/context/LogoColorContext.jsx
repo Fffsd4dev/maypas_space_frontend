@@ -17,7 +17,8 @@ export const LogoColorProvider = ({ children }) => {
   const { user } = useAuthContext();
     const CName  = user?.CName;
   const { tenantSlug: tenantUrlSlug } = useParams();
- const tenantSlug = user?.tenant || user?.CName || tenantUrlSlug;
+const tenantSlug = (user?.tenant || user?.CName || tenantUrlSlug || "")
+  .replace(/\s+/g, "");
 
   const fetchLogoData = useCallback(async () => {
     console.log(tenantSlug);

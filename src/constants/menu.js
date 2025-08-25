@@ -11,6 +11,7 @@ import {
   FiClock,
   FiCpu,
   FiCreditCard,
+  FiDollarSign,
   FiFileText,
   FiFolderPlus,
   FiGift,
@@ -186,6 +187,14 @@ export const MENU_ITEMS = (tenantSlug = "") => [
     isTitle: false,
     icon: FiBriefcase ,
     url: `/${tenantSlug}/settings/set-account`,
+  },
+
+   {
+    key: "set-currency",
+    label: "Set Currency & Taxes",
+    isTitle: false,
+    icon: FiDollarSign ,
+    url: `/${tenantSlug}/settings/set-currency`,
   },
 
    {

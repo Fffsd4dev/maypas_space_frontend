@@ -6,7 +6,7 @@ import Popup from "../../../components/Popup/Popup";
 import DatePicker from "react-datepicker";
 import profileImg from "@/assets/images/users/user-1.jpg";
 import "react-datepicker/dist/react-datepicker.css";
-import { format, parseISO, isBefore, addHours } from "date-fns";
+import { format, parseISO, isBefore, addHours, set } from "date-fns";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -16,6 +16,9 @@ import "../index.css";
 const VisitorCategory = () => {
   const { removeSession } = useAuthContext();
   const { user } = useAuthContext();
+
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [currencySymbol, setCurrencySymbol] = useState("$");  
 
   const { visitorSlug: visitorUrlSlug, category } = useParams();
   const visitorSlug = user?.visitor || visitorUrlSlug;
@@ -95,6 +98,41 @@ const VisitorCategory = () => {
       logout();
     }
   }, [visitorSlug, removeSession, navigate, tenantToken]);
+    const fetchCurrencySymbol = async (locationId) => {
+      if (!locationId) {
+        setCurrencySymbol("$");
+        return;
+      }
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/fetch/currency/location`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user?.tenantToken}`,
+            },
+            body: JSON.stringify({ location_id: locationId }),
+          }
+        );
+        const result = await response.json();
+        if (Array.isArray(result.data) && result.data.length > 0) {
+          setCurrencySymbol(result.data[0].symbol || "₦");
+        } else {
+          setCurrencySymbol("$");
+      }
+      } catch (err) {
+        setCurrencySymbol("$");
+      }
+    };
+  
+    // Update currency symbol when location changes
+    useEffect(() => {
+      if (selectedLocation) {
+        fetchCurrencySymbol(selectedLocation);
+      }
+    }, [selectedLocation]);
+  
 
   useEffect(() => {
     if (!window.PaystackPop) {
@@ -533,6 +571,7 @@ const VisitorCategory = () => {
         }
         // 2. Get first locationId
         const locationId = locData.data[0].id;
+        setSelectedLocation(locationId); // Set selected location for currency fetch
 
         // 3. Find the category_id for the requested category name
         let categoryId = null;
@@ -779,7 +818,7 @@ const VisitorCategory = () => {
                         <strong>Number:</strong> {roomIdx + 1}
                       </div>
                       <span>
-                        <strong>Fee:</strong> {room.space_fee}
+                        <strong>Fee:</strong> {currencySymbol}{room.space_fee}
                       </span>
                       <br />
                       <span>

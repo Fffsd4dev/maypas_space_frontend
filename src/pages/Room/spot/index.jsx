@@ -17,6 +17,7 @@ const SeatBookingSystem = () => {
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
+  const [currencySymbol, setCurrencySymbol] = useState("$");
 
   // State variables
   const [show, setShow] = useState(false);
@@ -526,6 +527,41 @@ const SeatBookingSystem = () => {
     }
   }, [selectedLocation]);
 
+  const fetchCurrencySymbol = async (locationId) => {
+    if (!locationId) {
+      setCurrencySymbol("₦");
+      return;
+    }
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/fetch/currency/location`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user?.tenantToken}`,
+          },
+          body: JSON.stringify({ location_id: locationId }),
+        }
+      );
+      const result = await response.json();
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        setCurrencySymbol(result.data[0].symbol || "₦");
+      } else {
+        setCurrencySymbol("₦");
+    }
+    } catch (err) {
+      setCurrencySymbol("₦");
+    }
+  };
+
+  // Update currency symbol when location changes
+  useEffect(() => {
+    if (selectedLocation) {
+      fetchCurrencySymbol(selectedLocation);
+    }
+  }, [selectedLocation]);
+    
   useEffect(() => {
     if (formData.floor_id && user?.tenantToken) {
       fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
@@ -694,7 +730,7 @@ const SeatBookingSystem = () => {
                                             </Card.Title>
                                             <Card.Text className="flex-grow-1">
                                               <div><strong>Number:</strong> {spaceIdx + 1}</div>
-                                              <div><strong>Fee:</strong> ${space.space_fee}</div>
+                                              <div><strong>Fee:</strong> {currencySymbol}{space.space_fee}</div>
                                               {/* <div><strong>Type:</strong> {space.space_type}</div> */}
                                             </Card.Text>
                                             <div className="mt-auto">

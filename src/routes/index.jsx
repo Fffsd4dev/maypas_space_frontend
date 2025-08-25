@@ -89,6 +89,7 @@ const Spot = React.lazy(() => import('../pages/Room/spot'))
 const OperatingHours = React.lazy(() => import('../pages/Settings/operatingTimes'))
 const TimeZone = React.lazy(() => import('../pages/Settings/TimeZone'))
 const SetAccount = React.lazy(() => import('../pages/Settings/setAccount'))
+const SetCurrency = React.lazy(() => import('../pages/Settings/setCurrency'))
 const SetLogoAndColor = React.lazy(() => import('../pages/Settings/setLogo'))
 const Invoices = React.lazy(() => import('../pages/Settings/invoices'))
 const CreateNotification = React.lazy(() => import('../pages/Settings/notifications'))
@@ -440,6 +441,13 @@ const workspacesRoutes = {
       path: "/:tenantSlug/settings/set-account",
       name: "Set Bank Account",
       element: <SetAccount />,
+      route: PrivateRoute
+    },
+
+      {
+      path: "/:tenantSlug/settings/set-currency",
+      name: "Set Currency",
+      element: <SetCurrency />,
       route: PrivateRoute
     },
      {

@@ -328,7 +328,7 @@ const BankAccount = () => {
           <Card>
             <Card.Body>
               <Row className="mb-2">
-                <Col sm={4}>
+                <Col sm={4}  className="mt-2">
                   <Button
                     variant="danger"
                     className="waves-effect waves-light"
@@ -343,8 +343,8 @@ const BankAccount = () => {
                   </Button>
                   
                 </Col>
-                <Col>
-                      <Button
+                <Col className="mt-2">
+                  <Button
                     variant="danger"
                     className="waves-effect waves-light"
                     onClick={() => {

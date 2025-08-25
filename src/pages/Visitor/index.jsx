@@ -34,6 +34,9 @@ const SeatBookingSystem = () => {
   const { removeSession } = useAuthContext();
   const { user } = useAuthContext();
 
+  const [selectedLocationForCurrency, setSelectedLocationForCurrency] = useState("")
+  const [currencySymbol, setCurrencySymbol] = useState("$");  
+
   const tenantToken = user?.tenantToken;
 
   const { logoColor } = useLogoColor();
@@ -255,6 +258,8 @@ const SeatBookingSystem = () => {
         if (result && Array.isArray(result.data)) {
           const data = result.data;
           setLocations(data || []);
+          setSelectedLocationForCurrency(data[0]?.id);
+
           if (data.length === 1) {
             setSelectedLocation(data[0].id);
           }
@@ -276,6 +281,43 @@ const SeatBookingSystem = () => {
     }
   };
 
+    const fetchCurrencySymbol = async (locationId) => {
+      if (!locationId) {
+        setCurrencySymbol("$");
+        return;
+      }
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/fetch/currency/location`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user?.tenantToken}`,
+            },
+            body: JSON.stringify({ location_id: locationId }),
+          }
+        );
+        const result = await response.json();
+        console.log("Currency fetch result:", result);
+        if (Array.isArray(result.data) && result.data.length > 0) {
+          setCurrencySymbol(result.data[0].symbol || "₦");
+        } else {
+          setCurrencySymbol("$");
+      }
+      } catch (err) {
+        setCurrencySymbol("$");
+      }
+    };
+  
+    // Update currency symbol when location changes
+    useEffect(() => {
+      if (selectedLocationForCurrency) {
+        fetchCurrencySymbol(selectedLocationForCurrency);
+      }
+    }, [selectedLocationForCurrency]);
+  
+    
   // Handle location change
   const handleLocationChange = (e) => {
     const locationId = e.target.value;
@@ -1113,7 +1155,7 @@ const SeatBookingSystem = () => {
                                 <strong>Number:</strong> {spotIdx + 1}
                               </div>
                               <div>
-                                <strong>Fee:</strong> {spot.space_fee}
+                                <strong>Fee:</strong> {currencySymbol}{spot.space_fee}
                               </div>
                               <div>
                                 <strong>Location:</strong> {spot.location_name}

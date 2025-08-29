@@ -20,7 +20,8 @@ const InvoiceDetails = () => {
   const [loading, setLoading] = useState(!invoice);
   const tenantSlug = user?.tenant;
   const printRef = useRef();
-
+  const [currencySymbol, setCurrencySymbol] = useState("$");
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const formatDateTime = (isoString) => {
     const options = {
@@ -76,6 +77,7 @@ useEffect(() => {
             console.log(response.data.bank);
             setBank(response.data.bank);
             setSpace(response.data.space_info);
+            setSelectedLocation(response.data.bank.location_id);
           } else {
             toast.error("No invoice details found.");
           }
@@ -88,6 +90,40 @@ useEffect(() => {
       fetchInvoice();
     }
   }, [id, invoice, user]);
+
+   const fetchCurrencySymbol = async (locationId) => {
+    if (!locationId) {
+      setCurrencySymbol("₦");
+      return;
+    }
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/fetch/currency/location`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user?.tenantToken}`,
+          },
+          body: JSON.stringify({ location_id: locationId }),
+        }
+      );
+      const result = await response.json();
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        setCurrencySymbol(result.data[0].symbol || "₦");
+      } else {
+        setCurrencySymbol("₦");
+    }
+    } catch (err) {
+      setCurrencySymbol("₦");
+    }
+  };
+
+    useEffect(() => {
+    if (selectedLocation) {
+      fetchCurrencySymbol(selectedLocation);
+    }
+  }, [selectedLocation]);
 
   // const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString("en-US");
 
@@ -140,7 +176,7 @@ useEffect(() => {
           <tr>
             <th>Booked Days</th>
             <th>Description</th>
-            <th>Amount (₦)</th>
+            <th>Amount ({currencySymbol})</th>
           </tr>
           
         </thead>
@@ -166,7 +202,7 @@ useEffect(() => {
           <tr>
             <th colSpan={2}>Total:</th>
             
-            <th>₦ {Number(invoice.amount).toLocaleString()}</th>
+            <th>{currencySymbol} {Number(invoice.amount).toLocaleString()}</th>
           </tr>
         </tfoot>
       </table>

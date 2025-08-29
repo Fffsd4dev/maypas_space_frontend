@@ -41,6 +41,13 @@ const SeatBookingSystem = () => {
   const [showBookingPopup, setShowBookingPopup] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState(null);
 
+  const scrollToSpots = () => {
+  const spotsSection = document.getElementById("spots-section");
+  if (spotsSection) {
+    spotsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
+
   // Booking form state
   const [bookingFormData, setBookingFormData] = useState({
     type: "one-off",
@@ -568,6 +575,11 @@ const SeatBookingSystem = () => {
     }
   }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
 
+    const handleViewSpotsClick = async (room) => {
+    setSelectedRoom(room);
+    await fetchRoomDetails(room.id);
+    setTimeout(scrollToSpots, 300); // Give time for DOM to update
+  };
   return (
     <>
       <PageTitle
@@ -664,99 +676,102 @@ const SeatBookingSystem = () => {
                       ) : (
                         <>
                           {/* Room Cards Section */}
-                          <h4 className="mb-3"> ROOMS</h4>
-                          {roomsData && roomsData.length > 0 ? (
-                            <Row>
-                              {roomsData.map((room) => (
-                                <Col key={room.id} md={4} className="mb-3">
-                                  <Card className="h-100">
-                                    <Card.Body className="d-flex flex-column">
-                                      <Card.Title className="d-flex justify-content-between align-items-center">
-                                        <span>{room.space_name} (No of Spots: {room.space_number})</span>
-                                        
+                        <h4 className="mb-3"> ROOMS</h4>
+                  {roomsData && roomsData.length > 0 ? (
+                    <Row>
+                      {roomsData.map((room) => (
+                        <Col key={room.id} md={4} className="mb-3">
+                          <Card className="h-100">
+                            <Card.Body className="d-flex flex-column">
+                              <Card.Title className="d-flex justify-content-between align-items-center">
+                                <span>{room.space_name} (No of Spots: {room.space_number})</span>
+                              </Card.Title>
+                              <Card.Text className="flex-grow-1">
+                                <div>{room.category.category} </div>
+                              </Card.Text>
+                              <div className="mt-auto">
+                                <Button
+                                  variant="primary"
+                                  size="sm"
+                                  className="w-100"
+                                  onClick={() => handleViewSpotsClick(room)}
+                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+                                >
+                                  View Spots
+                                </Button>
+                                 </div>
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      ))}
+                    </Row>
+                  ) : (
+                    <Alert variant="info">No rooms found for this floor/section.</Alert>
+                  )}
+                  {/* Room Details and Spaces Section */}
+                  {selectedRoom && (
+                    <div className="mt-4" id="spots-section">
+                      {/* Spaces Section */}
 
-                                      </Card.Title>
-                                      <Card.Text className="flex-grow-1">
-                                                                                                                        <div>{room.category.category} </div>
-
-                                        {/* <div><strong>Type:</strong> {room.space_type}</div> */}
-                                        {/* <div><strong>Fee:</strong> ${room.space_fee}</div> */}
-                                        {/* <div><strong>Capacity:</strong> {room.capacity}</div> */}
-                                      </Card.Text>
-                                      <div className="mt-auto">
-                                        <Button 
-                                          variant="primary" 
-                                          size="sm"
-                                          className="w-100"
-                                          onClick={() => {
-                                            setSelectedRoom(room);
-                                            fetchRoomDetails(room.id);
-                                          }}
-                                          style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-                                        >
-                                          View Spots
-                                        </Button>
-                                      </div>
+                      <h4 className="mb-3">Available Spots</h4>
+                      {loadingRoomDetails ? (
+                        <div className="text-center">
+                          <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Loading spots...</span>
+                          </Spinner>
+                        </div>
+                      ) : spaceCards && spaceCards.length > 0 ? (
+                         <>
+                          <p className="mb-3">Total spots: {spaceCards.length}</p>
+                          <Row>
+                            {spaceCards.map((space, spaceIdx) => (
+                              <Col key={space.id} md={3} className="mb-3">
+                                <Card className="h-100">
+                                  <Card.Body className="d-flex flex-column">
+                                    <Card.Title className="d-flex justify-content-between align-items-center">
+                                      <span>Spot {spaceIdx + 1}</span>
+                                      <Badge bg="success">Available</Badge>
+                                    </Card.Title>
+                                    <Card.Text className="flex-grow-1">
+                                      <div><strong>Number:</strong> {spaceIdx + 1}</div>
+                                      <div><strong>Fee:</strong> {currencySymbol}{space.space_fee}</div>
+                                    </Card.Text>
+                                    <div className="mt-auto">
+                                      <Button
+                                        variant="primary"
+                                        size="sm"
+                                        className="w-100"
+                                        onClick={() => handleBookNowClick(space)}
+                                        style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+                                      >
+                                        Book Now
+                                      </Button>
+                                    </div>
                                     </Card.Body>
-                                  </Card>
-                                </Col>
-                              ))}
-                            </Row>
-                          ) : (
-                            <Alert variant="info">No rooms found for this floor/section.</Alert>
-                          )}
-                          {/* Room Details and Spaces Section */}
-                          {selectedRoom && (
-                            <div className="mt-4">
-                              {/* Spaces Section */}
-                              <h4 className="mb-3">Available Spots</h4>
-                              {loadingRoomDetails ? (
-                                <div className="text-center">
-                                  <Spinner animation="border" role="status">
-                                    <span className="visually-hidden">Loading spots...</span>
-                                  </Spinner>
-                                </div>
-                              ) : spaceCards && spaceCards.length > 0 ? (
-                                <>
-                                  <p className="mb-3">Total spots: {spaceCards.length}</p>
-                                  <Row>
-                                    {spaceCards.map((space, spaceIdx) => (
-                                      <Col key={space.id} md={3} className="mb-3">
-                                        <Card className="h-100">
-                                          <Card.Body className="d-flex flex-column">
-                                            <Card.Title className="d-flex justify-content-between align-items-center">
-                                              <span>Spot {spaceIdx + 1}</span>
-                                              <Badge bg="success">Available</Badge>
-                                            </Card.Title>
-                                            <Card.Text className="flex-grow-1">
-                                              <div><strong>Number:</strong> {spaceIdx + 1}</div>
-                                              <div><strong>Fee:</strong> {currencySymbol}{space.space_fee}</div>
-                                              {/* <div><strong>Type:</strong> {space.space_type}</div> */}
-                                            </Card.Text>
-                                            <div className="mt-auto">
-                                              <Button 
-                                                variant="primary" 
-                                                size="sm"
-                                                className="w-100"
-                                                onClick={() => handleBookNowClick(space)}
-                                                style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-                                              >
-                                                Book Now
-                                              </Button>
-                                            </div>
-                                          </Card.Body>
-                                        </Card>
-                                      </Col>
-                                    ))}
-                                  </Row>
-                                </>
-                              ) : (
-                                <Alert variant="info">
-                                  {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
-                                </Alert>
-                              )}
-                            </div>
-                          )}
+                                </Card>
+                              </Col>
+                            ))}
+                          </Row>
+                        </>
+                      ) : (
+                        <Alert variant="info">
+                          {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
+                        </Alert>
+                      )}
+                    </div>
+                    
+                  )}
+                  <Button
+  variant="outline-secondary"
+  size="sm"
+  className="mb-3"
+  onClick={() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }}
+>
+  &#8679; Back to Top / Select Another Room
+</Button>
+
                         </>
                       )}
                     </>

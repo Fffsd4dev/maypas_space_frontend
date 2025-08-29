@@ -15,6 +15,7 @@ const Invoices = () => {
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
+    const [currencySymbol, setCurrencySymbol] = useState("$");
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -126,6 +127,7 @@ const Invoices = () => {
 
       const result = await response.json();
       console.log("Fetched invoice details:", result);
+      setSelectedLocation(result.data.bank.location_id);
 
       const newWindow = window.open(`/invoice-details/${id}`, "_blank");
       if (newWindow) {
@@ -384,6 +386,7 @@ const Invoices = () => {
     return `${formattedHour}:${minute.toString().padStart(2, "0")} ${period}`;
   };
 
+
   const handleLocationChange = (e) => {
     const locationId = e.target.value;
     setSelectedLocation(locationId);
@@ -392,6 +395,41 @@ const Invoices = () => {
       location_id: locationId, // Update formData with the selected location ID
     }));
   };
+
+   const fetchCurrencySymbol = async (locationId) => {
+    if (!locationId) {
+      setCurrencySymbol("₦");
+      return;
+    }
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/fetch/currency/location`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user?.tenantToken}`,
+          },
+          body: JSON.stringify({ location_id: locationId }),
+        }
+      );
+      const result = await response.json();
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        setCurrencySymbol(result.data[0].symbol || "₦");
+      } else {
+        setCurrencySymbol("₦");
+    }
+    } catch (err) {s
+      setCurrencySymbol("₦");
+    }
+  };
+
+    useEffect(() => {
+      if (selectedLocation) {
+        fetchCurrencySymbol(selectedLocation);
+      }
+    }, [selectedLocation]);
+
   const columns = [
     {
       Header: "S/N",
@@ -411,8 +449,8 @@ const Invoices = () => {
     // },
 
     {
-      Header: "Amount",
-      accessor: "space_payment[0].amount",
+      Header: "Amount ",
+      accessor: (row) => `${currencySymbol} ${row.space_payment[0].amount}`,
       sort: true,
     },
     {

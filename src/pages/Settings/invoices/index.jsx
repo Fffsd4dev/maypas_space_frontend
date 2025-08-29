@@ -15,7 +15,7 @@ const Invoices = () => {
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
-    const [currencySymbol, setCurrencySymbol] = useState("$");
+const [currencySymbols, setCurrencySymbols] = useState({});
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -127,7 +127,7 @@ const Invoices = () => {
 
       const result = await response.json();
       console.log("Fetched invoice details:", result);
-      setSelectedLocation(result.data.bank.location_id);
+      // setSelectedLocation(result.data.bank.location_id);
 
       const newWindow = window.open(`/invoice-details/${id}`, "_blank");
       if (newWindow) {
@@ -209,6 +209,7 @@ const Invoices = () => {
         );
         setData(sortedData);
         console.log("Sorted Data:", sortedData);
+        
 
         // Update pagination state (if needed)
         // setPagination((prev) => ({
@@ -396,39 +397,45 @@ const Invoices = () => {
     }));
   };
 
-   const fetchCurrencySymbol = async (locationId) => {
-    if (!locationId) {
-      setCurrencySymbol("₦");
-      return;
-    }
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/fetch/currency/location`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user?.tenantToken}`,
-          },
-          body: JSON.stringify({ location_id: locationId }),
-        }
-      );
-      const result = await response.json();
-      if (Array.isArray(result.data) && result.data.length > 0) {
-        setCurrencySymbol(result.data[0].symbol || "₦");
-      } else {
-        setCurrencySymbol("₦");
-    }
-    } catch (err) {s
-      setCurrencySymbol("₦");
-    }
-  };
+ const fetchCurrencySymbolForLocation = async (locationId) => {
+  if (!locationId) return "$";
+  if (currencySymbols[locationId]) return currencySymbols[locationId];
 
-    useEffect(() => {
-      if (selectedLocation) {
-        fetchCurrencySymbol(selectedLocation);
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/fetch/currency/location`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user?.tenantToken}`,
+        },
+        body: JSON.stringify({ location_id: locationId }),
       }
-    }, [selectedLocation]);
+    );
+    const result = await response.json();
+    const symbol = Array.isArray(result.data) && result.data.length > 0
+      ? result.data[0].symbol || "$"
+      : "$";
+    setCurrencySymbols((prev) => ({ ...prev, [locationId]: symbol }));
+    return symbol;
+  } catch (err) {
+    setCurrencySymbols((prev) => ({ ...prev, [locationId]: "$" }));
+    return "$";
+  }
+};
+
+   useEffect(() => {
+  if (data.length > 0) {
+    const uniqueLocationIds = [...new Set(data.map(row => row.location_id))];
+    uniqueLocationIds.forEach((locationId) => {
+      if (!currencySymbols[locationId]) {
+        fetchCurrencySymbolForLocation(locationId);
+      }
+    });
+  }
+  // eslint-disable-next-line
+}, [data]);
 
   const columns = [
     {
@@ -448,11 +455,14 @@ const Invoices = () => {
     //   sort: true,
     // },
 
-    {
-      Header: "Amount ",
-      accessor: (row) => `${currencySymbol} ${row.space_payment[0].amount}`,
-      sort: true,
-    },
+   {
+  Header: "Amount",
+  accessor: (row) => {
+    const symbol = currencySymbols[row.location_id] || "$";
+    return `${symbol} ${row.space_payment[0].amount}`;
+  },
+  sort: true,
+},
     {
       Header: "Status",
       accessor: "space_payment[0].payment_status",

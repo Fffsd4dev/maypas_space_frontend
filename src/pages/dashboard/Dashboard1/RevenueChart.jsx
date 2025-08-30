@@ -15,7 +15,7 @@ const RevenueChart = () => {
         }
       }
     },
-    colors: ["#f1556c"],
+    colors: ["#fe0002"],
     labels: ["Revenue"]
   };
   const apexData = [68];

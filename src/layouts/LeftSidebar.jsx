@@ -14,27 +14,48 @@ import logoLight from "@/assets/images/logo-light.png";
 import logoLight2 from "@/assets/images/logo-light-2.png";
 import { FiUser, FiSettings, FiLock, FiLogOut } from "react-icons/fi";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
+import { useAuthContext } from "@/context/useAuthContext.jsx";
+import { toast } from "react-toastify";
+
 
 /* user box */
 const UserBox = () => {
+  const { user } = useAuthContext();
+  const tenantSlug = user?.tenant;
+  const tenantToken = user?.tenantToken;
+  console.log("User in UserBox:", user.tenantToken);
+  const tenantFirstName = user?.tenantFirstName;
+  const tenantLastName = user?.tenantLastName;
+
+  const { menu, orientation, changeMenuSize, themeCustomizer } =
+    useLayoutContext();
+
   // get the profilemenu
-  const ProfileMenus = [{
-    label: "My Account",
-    icon: FiUser,
-    redirectTo: "#"
-  }, {
-    label: "Settings",
-    icon: FiSettings,
-    redirectTo: "#"
-  }, {
-    label: "Lock Screen",
-    icon: FiLock,
-    redirectTo: "/auth/lock-screen"
-  }, {
-    label: "Logout",
-    icon: FiLogOut,
-    redirectTo: "/auth/logout"
-  }];
+  const ProfileMenus = [
+    //   {
+    //   label: "My Account",
+    //   icon: FiUser,
+    //   redirectTo: "#"
+    // },
+    {
+      label: "Settings",
+      icon: FiSettings,
+      onClick: () => {
+        console.log("Settings clicked");
+        themeCustomizer.toggle();
+      },
+    },
+    //  {
+    //   label: "Lock Screen",
+    //   icon: FiLock,
+    //   redirectTo: "/auth/lock-screen"
+    // },
+    {
+      label: "Logout",
+      icon: FiLogOut,
+      redirectTo: `/${tenantSlug}/auth/logout`,
+    },
+  ];
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   /*
@@ -43,54 +64,138 @@ const UserBox = () => {
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
-  return <div className="user-box text-center">
-            <img src={profileImg} alt="" title="Mat Helme" className="rounded-circle avatar-md" />
-            <Dropdown show={dropdownOpen} onToggle={toggleDropdown}>
-                <Dropdown.Toggle id="dropdown-notification" as="a" onClick={toggleDropdown} className="cursor-pointer text-dark h5 mt-2 mb-1 d-block">
-                    Geneva Kennedy
-                </Dropdown.Toggle>
-                <Dropdown.Menu className="user-pro-dropdown">
-                    <div onClick={toggleDropdown}>
-                        {(ProfileMenus || []).map((item, index) => {
-            return <Link to={item.redirectTo} className="dropdown-item notify-item" key={index + "-profile-menu"}>
-                                    <i className={`${item.icon} me-1`}></i>
-                                    <span>{item.label}</span>
-                                </Link>;
-          })}
-                    </div>
-                </Dropdown.Menu>
-            </Dropdown>
-            <p className="text-muted">Admin Head</p>
-        </div>;
+
+    const [data, setData] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(null);
+      
+    
+  
+    const fetchData = async ( page = 1, pageSize = 10) => {
+      setLoading(true);
+      setError(null);
+      console.log("User Token:", user?.tenantToken);
+      try {
+        const response = await fetch(
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/${tenantSlug}/view-details`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${user?.tenantToken}`,
+            },
+          }
+        );
+    
+        if (!response.ok) {
+          throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
+        }
+    
+        const result = await response.json();
+        console.log(result);
+    
+        if (Array.isArray(result.data)) {
+          // Sort the data by updated_at or created_at
+          const sortedData = result.data.sort(
+            (a, b) =>
+              new Date(b.updated_at || b.created_at) -
+              new Date(a.updated_at || a.created_at)
+          );
+          setData(sortedData);
+          console.log("Sorted Data:", sortedData);
+    
+      
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (error) {
+        toast.error(error.message);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+useEffect(() => {
+    if (user?.tenantToken) {
+      fetchData();
+    }   
+  }, [user?.tenantToken, tenantSlug]);
+
+  return (
+    <div className="user-box text-center">
+      <img
+        src={
+          data[0]?.logo
+            ? `${import.meta.env.VITE_BACKEND_URL}/storage/uploads/tenant_logo/${data[0].logo}`
+            : profileImg
+        }
+        alt=""
+        title={`${tenantFirstName} ${tenantLastName}`}
+        className="rounded-circle avatar-md"
+      />
+      <Dropdown show={dropdownOpen} onToggle={toggleDropdown}>
+        <Dropdown.Toggle
+          id="dropdown-notification"
+          as="a"
+          onClick={toggleDropdown}
+          className="cursor-pointer text-dark h5 mt-2 mb-1 d-block"
+        >
+          {tenantFirstName} {tenantLastName}
+        </Dropdown.Toggle>
+        <Dropdown.Menu className="user-pro-dropdown">
+          <div onClick={toggleDropdown}>
+            {(ProfileMenus || []).map((item, index) => {
+              return (
+                <Link
+                  to={item.redirectTo}
+                  className="dropdown-item notify-item"
+                  key={index + "-profile-menu"}
+                >
+                  <i className={`${item.icon} me-1`}></i>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </Dropdown.Menu>
+      </Dropdown>
+      {/* <p className="text-muted">Admin Head</p> */}
+    </div>
+  );
 };
 
 /* sidebar content */
 const SideBarContent = () => {
-  return <>
-            <UserBox />
+   const { user } = useAuthContext();
+  const tenantSlug = user?.tenant || "";
+  return (
+    <>
+      <UserBox />
 
-            {/* <div id="sidebar-menu"> */}
-            {/* THE APP MEnu */}
-            <AppMenu menuItems={getMenuItems()} />
-            {/* </div> */}
+      {/* <div id="sidebar-menu"> */}
+      {/* THE APP MEnu */}
+      <AppMenu menuItems={getMenuItems(tenantSlug)} />
+      {/* </div> */}
 
-            <div className="clearfix" />
-        </>;
+      <div className="clearfix" />
+    </>
+  );
 };
-const LeftSidebar = ({
-  isCondensed,
-  hideLogo
-}) => {
+const LeftSidebar = ({ isCondensed, hideLogo }) => {
   const menuNodeRef = useRef(null);
-  const {
-    orientation
-  } = useLayoutContext();
+  const { orientation } = useLayoutContext();
 
   /**
    * Handle the click anywhere in doc
    */
-  const handleOtherClick = e => {
-    if (menuNodeRef && menuNodeRef.current && menuNodeRef.current.contains(e.target)) return;
+  const handleOtherClick = (e) => {
+    if (
+      menuNodeRef &&
+      menuNodeRef.current &&
+      menuNodeRef.current.contains(e.target)
+    )
+      return;
     // else hide the menubar
     if (document.body) {
       document.body.classList.remove("sidebar-enable");
@@ -102,35 +207,49 @@ const LeftSidebar = ({
       document.removeEventListener("mousedown", handleOtherClick, false);
     };
   }, []);
-  return <React.Fragment>
-            <div className="app-menu" ref={menuNodeRef}>
-                {!hideLogo && <div className="logo-box">
-                        <Link to="/" className="logo logo-dark text-center">
+  return (
+    <React.Fragment>
+      <div className="app-menu" ref={menuNodeRef}>
+        {!hideLogo && (
+          <div className="logo-box">
+            {/* <Link to="/" className="logo logo-dark text-center">
               <span className="logo-sm">
                 <img src={logoSm} alt="" height="22" />
               </span>
-                            <span className="logo-lg">
-                <img src={orientation === 'two-column' ? logoDark2 : logoDark} alt="" height="20" />
+              <span className="logo-lg">
+                <img
+                  src={orientation === "two-column" ? logoDark2 : logoDark}
+                  alt=""
+                  height="20"
+                />
               </span>
-                        </Link>
-                        <Link to="/" className="logo logo-light text-center">
+            </Link>
+            <Link to="/" className="logo logo-light text-center">
               <span className="logo-sm">
                 <img src={logoSm} alt="" height="22" />
               </span>
-                            <span className="logo-lg">
-                <img src={orientation === 'two-column' ? logoLight2 : logoLight} alt="" height="20" />
+              <span className="logo-lg">
+                <img
+                  src={orientation === "two-column" ? logoLight2 : logoLight}
+                  alt=""
+                  height="20"
+                />
               </span>
-                        </Link>
-                    </div>}
+            </Link> */}
+          </div>
+        )}
 
-                {!isCondensed && <SimpleBar className="scrollbar show h-100" scrollbarMaxSize={320}>
-                        <SideBarContent />
-                    </SimpleBar>}
-                {isCondensed && <SideBarContent />}
-            </div>
-        </React.Fragment>;
+        {!isCondensed && (
+          <SimpleBar className="scrollbar show h-100" scrollbarMaxSize={320}>
+            <SideBarContent />
+          </SimpleBar>
+        )}
+        {isCondensed && <SideBarContent />}
+      </div>
+    </React.Fragment>
+  );
 };
 LeftSidebar.defaultProps = {
-  isCondensed: false
+  isCondensed: false,
 };
 export default LeftSidebar;

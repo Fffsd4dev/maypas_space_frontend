@@ -13,7 +13,7 @@ const useLayoutContext = () => {
 const LayoutProvider = ({children}) => {
     const INIT_STATE = {
         theme: 'light',
-        orientation: 'vertical',
+        orientation: 'vertical2',
         mode: 'fluid',
         width: "fluid",
         topBar: {
@@ -28,7 +28,7 @@ const LayoutProvider = ({children}) => {
             iconMenuTheme: "light"
         },
         showTwoToneIcons: false,
-        showUserInfo: false
+        showUserInfo: true
     };
     const [settings, setSettings] = useLocalStorage('__UBOLD_CONFIG__', INIT_STATE);
     const [offcanvasStates, setOffcanvasStates] = useState({

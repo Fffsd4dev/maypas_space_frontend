@@ -1,9 +1,10 @@
-import { Button, Row, Col, FormGroup, FormLabel, FormControl } from "react-bootstrap";
+import { Button, Row, Col, FormGroup, FormLabel, FormControl, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import classNames from "classnames";
 import Popup from "../../components/Popup/Popup";
 import { useParams } from "react-router-dom";
+import { useLogoColor } from "../../context/LogoColorContext";
 
 // components
 
@@ -11,7 +12,7 @@ import AuthLayout from "./AuthLayout";
 import useLogin from "@/hooks/useLogin.js";
 import { Controller } from "react-hook-form";
 import Feedback from "react-bootstrap/esm/Feedback";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 /* bottom links */
@@ -19,6 +20,9 @@ const BottomLink = () => {
   const {
     t
   } = useTranslation();
+
+    const { tenantSlug } = useParams();
+  
   return <Row className="mt-3">
             <Col className="text-center">
             {/* <p className="text-white-50">
@@ -29,7 +33,7 @@ const BottomLink = () => {
                 </p> */}
                 <p className="text-white-50">
                 
-                    <Link to={"/auth/forget-password"} className="text-white ms-1">
+                    <Link to={`/${tenantSlug}/auth/forget-password`} className="text-white ms-1">
                         {t("Forgot your password?")}
                     </Link>
                
@@ -68,7 +72,6 @@ const SocialLinks = () => {
 };
 const Login = () => {
 
-  const { tenantSlug } = useParams();
 
   const {
     t
@@ -77,18 +80,26 @@ const Login = () => {
     login,
     control,
     popup,
-    setPopup
+    setPopup,
+    loading
   } = useLogin();
+
+
+  
+     const { tenantSlug } = useParams();
+    const { colour: primary, secondaryColor: secondary } = useLogoColor();
+  
+  
 
   
 
   const [showPassword, setShowPassword] = useState(false);
   return <>
-            <AuthLayout helpText={t("Enter your email address and password to access admin panel.")} bottomLinks={<BottomLink />}>
+            <AuthLayout helpText={t("Enter your email address and password to access admin panel.")} bottomLinks={<BottomLink />} >
 
                 <form onSubmit={login}>
 
-                    <div className="mb-3">
+                    <div className="mb-3" >
                         <Controller name="email" control={control} render={({
             field,
             fieldState
@@ -121,9 +132,19 @@ const Login = () => {
                     </div>
 
                     <div className="text-center d-grid">
-                        <Button variant="primary" type="submit">
-                            {t("Log In")}
-                        </Button>
+                    <Button style={{ background: primary, borderColor: primary, color: "#fff" }} type="submit" disabled={loading}>
+  {loading ? (
+    <Spinner
+      as="span"
+      animation="border"
+      size="sm"
+      role="status"
+      aria-hidden="true"
+    />
+  ) : (
+    t("Log In")
+  )}
+</Button>
                     </div>
                 </form>
 

@@ -206,7 +206,7 @@ const ModalsWithPages = () => {
           <Modal.Body>
             <div className="text-center mt-2 mb-4">
               <div className="auth-logo">
-                <Link to="/" className="logo logo-dark">
+                {/* <Link to="/" className="logo logo-dark">
                   <span className="logo-lg">
                     <img src={logodark} alt="" height="24" />
                   </span>
@@ -216,7 +216,7 @@ const ModalsWithPages = () => {
                   <span className="logo-lg">
                     <img src={logolight} alt="" height="24" />
                   </span>
-                </Link>
+                </Link> */}
               </div>
             </div>
             <form className="ps-3 pe-3" action="#">
@@ -264,7 +264,7 @@ const ModalsWithPages = () => {
           <Modal.Body>
             <div className="text-center mt-2 mb-4">
               <div className="auth-logo">
-                <Link to="/" className="logo logo-dark">
+                {/* <Link to="/" className="logo logo-dark">
                   <span className="logo-lg">
                     <img src={logodark} alt="" height="24" />
                   </span>
@@ -274,7 +274,7 @@ const ModalsWithPages = () => {
                   <span className="logo-lg">
                     <img src={logolight} alt="" height="24" />
                   </span>
-                </Link>
+                </Link> */}
               </div>
             </div>
             <form className="ps-3 pe-3" action="#">

@@ -8,8 +8,8 @@ const Footer = () => {
         <div className="container-fluid">
           <Row>
             <Col md={6}>
-              {currentYear} &copy; UBold theme by{" "}
-              <Link to="#">Coderthemes</Link>
+              {currentYear} &copy; MayPas  by{" "}
+              <Link to="#">FFSD Group</Link>
             </Col>
 
             <Col md={6}>

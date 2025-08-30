@@ -59,9 +59,11 @@ const Opportunities = React.lazy(() => import("../pages/apps/CRM/Opportunities")
 const CRMLeads = React.lazy(() => import("../pages/apps/CRM/Leads"));
 const CRMCustomers = React.lazy(() => import("../pages/apps/CRM/Customers"));
 // - Accounts
-const Personal = React.lazy(() => import("../pages/Accounts/Personal"))
+const Personal = React.lazy(() => import("../pages/MyWorkspaceAccount/Personal"))
 const Teams = React.lazy(() => import("../pages/Accounts/Teams"))
 const Admin = React.lazy(() => import("../pages/Accounts/Admin"))
+const WorkspaceRoles = React.lazy(() => import("../pages/MyWorkspaceAccount/WorkspaceRoles"))
+
 // - email
 const Inbox = React.lazy(() => import("../pages/apps/Email/Inbox"));
 const EmailDetail = React.lazy(() => import("../pages/apps/Email/Detail"));
@@ -178,10 +180,10 @@ const dashboardRoutes = {
   children: [{
     path: "/",
     name: "Root",
-    element: <Navigate to="/dashboard-1" />,
+    element: <Navigate to="/tenantDashboard" />,
     route: PrivateRoute
   }, {
-    path: "/dashboard-1",
+    path: "/tenantDashboard",
     name: "Dashboard 1",
     element: <Dashboard1 />,
     route: PrivateRoute
@@ -192,7 +194,7 @@ const dashboardRoutes = {
     route: PrivateRoute
   }, {
     path: "/dashboard-3",
-    name: "Dashboard 3",
+    name: "Dashboard",
     element: <Dashboard3 />,
     route: PrivateRoute
   }, {
@@ -311,8 +313,8 @@ const crmAppRoutes = {
     route: PrivateRoute
   }, 
   {
-    path: "/account/personal",
-    name: "Personal",
+    path: "/workspaceAccount/users",
+    name: "Workspace Customers",
     element: <Personal />,
     route: PrivateRoute
   },
@@ -326,6 +328,13 @@ const crmAppRoutes = {
     path: "/account/admin",
     name: "Admin",
     element: <Admin />,
+    // element: <CRMCustomers />,
+    route: PrivateRoute
+  },
+  {
+    path: "/workspaceAccount/roles",
+    name: "WorksapceAdmin",
+    element: <WorkspaceRoles />,
     // element: <CRMCustomers />,
     route: PrivateRoute
   }

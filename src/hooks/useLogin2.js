@@ -33,13 +33,14 @@ const useLogin2 = () => {
   });
   const redirectUser = () => {
     const redirectLink = searchParams.get('redirectTo');
-    if (redirectLink) navigate(redirectLink);else navigate('/dashboard-3');
+    if (redirectLink) navigate(redirectLink);else navigate('/ownerDashboard');
   };
 
   const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
   const { tenantSlug } = useParams();
 
   const login = handleSubmit( async (data) => {
+    setLoading(true);
     console.log(data);
     console.log('submitting');
   
@@ -61,7 +62,7 @@ const useLogin2 = () => {
       if (result.token && res.ok ) {
         console.log(res.ok);
 
-        saveSession({ ...(result ?? {}), token: result.token });
+        saveSession({ ...(result ?? {}), token: result.token, ownerFirstName: result?.admin?.first_name, ownerLastName:result?.admin?.last_name ,  ownerUserTypeId: result?.admin?.user_type_id, });
 
         // saveSession({
         //   ...(res.data ?? {}),
@@ -73,7 +74,7 @@ const useLogin2 = () => {
           type: "success",
           isVisible: true,
           buttonLabel: "Proceed to the Owners Dashboard",
-          buttonRoute: "/dashboard-3",
+          buttonRoute: "/ownerDashboard",
       });
 
         redirectUser();

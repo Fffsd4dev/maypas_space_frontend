@@ -4,31 +4,42 @@ import { Link } from "react-router-dom";
 import LogoDark from "@/assets/images/logo-dark.png";
 import LogoLight from "@/assets/images/logo-light.png";
 import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useAuthContext } from "@/context/useAuthContext.jsx";
+import { useLogoColor } from "../../context/LogoColorContext";
 
 
 // import Popup from '../../components/Popup/Popup'
 
-const AuthLayout =
- ({
-  helpText,
-  bottomLinks,
-  children,
-  isCombineForm
-}) => {
+const AuthLayout = ({ helpText, bottomLinks, children, isCombineForm }) => {
   useEffect(() => {
-    if (document.body) document.body.classList.add("authentication-bg", "authentication-bg-pattern");
+    if (document.body)
+      document.body.classList.add(
+        "authentication-bg",
+        "authentication-bg-pattern"
+      );
     return () => {
-      if (document.body) document.body.classList.remove("authentication-bg", "authentication-bg-pattern");
+      if (document.body)
+        document.body.classList.remove(
+          "authentication-bg",
+          "authentication-bg-pattern"
+        );
     };
   }, []);
 
   const { tenantSlug } = useParams();
+  const { user } = useAuthContext();
+  const CName  = user?.CName;
+  console.log("im here",CName)
+      const { colour: primary, secondaryColor: secondary, logoImg } = useLogoColor();
+
 
 
   // const [popup, setPopup] = useState({ message: "", type: "", isVisible: false, buttonLabel: "", buttonRoute: "" });
 
-  return <>
-      <div className="account-pages mt-5 mb-5">
+  return (
+    <>
+      <div className="account-pages mt-5 mb-5" style={{ backgroundColor: primary, minHeight: "100vh", backgroundSize: "cover", backgroundPosition: "center" }}>
         <Container>
           <Row className="justify-content-center">
             <Col md={8} lg={6} xl={isCombineForm ? 9 : 4}>
@@ -36,17 +47,62 @@ const AuthLayout =
                 <Card.Body className="p-4">
                   <div className="text-center w-75 m-auto">
                     <div className="auth-brand">
-                      <Link to="/auth/login" className="logo logo-dark text-center">
+                      <Link
+                        to="/auth/login"
+                        className="logo logo-dark text-center"
+                      >
                         <span className="logo-lg">
-                          <img src={LogoDark} alt="" height="82" />
-                          <h3 color="#FE0002"> {tenantSlug} </h3>
+                          {logoImg ? (
+                            <img
+                              src={
+                                logoImg
+                                  ? `${
+                                      import.meta.env.VITE_BACKEND_URL
+                                    }/storage/uploads/tenant_logo/${
+                                      logoImg
+                                    }`
+                                  : ""
+                              }
+                              alt=""
+                              className="rounded-circle avatar-md"
+                              height="82"
+                            />
+                          ) : (
+                            ""
+                          )}{" "}
+                          <h3 color="#fe0002">
+                            {" "}
+                            {CName}{" "}
+                          </h3>
                         </span>
                       </Link>
 
-                      <Link to="/auth/login" className="logo logo-light text-center">
+                      <Link
+                        to="/auth/login"
+                        className="logo logo-light text-center"
+                      >
                         <span className="logo-lg">
-                          <img src={LogoLight} alt="" height="82" />
-                          <h3 color="#FE0002">{tenantSlug}</h3>
+                          {logoImg ? (
+                            <img
+                              src={
+                                logoImg
+                                  ? `${
+                                      import.meta.env.VITE_BACKEND_URL
+                                    }/storage/uploads/tenant_logo/${
+                                      logoImg
+                                    }`
+                                  : ""
+                              }
+                              alt=""
+                              className="rounded-circle avatar-md"
+                              height="82"
+                            />
+                          ) : (
+                            ""
+                          )}
+                          <h3 color="#fe0002">
+                            {CName}
+                          </h3>
                         </span>
                       </Link>
                     </div>
@@ -71,7 +127,7 @@ const AuthLayout =
             )} */}
         </Container>
       </div>
-
-    </>;
+    </>
+  );
 };
 export default AuthLayout;

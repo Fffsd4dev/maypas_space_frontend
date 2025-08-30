@@ -1,0 +1,109 @@
+.visitor-header {
+  display: flex;
+  /* flex-direction: column; */
+  align-items: center;
+  justify-content: space-between;
+  position: static;
+  padding: 32px 0 24px 0;
+  background: rgba(255,255,255,0.7);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  flex-wrap: wrap;
+}
+
+.visitor-header.logo img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.visitor-header h3 {
+  font-weight: 600;
+   margin: 0 3rem ;
+  color: #333;
+}
+
+.visitor-header h2 {
+  font-size: 1.1rem;
+   margin: 0 3rem ;
+  font-weight: 400;
+  color: #555;
+}
+
+.visitor-header button[type="submit"] {
+  margin-left: 8px;
+  padding: 4px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  font-weight: 500;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.visitor-header button[type="submit"]:hover {
+  background: #0056b3;
+}
+
+.visitor-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  margin-left: 1rem;
+  cursor: pointer;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .visitor-header {
+    flex-direction: row;
+    padding: 16px 8px 12px 8px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  }
+  .visitor-header h3, .visitor-header h2 {
+    margin: 0 0.5rem;
+    font-size: 1rem;
+    text-align: left;
+  }
+  .visitor-header h3 {
+    font-size: 1.1rem;
+  }
+  .visitor-header h2 {
+    font-size: 0.95rem;
+  }
+  .visitor-header.logo img {
+    width: 48px;
+    height: 48px;
+  }
+  .visitor-header button[type="submit"] {
+    padding: 4px 10px;
+    font-size: 0.95rem;
+  }
+  .visitor-hamburger {
+    display: block;
+  }
+  .visitor-header .visitor-header-menu {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 16px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    z-index: 1000;
+    min-width: 160px;
+    padding: 12px 0;
+  }
+  .visitor-header .visitor-header-menu.open {
+    display: block;
+  }
+}
+
+.pagetitle{
+     margin-left: 4rem;
+     margin-right: 4rem;
+}

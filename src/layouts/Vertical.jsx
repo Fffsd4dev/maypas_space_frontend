@@ -10,14 +10,12 @@ import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 const Topbar = React.lazy(() => import("./Topbar"));
 const LeftSidebar = React.lazy(() => import("./LeftSidebar"));
 const Footer = React.lazy(() => import("./Footer"));
-const RightSidebar = React.lazy(() => import("./RightSidebar/"));
+const RightSidebar = React.lazy(() => import("./RightSidebar"));
+const Menu = React.lazy(() => import("./Menu"));
 const loading = () => <div className=""></div>;
-const VerticalLayout = ({
-  children
-}) => {
-  const {
-    width
-  } = useViewport();
+
+const VerticalLayout = ({ children }) => {
+  const { width } = useViewport();
   const {
     topBar,
     menu,
@@ -90,31 +88,41 @@ const VerticalLayout = ({
     }
   };
   const isCondensed = menu.size === "condensed";
-  return <>
-            <div id="wrapper">
-                <Suspense fallback={loading()}>
-                    <LeftSidebar isCondensed={isCondensed} hideLogo={false} />
-                </Suspense>
+  return (
+    <>
+      <div id="wrapper">
+        <Suspense fallback={loading()}>
+          <LeftSidebar isCondensed={isCondensed} hideLogo={false} />
+        </Suspense>
 
-                <div className="content-page">
-                    <Suspense fallback={loading()}>
-                        <Topbar openLeftMenuCallBack={openMenu} />
-                    </Suspense>
+        <div className="content-page">
+          <Suspense fallback={loading()}>
+            <Topbar openLeftMenuCallBack={openMenu} />
+          </Suspense>
 
-                    <div className="content">
-                        <Container fluid>
-                            <Suspense fallback={loading()}>{children}</Suspense>
-                        </Container>
-                    </div>
+          <div className="content">
+            <Container fluid>
+              <Suspense fallback={loading()}>{children}</Suspense>
+            </Container>
+          </div>
 
-                    <Suspense fallback={loading()}>
-                        <Footer />
-                    </Suspense>
-                </div>
-            </div>
-            {themeCustomizer.open && <Suspense fallback={loading()}>
-                    <RightSidebar />
-                </Suspense>}
-        </>;
+          {/* <Suspense fallback={loading()}>
+            <Footer />
+          </Suspense> */}
+        </div>
+      </div>
+      {themeCustomizer.open && (
+        <Suspense fallback={loading()}>
+          <RightSidebar />
+        </Suspense>
+      )}
+
+      <Suspense fallback={loading()}>
+        <Menu 
+        menu={menu} />
+      </Suspense>
+    </>
+  );
 };
+
 export default VerticalLayout;

@@ -32,7 +32,7 @@ const Error404Alt = () => {
               back on track.
             </p>
             <Link to="/" className="btn btn-success waves-effect waves-light">
-              Back to Dashboard
+              Back to Home Page
             </Link>
           </div>
         </Col>

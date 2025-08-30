@@ -397,7 +397,7 @@ const Widgets = () => {
 
       <Row>
         <Col xl={4}>
-          <StatisticsChartWidget2 title={"Total Revenue"} color={"#f1556c"} data={60} totalSales={"$178"} target={"$12k"} lastWeek={"$2487"} lastMonth={"$14.5k"} />
+          <StatisticsChartWidget2 title={"Total Revenue"} color={"#fe0002"} data={60} totalSales={"$178"} target={"$12k"} lastWeek={"$2487"} lastMonth={"$14.5k"} />
         </Col>
         <Col xl={4}>
           <StatisticsChartWidget2 title={"Sales Status"} color={"#6658dd"} data={37} totalSales={"29"} target={"480"} lastWeek={"136"} lastMonth={"514"} />

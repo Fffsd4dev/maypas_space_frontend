@@ -8,43 +8,91 @@ import Tasks from "@/components/Tasks";
 import ThemeCustomizer from "@/components/ThemeCustomizer/";
 import { chats, tasks } from "./data";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
+import { useLogoColor } from "../../context/LogoColorContext";
+
+const navBorderedDynamicStyle = `
+  .nav-bordered .nav-link.active,
+  .nav-bordered .nav-link:active {
+    border-bottom: 2px solid var(--primary-nav, #fe0002) !important;
+    color: var(--primary-nav, #fe0002) !important;
+  }
+`;
+
 const RightSideBar = () => {
   const rightBarNodeRef = useRef(null);
   const [showRightSideNav, setShowRightSideNav] = useState(rightBarNodeRef);
-  const {
-    themeCustomizer
-  } = useLayoutContext();
+  const { themeCustomizer } = useLayoutContext();
+
+  const { colour: primary } = useLogoColor();
+
+  // Inject dynamic style for .nav-bordered .nav-link.active
+  useEffect(() => {
+    const styleId = "dynamic-nav-bordered-primary";
+    let styleTag = document.getElementById(styleId);
+    if (!styleTag) {
+      styleTag = document.createElement("style");
+      styleTag.id = styleId;
+      document.head.appendChild(styleTag);
+    }
+    styleTag.innerHTML = navBorderedDynamicStyle;
+    document.documentElement.style.setProperty(
+      "--primary-nav",
+      primary || "#fe0002"
+    );
+    return () => {
+      if (styleTag) styleTag.remove();
+    };
+  }, [primary]);
+
   /**
    * Handle the click anywhere in doc
    */
-  const handleOtherClick = useCallback(e => {
-    if (themeCustomizer.open) {
-      if (rightBarNodeRef && rightBarNodeRef.current && rightBarNodeRef.current.contains(e.target)) {
-        return;
-      } else {
-        themeCustomizer.toggle();
-        setShowRightSideNav(false);
+  const handleOtherClick = useCallback(
+    (e) => {
+      if (themeCustomizer.open) {
+        if (
+          rightBarNodeRef &&
+          rightBarNodeRef.current &&
+          rightBarNodeRef.current.contains(e.target)
+        ) {
+          return;
+        } else {
+          themeCustomizer.toggle();
+          setShowRightSideNav(false);
+        }
       }
-    }
-  }, [rightBarNodeRef, themeCustomizer.open]);
+    },
+    [rightBarNodeRef, themeCustomizer.open]
+  );
   useEffect(() => {
     document.addEventListener("mousedown", handleOtherClick, false);
     return () => {
       document.removeEventListener("mousedown", handleOtherClick, false);
     };
   }, [handleOtherClick]);
-  return <React.Fragment>
-            <Offcanvas className="right-bar" show={showRightSideNav} onHide={handleOtherClick} placement="end">
-                <div className="h-100" ref={rightBarNodeRef}>
-                    <SimpleBar style={{
-          maxHeight: "100%",
-          zIndex: 10000
-        }}
-        // timeout={500}
-        scrollbarMaxSize={320}>
-                        <Tab.Container id="left-tabs-example" defaultActiveKey="themecustomizer">
-                            <Nav variant="tabs" className="nav-bordered nav-justified">
-                                <Nav.Item as="li">
+  return (
+    <React.Fragment>
+      <Offcanvas
+        className="right-bar"
+        show={showRightSideNav}
+        onHide={handleOtherClick}
+        placement="end"
+      >
+        <div className="h-100" ref={rightBarNodeRef}>
+          <SimpleBar
+            style={{
+              maxHeight: "100%",
+              zIndex: 10000,
+            }}
+            // timeout={500}
+            scrollbarMaxSize={320}
+          >
+            <Tab.Container
+              id="left-tabs-example"
+              defaultActiveKey="themecustomizer"
+            >
+              <Nav variant="tabs" className="nav-bordered nav-justified">
+                {/* <Nav.Item as="li">
                                     <Nav.Link eventKey="chats" className="py-2 cursor-pointer">
                                         <i className="mdi mdi-message-text d-block font-22 my-1"></i>
                                     </Nav.Link>
@@ -53,30 +101,34 @@ const RightSideBar = () => {
                                     <Nav.Link eventKey="tasks" className="py-2 cursor-pointer">
                                         <i className="mdi mdi-format-list-checkbox d-block font-22 my-1"></i>
                                     </Nav.Link>
-                                </Nav.Item>
-                                <Nav.Item as="li">
-                                    <Nav.Link eventKey="themecustomizer" className="py-2 cursor-pointer">
-                                        <i className="mdi mdi-cog-outline d-block font-22 my-1"></i>
-                                    </Nav.Link>
-                                </Nav.Item>
-                            </Nav>
+                                </Nav.Item> */}
+                <Nav.Item as="li">
+                  <Nav.Link
+                    eventKey="themecustomizer"
+                    className="py-2 cursor-pointer"
+                  >
+                    <i className="mdi mdi-cog-outline d-block font-22 my-1"></i>
+                  </Nav.Link>
+                </Nav.Item>
+              </Nav>
 
-                            <Tab.Content className="p-0">
-                                <Tab.Pane eventKey="chats">
+              <Tab.Content className="p-0">
+                {/* <Tab.Pane eventKey="chats">
                                     <Chats chats={chats} />
                                 </Tab.Pane>
                                 <Tab.Pane eventKey="tasks">
                                     <Tasks tasks={tasks} />
-                                </Tab.Pane>
-                                <Tab.Pane eventKey="themecustomizer">
-                                    <ThemeCustomizer />
-                                </Tab.Pane>
-                            </Tab.Content>
-                        </Tab.Container>
-                    </SimpleBar>
-                </div>
-            </Offcanvas>
-            {/* <div className="rightbar-overlay"></div> */}
-        </React.Fragment>;
+                                </Tab.Pane> */}
+                <Tab.Pane eventKey="themecustomizer">
+                  <ThemeCustomizer />
+                </Tab.Pane>
+              </Tab.Content>
+            </Tab.Container>
+          </SimpleBar>
+        </div>
+      </Offcanvas>
+      {/* <div className="rightbar-overlay"></div> */}
+    </React.Fragment>
+  );
 };
 export default RightSideBar;

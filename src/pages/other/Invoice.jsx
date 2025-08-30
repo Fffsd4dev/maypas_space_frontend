@@ -64,14 +64,14 @@ const Invoice = () => {
                 <div className="float-start">
                   <div className="auth-logo">
                     <div className="logo logo-dark">
-                      <span className="logo-lg">
+                      {/* <span className="logo-lg">
                         <img src={logoDark} alt="" height="22" />
-                      </span>
+                      </span> */}
                     </div>
                     <div className="logo logo-light">
-                      <span className="logo-lg">
+                      {/* <span className="logo-lg">
                         <img src={logoLight} alt="" height="22" />
-                      </span>
+                      </span> */}
                     </div>
                   </div>
                 </div>

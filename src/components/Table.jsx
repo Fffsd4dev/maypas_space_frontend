@@ -141,7 +141,7 @@ const Table = props => {
                     <tbody {...dataTable.getTableBodyProps()}>
                     {(rows || []).map((row, i) => {
             dataTable.prepareRow(row);
-            return <tr {...row.getRowProps()} key={i}>
+            return <tr {...row.getRowProps(props.getRowProps ? props.getRowProps(row) : {})} key={i}>
                                 {(row.cells || []).map((cell, idx) => {
                 return <td key={idx} {...cell.getCellProps([{
                   className: cell.column.className

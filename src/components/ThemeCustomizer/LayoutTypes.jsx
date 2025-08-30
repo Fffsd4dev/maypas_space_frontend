@@ -6,6 +6,13 @@ const LayoutTypes = ({
   return <>
             <h6 className="fw-medium font-14 mt-4 mb-2 pb-1">Layout</h6>
 
+            {/* <Form.Check className="form-check form-switch mb-1">
+                <Form.Check.Input type="radio" onChange={e => changeOrientation(e.target.value)} name="orientation" value={'vertical2'} id="vertical-layout2" checked={orientation === 'vertical2'} />
+                <Form.Check.Label htmlFor="vertical-layout2">
+                    Vertical Layout 2
+                </Form.Check.Label>
+            </Form.Check>
+
             <Form.Check className="form-check form-switch mb-1">
                 <Form.Check.Input type="radio" onChange={e => changeOrientation(e.target.value)} name="orientation" value={'vertical'} id="vertical-layout" checked={orientation === 'vertical'} />
                 <Form.Check.Label htmlFor="vertical-layout">
@@ -25,7 +32,7 @@ const LayoutTypes = ({
                 <Form.Check.Label htmlFor="two-column-layout">
                     Two Column Layout
                 </Form.Check.Label>
-            </Form.Check>
+            </Form.Check> */}
         </>;
 };
 export default LayoutTypes;

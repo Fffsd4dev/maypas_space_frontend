@@ -1,23 +1,29 @@
-import { Route, Navigate } from "react-router-dom";
+import { Route, Navigate, useParams } from "react-router-dom";
 
 // components
 import PrivateRoute from "./PrivateRoute";
 import React from "react";
-// import Root from './Root';
+import Root from './Root';
+import CreateNotificationModal from "../pages/Settings/notifications/CreateNotificationForm";
 
 // lazy load all the views
 
 // auth
 const Login = React.lazy(() => import("../pages/auth/Login"));
 const Logout = React.lazy(() => import("../pages/auth/Logout"));
+const TenantLoginGuard = React.lazy(() => import("../pages/auth/TenantLoginGuard"));
+const VisitorLogout = React.lazy(() => import("../pages/auth-visitor/VisitorLogout"));
 const Confirm = React.lazy(() => import("../pages/auth/Confirm"));
 const ForgetPassword = React.lazy(() => import("../pages/auth/ForgetPassword"));
+const ConfirmNewPassword = React.lazy(() => import("../pages/auth/ConfirmNewPassword"));
+const ConfirmNewPassword2 = React.lazy(() => import("../pages/auth2/ConfirmNewPassword2"));
 const Register = React.lazy(() => import("../pages/auth/Register"));
 const SignInSignUp = React.lazy(() => import("../pages/auth/SignInSignUp"));
 const LockScreen = React.lazy(() => import("../pages/auth/LockScreen"));
 
 // auth2
 const Login2 = React.lazy(() => import("../pages/auth2/Login2"));
+const VisitorLogin = React.lazy(() => import("../pages/auth-visitor/VisitorLogin"));
 const Logout2 = React.lazy(() => import("../pages/auth2/Logout2"));
 const Register2 = React.lazy(() => import("../pages/auth2/Register2"));
 const Confirm2 = React.lazy(() => import("../pages/auth2/Confirm2"));
@@ -33,6 +39,16 @@ const Dashboard1 = React.lazy(() => import("../pages/dashboard/Dashboard1/"));
 const Dashboard2 = React.lazy(() => import("../pages/dashboard/Dashboard2/"));
 const Dashboard3 = React.lazy(() => import("../pages/dashboard/Dashboard3/"));
 const Dashboard4 = React.lazy(() => import("../pages/dashboard/Dashboard4/"));
+
+// Tenants
+const Tenants = React.lazy(() => import("../pages/Tenants"));
+
+// Visitor
+const Visitor = React.lazy(() => import("../pages/Visitor"));
+const VisitorCategory = React.lazy(() => import("../pages/Visitor/VisitorCategory"));
+
+const CreateSubscription = React.lazy(() => import("../pages/subscriptions/CreateSubscription"));
+const TenantSub = React.lazy(() => import("../pages/subscriptions/TenantSub"));
 
 // apps
 const CalendarApp = React.lazy(() => import("../pages/apps/Calendar/"));
@@ -58,6 +74,27 @@ const CRMContacts = React.lazy(() => import("../pages/apps/CRM/Contacts/"));
 const Opportunities = React.lazy(() => import("../pages/apps/CRM/Opportunities/"));
 const CRMLeads = React.lazy(() => import("../pages/apps/CRM/Leads/"));
 const CRMCustomers = React.lazy(() => import("../pages/apps/CRM/Customers/"));
+// - Accounts
+const Teams = React.lazy(() => import("../pages/Accounts/Teams"))
+const Admin = React.lazy(() => import("../pages/Accounts/Admin"))
+// My workspace acct
+const Personal = React.lazy(() => import("../pages/MyWorkspaceAccount/Personal"))
+const WorkspaceRoles = React.lazy(() => import("../pages/MyWorkspaceAccount/WorkspaceRoles"))
+// location mangement
+const MyLocations = React.lazy(() => import("../pages/Facility/myLocations"))
+const Floors = React.lazy(() => import("../pages/Facility/floorManager"))
+const Category = React.lazy(() => import("../pages/Room/Category"))
+const Rooms = React.lazy(() => import("../pages/Room/roomManager"))
+const Spot = React.lazy(() => import('../pages/Room/spot'))
+const OperatingHours = React.lazy(() => import('../pages/Settings/operatingTimes'))
+const TimeZone = React.lazy(() => import('../pages/Settings/TimeZone'))
+const SetAccount = React.lazy(() => import('../pages/Settings/setAccount'))
+const SetCurrency = React.lazy(() => import('../pages/Settings/setCurrency'))
+const SetLogoAndColor = React.lazy(() => import('../pages/Settings/setLogo'))
+const Invoices = React.lazy(() => import('../pages/Settings/invoices'))
+const CreateNotification = React.lazy(() => import('../pages/Settings/notifications'))
+const ManageTeams = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeams'))
+const ManageTeamMembers = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeamMembers'))
 // - email
 const Inbox = React.lazy(() => import("../pages/apps/Email/Inbox"));
 const EmailDetail = React.lazy(() => import("../pages/apps/Email/Detail"));
@@ -156,13 +193,13 @@ const ChartJs = React.lazy(() => import("../pages/charts/ChartJs"));
 
 // maps
 const VectorMaps = React.lazy(() => import("../pages/maps/VectorMaps"));
-// root routes
-// const rootRoute: RoutesProps = {
-//     path: '/',
-//     exact: true,
-//     element: () => <Root />,
-//     route: Route,
-// };
+
+const rootRoute = {
+  path: '/',
+  exact: true,
+  element: <Root />,
+  route: Route,
+};
 
 // dashboards
 const dashboardRoutes = {
@@ -170,33 +207,71 @@ const dashboardRoutes = {
   name: "Dashboards",
   icon: "airplay",
   header: "Navigation",
-  children: [{
-    path: "/",
-    name: "Root",
-    element: <Navigate to="/dashboard-1" />,
-    route: PrivateRoute
-  }, {
-    path: "/dashboard-1",
-    name: "Dashboard 1",
-    element: <Dashboard1 />,
-    route: PrivateRoute
-  }, {
-    path: "/dashboard-2",
-    name: "Dashboard 2",
-    element: <Dashboard2 />,
-    route: PrivateRoute
-  }, {
-    path: "/dashboard-3",
-    name: "Dashboard 3",
-    element: <Dashboard3 />,
-    route: PrivateRoute
-  }, {
-    path: "/dashboard-4",
-    name: "Dashboard 4",
-    element: <Dashboard4 />,
-    route: PrivateRoute
-  }]
+  children: [
+    {
+      path: "/:tenantSlug/tenantDashboard",
+      name: "Dashboard ",
+      element: <Dashboard1 />,
+      route: PrivateRoute,
+      roles: ["Tenant"]
+    },
+    {
+      path: "/dashboard-2",
+      name: "Dashboard 2",
+      element: <Dashboard2 />,
+      route: PrivateRoute,
+      roles: ["Owner"]
+    },
+    {
+      path: "/ownerDashboard",
+      name: "Dashboard",
+      element: <Dashboard3 />,
+      route: PrivateRoute,
+      roles: ["Owner"]
+    },
+    {
+      path: "/dashboard-4",
+      name: "Dashboard 4",
+      element: <Dashboard4 />,
+      route: PrivateRoute,
+      roles: ["Owner"]
+    }
+  ]
 };
+
+const tenantRoutes = {
+  path: "/account/tenants",
+  name: "Tenants",
+  route: PrivateRoute,
+  roles: ["Admin"],
+  icon: "airplay",
+  element: <Tenants />,
+  header: "Apps"
+};
+
+const subscriptionRoutes = {
+  path: "/subscription",
+  name: "Subscription",
+  icon: "airplay",
+  header: "Navigation",
+  children: [
+    {
+      path: "/CreateSubscription",
+      name: "Create Subscription",
+      element: <CreateSubscription />,
+      route: PrivateRoute,
+      roles: ["Owner"]
+    },
+    {
+      path: "/TenantSub",
+      name: "Get All Subscriptions",
+      element: <TenantSub />,
+      route: PrivateRoute,
+      roles: ["Owner"]
+    }
+  ]
+};
+
 const calendarAppRoutes = {
   path: "/apps/calendar",
   name: "Calendar",
@@ -220,90 +295,240 @@ const ecommerceAppRoutes = {
   route: PrivateRoute,
   roles: ["Admin"],
   icon: "shopping-cart",
-  children: [{
-    path: "/apps/ecommerce/dashboard",
-    name: "Products",
-    element: <EcommerceDashboard />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/ecommerce/products",
-    name: "Products",
-    element: <EcommerceProducts />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/ecommerce/product-details",
-    name: "Product Details",
-    element: <ProductDetails />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/ecommerce/edit-product",
-    name: "Product Edit",
-    element: <ProductEdit />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/ecommerce/customers",
-    name: "Customers",
-    element: <Customers />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/ecommerce/orders",
-    name: "Orders",
-    element: <Orders />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/ecommerce/order/details",
-    name: "Order Details",
-    element: <OrderDetails />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/ecommerce/sellers",
-    name: "Sellers",
-    element: <Sellers />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/ecommerce/shopping-cart",
-    name: "Shopping Cart",
-    element: <Cart />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/ecommerce/checkout",
-    name: "Checkout",
-    element: <Checkout />,
-    route: PrivateRoute
-  }]
+  children: [
+    {
+      path: "/apps/ecommerce/dashboard",
+      name: "Products",
+      element: <EcommerceDashboard />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/ecommerce/products",
+      name: "Products",
+      element: <EcommerceProducts />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/ecommerce/product-details",
+      name: "Product Details",
+      element: <ProductDetails />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/ecommerce/edit-product",
+      name: "Product Edit",
+      element: <ProductEdit />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/ecommerce/customers",
+      name: "Customers",
+      element: <Customers />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/ecommerce/orders",
+      name: "Orders",
+      element: <Orders />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/ecommerce/order/details",
+      name: "Order Details",
+      element: <OrderDetails />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/ecommerce/sellers",
+      name: "Sellers",
+      element: <Sellers />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/ecommerce/shopping-cart",
+      name: "Shopping Cart",
+      element: <Cart />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/ecommerce/checkout",
+      name: "Checkout",
+      element: <Checkout />,
+      route: PrivateRoute
+    }
+  ]
 };
+const workspacesRoutes = {
+  path: "/workspace",
+  name: "Workspace",
+  route: PrivateRoute,
+  roles: ["Admin"],
+  icon: "users",
+  children: [
+    {
+      path: "/:tenantSlug/users",
+      name: "Personal",
+      element: <Personal />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/roles",
+      name: "Workspace Admin",
+      element: <WorkspaceRoles />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/my-locations",
+      name: "Locations",
+      element: <MyLocations />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/floor",
+      name: "Floors",
+      element: <Floors />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/room-categories",
+      name: "Category",
+      element: <Category />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/my-rooms",
+      name: "Rooms",
+      element: <Rooms />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/room/spot",
+      name: "Rooms",
+      element: <Spot />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/settings/operating-hours",
+      name: "Operating Hours",
+      element: <OperatingHours />,
+      route: PrivateRoute
+    },
+     {
+      path: "/:tenantSlug/settings/time-zone",
+      name: "Time Zone",
+      element: <TimeZone />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/create-notifications",
+      name: "Create Notifications",
+      element: <CreateNotification />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/manage-teams",
+      name: "Manage Teams",
+      element: <ManageTeams />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/team-members",
+      name: "Manage Team Members",
+      element: <ManageTeamMembers />,
+      route: PrivateRoute
+    },
+     {
+      path: "/:tenantSlug/settings/set-account",
+      name: "Set Bank Account",
+      element: <SetAccount />,
+      route: PrivateRoute
+    },
+
+      {
+      path: "/:tenantSlug/settings/set-currency",
+      name: "Set Currency",
+      element: <SetCurrency />,
+      route: PrivateRoute
+    },
+     {
+      path: "/:tenantSlug/settings/set-logo-and-color",
+      name: "Set Logo and Color",
+      element: <SetLogoAndColor />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/settings/invoices",
+      name: "Invoices",
+      element: <Invoices />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/account/roles",
+      name: "Organisation",
+      element: <Teams />,
+      route: PrivateRoute
+    },
+    {
+      path: "/account/admin",
+      name: "Admin",
+      element: <Admin />,
+      route: PrivateRoute
+    },
+   
+  ]
+};
+
 const crmAppRoutes = {
   path: "/apps/crm",
   name: "CRM",
   route: PrivateRoute,
   roles: ["Admin"],
   icon: "users",
-  children: [{
-    path: "/apps/crm/dashboard",
-    name: "Dashboard",
-    element: <CRMDashboard />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/crm/contacts",
-    name: "Contacts",
-    element: <CRMContacts />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/crm/opportunities",
-    name: "Opportunities",
-    element: <Opportunities />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/crm/leads",
-    name: "Leads",
-    element: <CRMLeads />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/crm/customers",
-    name: "Customers",
-    element: <CRMCustomers />,
-    route: PrivateRoute
-  }]
+  children: [
+    {
+      path: "/apps/crm/dashboard",
+      name: "Dashboard",
+      element: <CRMDashboard />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/crm/contacts",
+      name: "Contacts",
+      element: <CRMContacts />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/crm/opportunities",
+      name: "Opportunities",
+      element: <Opportunities />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/crm/leads",
+      name: "Leads",
+      element: <CRMLeads />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/crm/customers",
+      name: "Customers",
+      element: <CRMCustomers />,
+      route: PrivateRoute
+    },
+    {
+      path: "/account/roles",
+      name: "Organisation",
+      element: <Teams />,
+      route: PrivateRoute
+    },
+    {
+      path: "/account/admin",
+      name: "Admin",
+      element: <Admin />,
+      route: PrivateRoute
+    },
+   
+  ]
 };
 const emailAppRoutes = {
   path: "/apps/email",
@@ -311,22 +536,26 @@ const emailAppRoutes = {
   route: PrivateRoute,
   roles: ["Admin"],
   icon: "mail",
-  children: [{
-    path: "/apps/email/inbox",
-    name: "Inbox",
-    element: <Inbox />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/email/details",
-    name: "Email Details",
-    element: <EmailDetail />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/email/compose",
-    name: "Compose Email",
-    element: <EmailCompose />,
-    route: PrivateRoute
-  }]
+  children: [
+    {
+      path: "/apps/email/inbox",
+      name: "Inbox",
+      element: <Inbox />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/email/details",
+      name: "Email Details",
+      element: <EmailDetail />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/email/compose",
+      name: "Compose Email",
+      element: <EmailCompose />,
+      route: PrivateRoute
+    }
+  ]
 };
 const socialAppRoutes = {
   path: "/apps/social-feed",
@@ -350,22 +579,26 @@ const projectAppRoutes = {
   route: PrivateRoute,
   roles: ["Admin"],
   icon: "uil-briefcase",
-  children: [{
-    path: "/apps/projects/list",
-    name: "List",
-    element: <Projects />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/projects/:id/details",
-    name: "Detail",
-    element: <ProjectDetail />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/projects/create",
-    name: "Create Project",
-    element: <ProjectForm />,
-    route: PrivateRoute
-  }]
+  children: [
+    {
+      path: "/apps/projects/list",
+      name: "List",
+      element: <Projects />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/projects/:id/details",
+      name: "Detail",
+      element: <ProjectDetail />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/projects/create",
+      name: "Create Project",
+      element: <ProjectForm />,
+      route: PrivateRoute
+    }
+  ]
 };
 const taskAppRoutes = {
   path: "/apps/tasks",
@@ -373,22 +606,26 @@ const taskAppRoutes = {
   route: PrivateRoute,
   roles: ["Admin"],
   icon: "clipboard",
-  children: [{
-    path: "/apps/tasks/list",
-    name: "Task List",
-    element: <TaskList />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/tasks/details",
-    name: "Task List",
-    element: <TaskDetails />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/tasks/kanban",
-    name: "Kanban",
-    element: <Kanban />,
-    route: PrivateRoute
-  }]
+  children: [
+    {
+      path: "/apps/tasks/list",
+      name: "Task List",
+      element: <TaskList />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/tasks/details",
+      name: "Task List",
+      element: <TaskDetails />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/tasks/kanban",
+      name: "Kanban",
+      element: <Kanban />,
+      route: PrivateRoute
+    }
+  ]
 };
 const contactsRoutes = {
   path: "/apps/contacts",
@@ -396,17 +633,20 @@ const contactsRoutes = {
   route: PrivateRoute,
   roles: ["Admin"],
   icon: "book",
-  children: [{
-    path: "/apps/contacts/list",
-    name: "Task List",
-    element: <ContactsList />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/contacts/profile",
-    name: "Profile",
-    element: <ContactsProfile />,
-    route: PrivateRoute
-  }]
+  children: [
+    {
+      path: "/apps/contacts/list",
+      name: "Task List",
+      element: <ContactsList />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/contacts/profile",
+      name: "Profile",
+      element: <ContactsProfile />,
+      route: PrivateRoute
+    }
+  ]
 };
 const ticketsRoutes = {
   path: "/apps/tickets",
@@ -414,17 +654,20 @@ const ticketsRoutes = {
   route: PrivateRoute,
   roles: ["Admin"],
   icon: "aperture",
-  children: [{
-    path: "/apps/tickets/list",
-    name: "List",
-    element: <TicketsList />,
-    route: PrivateRoute
-  }, {
-    path: "/apps/tickets/details",
-    name: "Details",
-    element: <TicketsDetails />,
-    route: PrivateRoute
-  }]
+  children: [
+    {
+      path: "/apps/tickets/list",
+      name: "List",
+      element: <TicketsList />,
+      route: PrivateRoute
+    },
+    {
+      path: "/apps/tickets/details",
+      name: "Details",
+      element: <TicketsDetails />,
+      route: PrivateRoute
+    }
+  ]
 };
 const fileAppRoutes = {
   path: "/apps/file-manager",
@@ -434,7 +677,7 @@ const fileAppRoutes = {
   icon: "folder-plus",
   element: <FileManager />
 };
-const appRoutes = [calendarAppRoutes, chatAppRoutes, ecommerceAppRoutes, crmAppRoutes, emailAppRoutes, socialAppRoutes, companiesAppRoutes, projectAppRoutes, taskAppRoutes, contactsRoutes, ticketsRoutes, fileAppRoutes];
+const appRoutes = [calendarAppRoutes, chatAppRoutes, ecommerceAppRoutes, workspacesRoutes, crmAppRoutes, emailAppRoutes, socialAppRoutes, companiesAppRoutes, projectAppRoutes, taskAppRoutes, contactsRoutes, ticketsRoutes, fileAppRoutes];
 
 // pages
 const extrapagesRoutes = {
@@ -442,52 +685,62 @@ const extrapagesRoutes = {
   name: "Pages",
   icon: "package",
   header: "Custom",
-  children: [{
-    path: "/pages/starter",
-    name: "Starter",
-    element: <Starter />,
-    route: PrivateRoute
-  }, {
-    path: "/pages/timeline",
-    name: "Timeline",
-    element: <Timeline />,
-    route: PrivateRoute
-  }, {
-    path: "/pages/sitemap",
-    name: "Sitemap",
-    element: <Sitemap />,
-    route: PrivateRoute
-  }, {
-    path: "/pages/invoice",
-    name: "Invoice",
-    element: <Invoice />,
-    route: PrivateRoute
-  }, {
-    path: "/pages/faq",
-    name: "FAQ",
-    element: <FAQ />,
-    route: PrivateRoute
-  }, {
-    path: "/pages/serach-results",
-    name: "Search Results",
-    element: <SearchResults />,
-    route: PrivateRoute
-  }, {
-    path: "/pages/pricing",
-    name: "Pricing",
-    element: <Pricing />,
-    route: PrivateRoute
-  }, {
-    path: "/pages/gallery",
-    name: "Gallery",
-    element: <Gallery />,
-    route: PrivateRoute
-  }, {
-    path: "/pages/error-404-alt",
-    name: "Error - 404-alt",
-    element: <Error404Alt />,
-    route: PrivateRoute
-  }]
+  children: [
+    {
+      path: "/pages/starter",
+      name: "Starter",
+      element: <Starter />,
+      route: PrivateRoute
+    },
+    {
+      path: "/pages/timeline",
+      name: "Timeline",
+      element: <Timeline />,
+      route: PrivateRoute
+    },
+    {
+      path: "/pages/sitemap",
+      name: "Sitemap",
+      element: <Sitemap />,
+      route: PrivateRoute
+    },
+    {
+      path: "/pages/invoice",
+      name: "Invoice",
+      element: <Invoice />,
+      route: PrivateRoute
+    },
+    {
+      path: "/pages/faq",
+      name: "FAQ",
+      element: <FAQ />,
+      route: PrivateRoute
+    },
+    {
+      path: "/pages/serach-results",
+      name: "Search Results",
+      element: <SearchResults />,
+      route: PrivateRoute
+    },
+    {
+      path: "/pages/pricing",
+      name: "Pricing",
+      element: <Pricing />,
+      route: PrivateRoute
+    },
+    {
+      path: "/pages/gallery",
+      name: "Gallery",
+      element: <Gallery />,
+      route: PrivateRoute
+    },
+    {
+      path: "/pages/error-404-alt",
+      name: "Error - 404-alt",
+      element: <Error404Alt />,
+      route: PrivateRoute
+    }
+  ]
 };
 
 // ui
@@ -496,377 +749,502 @@ const uiRoutes = {
   name: "Components",
   icon: "pocket",
   header: "UI Elements",
-  children: [{
-    path: "/ui/base",
-    name: "Base UI",
-    children: [{
-      path: "/ui/buttons",
-      name: "Buttons",
-      element: <Buttons />,
+  children: [
+    {
+      path: "/ui/base",
+      name: "Base UI",
+      children: [
+        {
+          path: "/ui/buttons",
+          name: "Buttons",
+          element: <Buttons />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/cards",
+          name: "Cards",
+          element: <Cards />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/avatars",
+          name: "Avatars",
+          element: <Avatars />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/portlets",
+          name: "Portlets",
+          element: <Portlets />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/tabs-accordions",
+          name: "Tabs & Accordions",
+          element: <TabsAccordions />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/progress",
+          name: "Progress",
+          element: <Progress />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/modals",
+          name: "Modals",
+          element: <Modals />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/notifications",
+          name: "Notifications",
+          element: <Notifications />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/offcanvas",
+          name: "Offcanvas",
+          element: <Offcanvases />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/placeholders",
+          name: "Placeholders",
+          element: <Placeholders />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/spinners",
+          name: "Spinners",
+          element: <Spinners />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/images",
+          name: "Images",
+          element: <Images />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/carousel",
+          name: "Carousel",
+          element: <Carousels />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/listgroups",
+          name: "List Groups",
+          element: <ListGroups />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/embedvideo",
+          name: "EmbedVideo",
+          element: <EmbedVideo />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/dropdowns",
+          name: "Dropdowns",
+          element: <Dropdowns />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/ribbons",
+          name: "Ribbons",
+          element: <Ribbons />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/tooltips-popovers",
+          name: "Tooltips & Popovers",
+          element: <TooltipsPopovers />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/typography",
+          name: "Typography",
+          element: <Typography />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/grid",
+          name: "Grid",
+          element: <Grid />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/general",
+          name: "General UI",
+          element: <GeneralUI />,
+          route: PrivateRoute
+        }
+      ]
+    },
+    {
+      path: "/ui/extended",
+      name: "Extended UI",
+      children: [
+        {
+          path: "/extended-ui/nestable",
+          name: "Nestable List",
+          element: <NestableList />,
+          route: PrivateRoute
+        },
+        {
+          path: "/extended-ui/dragdrop",
+          name: "Drag and Drop",
+          element: <DragDrop />,
+          route: PrivateRoute
+        },
+        {
+          path: "/extended-ui/rangesliders",
+          name: "Range Sliders",
+          element: <RangeSliders />,
+          route: PrivateRoute
+        },
+        {
+          path: "/extended-ui/animation",
+          name: "Animation",
+          element: <Animation />,
+          route: PrivateRoute
+        },
+        {
+          path: "/extended-ui/sweet-alert",
+          name: "Sweet Alert",
+          element: <SweetAlerts />,
+          route: PrivateRoute
+        },
+        {
+          path: "/extended-ui/loading-buttons",
+          name: "Loading Buttons",
+          element: <LoadingButtons />,
+          route: PrivateRoute
+        }
+      ]
+    },
+    {
+      path: "/ui/widgets",
+      name: "Widgets",
+      element: <Widgets />,
       route: PrivateRoute
-    }, {
-      path: "/ui/cards",
-      name: "Cards",
-      element: <Cards />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/avatars",
-      name: "Avatars",
-      element: <Avatars />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/portlets",
-      name: "Portlets",
-      element: <Portlets />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/tabs-accordions",
-      name: "Tabs & Accordions",
-      element: <TabsAccordions />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/progress",
-      name: "Progress",
-      element: <Progress />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/modals",
-      name: "Modals",
-      element: <Modals />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/notifications",
-      name: "Notifications",
-      element: <Notifications />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/offcanvas",
-      name: "Offcanvas",
-      element: <Offcanvases />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/placeholders",
-      name: "Placeholders",
-      element: <Placeholders />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/spinners",
-      name: "Spinners",
-      element: <Spinners />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/images",
-      name: "Images",
-      element: <Images />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/carousel",
-      name: "Carousel",
-      element: <Carousels />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/listgroups",
-      name: "List Groups",
-      element: <ListGroups />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/embedvideo",
-      name: "EmbedVideo",
-      element: <EmbedVideo />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/dropdowns",
-      name: "Dropdowns",
-      element: <Dropdowns />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/ribbons",
-      name: "Ribbons",
-      element: <Ribbons />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/tooltips-popovers",
-      name: "Tooltips & Popovers",
-      element: <TooltipsPopovers />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/typography",
-      name: "Typography",
-      element: <Typography />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/grid",
-      name: "Grid",
-      element: <Grid />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/general",
-      name: "General UI",
-      element: <GeneralUI />,
-      route: PrivateRoute
-    }]
-  }, {
-    path: "/ui/extended",
-    name: "Extended UI",
-    children: [{
-      path: "/extended-ui/nestable",
-      name: "Nestable List",
-      element: <NestableList />,
-      route: PrivateRoute
-    }, {
-      path: "/extended-ui/dragdrop",
-      name: "Drag and Drop",
-      element: <DragDrop />,
-      route: PrivateRoute
-    }, {
-      path: "/extended-ui/rangesliders",
-      name: "Range Sliders",
-      element: <RangeSliders />,
-      route: PrivateRoute
-    }, {
-      path: "/extended-ui/animation",
-      name: "Animation",
-      element: <Animation />,
-      route: PrivateRoute
-    }, {
-      path: "/extended-ui/sweet-alert",
-      name: "Sweet Alert",
-      element: <SweetAlerts />,
-      route: PrivateRoute
-    }, {
-      path: "/extended-ui/loading-buttons",
-      name: "Loading Buttons",
-      element: <LoadingButtons />,
-      route: PrivateRoute
-    }]
-  }, {
-    path: "/ui/widgets",
-    name: "Widgets",
-    element: <Widgets />,
-    route: PrivateRoute
-  }, {
-    path: "/ui/icons",
-    name: "Icons",
-    children: [{
-      path: "/ui/icons/feather",
-      name: "Feather Icons",
-      element: <FeatherIcons />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/icons/dripicons",
-      name: "Dripicons",
-      element: <Dripicons />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/icons/mdi",
-      name: "Material Design",
-      element: <MDIIcons />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/icons/font-awesome",
-      name: "Font Awesome 5",
-      element: <FontAwesomeIcons />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/icons/themify",
-      name: "Themify",
-      element: <ThemifyIcons />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/icons/simple-line",
-      name: "Simple Line Icons",
-      element: <SimpleLineIcons />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/icons/weather",
-      name: "Weather Icons",
-      element: <WeatherIcons />,
-      route: PrivateRoute
-    }]
-  }, {
-    path: "/ui/forms",
-    name: "Forms",
-    children: [{
-      path: "/ui/forms/basic",
-      name: "Basic Elements",
-      element: <BasicForms />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/forms/advanced",
-      name: "Form Advanced",
-      element: <FormAdvanced />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/forms/validation",
-      name: "Form Validation",
-      element: <FormValidation />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/forms/wizard",
-      name: "Form Wizard",
-      element: <FormWizard />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/forms/upload",
-      name: "File Upload",
-      element: <FileUpload />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/forms/editors",
-      name: "Editors",
-      element: <Editors />,
-      route: PrivateRoute
-    }]
-  }, {
-    path: "/ui/tables",
-    name: "Tables",
-    children: [{
-      path: "/ui/tables/basic",
-      name: "Basic",
-      element: <BasicTables />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/tables/advanced",
-      name: "Advanced",
-      element: <AdvancedTables />,
-      route: PrivateRoute
-    }]
-  }, {
-    path: "/ui/charts",
-    name: "Charts",
-    children: [{
-      path: "/ui/charts/apex",
-      name: "Apex",
-      element: <ApexChart />,
-      route: PrivateRoute
-    }, {
-      path: "/ui/charts/chartjs",
-      name: "Chartjs",
-      element: <ChartJs />,
-      route: PrivateRoute
-    }]
-  }, {
-    path: "/ui/maps",
-    name: "Maps",
-    children: [{
-      path: "/ui/vectorMaps",
-      name: "Vector Maps",
-      element: <VectorMaps />,
-      route: PrivateRoute
-    }]
-  }]
+    },
+    {
+      path: "/ui/icons",
+      name: "Icons",
+      children: [
+        {
+          path: "/ui/icons/feather",
+          name: "Feather Icons",
+          element: <FeatherIcons />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/icons/dripicons",
+          name: "Dripicons",
+          element: <Dripicons />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/icons/mdi",
+          name: "Material Design",
+          element: <MDIIcons />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/icons/font-awesome",
+          name: "Font Awesome 5",
+          element: <FontAwesomeIcons />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/icons/themify",
+          name: "Themify Icons",
+          element: <ThemifyIcons />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/icons/simple-line",
+          name: "Simple Line Icons",
+          element: <SimpleLineIcons />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/icons/weather",
+          name: "Weather Icons",
+          element: <WeatherIcons />,
+          route: PrivateRoute
+        }
+      ]
+    },
+    {
+      path: "/ui/forms",
+      name: "Forms",
+      children: [
+        {
+          path: "/ui/forms/basic",
+          name: "Basic Elements",
+          element: <BasicForms />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/forms/advanced",
+          name: "Form Advanced",
+          element: <FormAdvanced />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/forms/validation",
+          name: "Form Validation",
+          element: <FormValidation />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/forms/wizard",
+          name: "Form Wizard",
+          element: <FormWizard />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/forms/upload",
+          name: "File Upload",
+          element: <FileUpload />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/forms/editors",
+          name: "Editors",
+          element: <Editors />,
+          route: PrivateRoute
+        }
+      ]
+    },
+    {
+      path: "/ui/tables",
+      name: "Tables",
+      children: [
+        {
+          path: "/ui/tables/basic",
+          name: "Basic",
+          element: <BasicTables />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/tables/advanced",
+          name: "Advanced",
+          element: <AdvancedTables />,
+          route: PrivateRoute
+        }
+      ]
+    },
+    {
+      path: "/ui/charts",
+      name: "Charts",
+      children: [
+        {
+          path: "/ui/charts/apex",
+          name: "Apex",
+          element: <ApexChart />,
+          route: PrivateRoute
+        },
+        {
+          path: "/ui/charts/chartjs",
+          name: "Chartjs",
+          element: <ChartJs />,
+          route: PrivateRoute
+        }
+      ]
+    },
+    {
+      path: "/ui/maps",
+      name: "Maps",
+      children: [
+        {
+          path: "/ui/vectorMaps",
+          name: "Vector Maps",
+          element: <VectorMaps />,
+          route: PrivateRoute
+        }
+      ]
+    }
+  ]
 };
 
-// auth
-const authRoutes = [{
-  path: "/auth/login",
-  name: "Login",
-  element: <Login />,
+// tenant auth
+const authRoutes = [
+  {
+    path: "/:tenantSlug/auth/login",
+    name: "Tenant Login",
+    element: <TenantLoginGuard />,
+    route: Route
+  },
+  {
+    path: "/:tenantSlug/auth/register",
+    name: "Tenant Register",
+    element: <Register />,
+    route: Route
+  },
+  {
+    path: "/:tenantSlug/auth/confirm",
+    name: "Tenant Confirm",
+    element: <Confirm />,
+    route: Route
+  },
+  {
+    path: "/:tenantSlug/auth/forget-password",
+    name: "Tenant Forget Password",
+    element: <ForgetPassword />,
+    route: Route
+  },
+  {
+  path: "/:tenantSlug/auth/confirmNewPassword",
+  name: "Confirm New Password",
+  element: <ConfirmNewPassword />,
   route: Route
-}, {
-  path: "/auth/register",
-  name: "Register",
-  element: <Register />,
+},
+ {
+  path: "/auth/confirmNewPassword2",
+  name: "Confirm New Password",
+  element: <ConfirmNewPassword2 />,
   route: Route
-}, {
-  path: "/auth/confirm",
-  name: "Confirm",
-  element: <Confirm />,
-  route: Route
-}, {
-  path: "/auth/forget-password",
-  name: "Forget Password",
-  element: <ForgetPassword />,
-  route: Route
-}, {
-  path: "/auth/signin-signup",
-  name: "SignIn-SignUp",
-  element: <SignInSignUp />,
-  route: Route
-}, {
-  path: "/auth/lock-screen",
-  name: "Lock Screen",
-  element: <LockScreen />,
-  route: Route
-}, {
-  path: "/auth/logout",
-  name: "Logout",
-  element: <Logout />,
-  route: Route
-}, {
-  path: "/auth/login2",
-  name: "Login2",
-  element: <Login2 />,
-  route: Route
-}, {
-  path: "/auth/logout2",
-  name: "Logout2",
-  element: <Logout2 />,
-  route: Route
-}, {
-  path: "/auth/register2",
-  name: "Register2",
-  element: <Register2 />,
-  route: Route
-}, {
-  path: "/auth/confirm2",
-  name: "Confirm2",
-  element: <Confirm2 />,
-  route: Route
-}, {
-  path: "/auth/forget-password2",
-  name: "Forget Password2",
-  element: <ForgetPassword2 />,
-  route: Route
-}, {
-  path: "/auth/signin-signup2",
-  name: "SignIn-SignUp2",
-  element: <SignInSignUp2 />,
-  route: Route
-}, {
-  path: "/auth/lock-screen2",
-  name: "Lock Screen2",
-  element: <LockScreen2 />,
-  route: Route
-}];
+},
+  {
+    path: "/:tenantSlug/auth/signin-signup",
+    name: "Tenants SignIn-SignUp",
+    element: <SignInSignUp />,
+    route: Route
+  },
+ 
+  {
+    path: "/:tenantSlug/auth/lock-screen",
+    name: "Tenants Lock Screen",
+    element: <LockScreen />,
+    route: Route
+  },
+  {
+    path: "/:tenantSlug/auth/logout",
+    name: "Logout",
+    element: <Logout />,
+    route: Route
+  },
+
+  {
+    path: "/:visitorSlug/auth/visitorLogout",
+    name: "Visitor Logout",
+    element: <VisitorLogout />,
+    route: Route
+  },
+  {
+    path: "/auth/login2",
+    name: "Login2",
+    element: <Login2 />,
+    route: Route
+  },
+    {
+    path: "/:visitorSlug/auth/visitorLogin",
+    name: "Visitor Login",
+    element: <VisitorLogin />,
+    route: Route
+  },
+  {
+    path: "/auth/logout2",
+    name: "Logout2",
+    element: <Logout2 />,
+    route: Route
+  },
+    {
+    path: "/auth/register2",
+    name: "Register2",
+    element: <Register2 />,
+    route: Route
+  },
+  {
+    path: "/auth/confirm2",
+    name: "Confirm2",
+    element: <Confirm2 />,
+    route: Route
+  },
+  {
+    path: "/auth/forget-password2",
+    name: "Forget Password2",
+    element: <ForgetPassword2 />,
+    route: Route
+  },
+  {
+    path: "/auth/signin-signup2",
+    name: "SignIn-SignUp2",
+    element: <SignInSignUp2 />,
+    route: Route
+  },
+  {
+    path: "/auth/lock-screen2",
+    name: "Lock Screen2",
+    element: <LockScreen2 />,
+    route: Route
+  }
+];
 
 // public routes
-const otherPublicRoutes = [{
-  path: "/landing",
-  name: "landing",
-  element: <Landing />,
+const otherPublicRoutes = [
+  {
+    path: "/landing",
+    name: "landing",
+    element: <Landing />,
+    route: Route
+  },
+  {
+  path: "/:visitorSlug/home",
+  name: "Visitor",
+  route: Route,
+  roles: ["Admin"],
+  icon: "airplay",
+  element: <Visitor />,
+  header: "Apps"
+},
+{
+  path: "/:visitorSlug/:category",
+  name: "Visitor Category",
+  element: <VisitorCategory />,
   route: Route
-}, {
-  path: "/maintenance",
-  name: "Maintenance",
-  element: <Maintenance />,
-  route: Route
-}, {
-  path: "/error-404",
-  name: "Error - 404",
-  element: <Error404 />,
-  route: Route
-}, {
-  path: "/error-404-two",
-  name: "Error - 404 Two",
-  element: <Error404Two />,
-  route: Route
-}, {
-  path: "/error-500",
-  name: "Error - 500",
-  element: <Error500 />,
-  route: Route
-}, {
-  path: "/error-500-two",
-  name: "Error - 500 Two",
-  element: <Error500Two />,
-  route: Route
-}, {
-  path: "/upcoming",
-  name: "Coming Soon",
-  element: <Upcoming />,
-  route: Route
-}];
+},
+  {
+    path: "/maintenance",
+    name: "Maintenance",
+    element: <Maintenance />,
+    route: Route
+  },
+  {
+    path: "/error-404",
+    name: "Error - 404",
+    element: <Error404 />,
+    route: Route
+  },
+  {
+    path: "/error-404-two",
+    name: "Error - 404 Two",
+    element: <Error404Two />,
+    route: Route
+  },
+  {
+    path: "/error-500",
+    name: "Error - 500",
+    element: <Error500 />,
+    route: Route
+  },
+  {
+    path: "/error-500-two",
+    name: "Error - 500 Two",
+    element: <Error500Two />,
+    route: Route
+  },
+  {
+    path: "/upcoming",
+    name: "Coming Soon",
+    element: <Upcoming />,
+    route: Route
+  }
+];
 
 // flatten the list of all nested routes
 const flattenRoutes = routes => {
@@ -882,8 +1260,9 @@ const flattenRoutes = routes => {
 };
 
 // All routes
-const authProtectedRoutes = [dashboardRoutes, ...appRoutes, extrapagesRoutes, uiRoutes];
-const publicRoutes = [...authRoutes, ...otherPublicRoutes];
+const authProtectedRoutes = [dashboardRoutes, tenantRoutes, subscriptionRoutes, ...appRoutes, extrapagesRoutes, uiRoutes];
+const publicRoutes = [rootRoute, ...authRoutes, ...otherPublicRoutes];
 const authProtectedFlattenRoutes = flattenRoutes([...authProtectedRoutes]);
 const publicProtectedFlattenRoutes = flattenRoutes([...publicRoutes]);
+
 export { publicRoutes, authProtectedRoutes, authProtectedFlattenRoutes, publicProtectedFlattenRoutes };

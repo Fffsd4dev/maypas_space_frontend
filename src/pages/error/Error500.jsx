@@ -13,7 +13,7 @@ const ServerError = () => {
                 <Card.Body className="p-4">
                   {/* logo */}
                   <div className="auth-logo">
-                    <Link to="/" className="logo logo-dark text-center">
+                    {/* <Link to="/" className="logo logo-dark text-center">
                       <span className="logo-lg">
                         <img src={logoDark} alt="" height="22" />
                       </span>
@@ -23,7 +23,7 @@ const ServerError = () => {
                       <span className="logo-lg">
                         <img src={logoLight} alt="" height="22" />
                       </span>
-                    </Link>
+                    </Link> */}
                   </div>
                   <div className="text-center mt-4">
                     <h1 className="text-error">500</h1>

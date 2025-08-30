@@ -19,7 +19,7 @@ const SalesChart = () => {
       type: "solid",
       opacity: [0.3, 0.3]
     },
-    colors: ["#00acc1", "#f1556c"],
+    colors: ["#00acc1", "#fe0002"],
     xaxis: {
       labels: {
         show: false

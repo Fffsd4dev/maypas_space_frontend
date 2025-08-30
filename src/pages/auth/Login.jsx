@@ -1,7 +1,10 @@
-import { Button, Row, Col, FormGroup, FormLabel, FormControl } from "react-bootstrap";
+import { Button, Row, Col, FormGroup, FormLabel, FormControl, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import classNames from "classnames";
+import Popup from "../../components/Popup/Popup";
+import { useParams } from "react-router-dom";
+import { useLogoColor } from "../../context/LogoColorContext";
 
 // components
 
@@ -9,7 +12,7 @@ import AuthLayout from "./AuthLayout";
 import useLogin from "@/hooks/useLogin.js";
 import { Controller } from "react-hook-form";
 import Feedback from "react-bootstrap/esm/Feedback";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 /* bottom links */
@@ -17,18 +20,24 @@ const BottomLink = () => {
   const {
     t
   } = useTranslation();
+
+    const { tenantSlug } = useParams();
+  
   return <Row className="mt-3">
             <Col className="text-center">
-                <p>
-                    <Link to={"/auth/forget-password"} className="text-white-50 ms-1">
-                        {t("Forgot your password?")}
-                    </Link>
-                </p>
-                <p className="text-white-50">
+            {/* <p className="text-white-50">
                     {t("Don't have an account?")}{" "}
                     <Link to={"/auth/register"} className="text-white ms-1">
                         <b>{t("Sign Up")}</b>
                     </Link>
+                </p> */}
+                <p className="text-white-50">
+                
+                    <Link to={`/${tenantSlug}/auth/forget-password`} className="text-white ms-1">
+                        {t("Forgot your password?")}
+                    </Link>
+               
+                    
                 </p>
             </Col>
         </Row>;
@@ -62,20 +71,35 @@ const SocialLinks = () => {
         </>;
 };
 const Login = () => {
+
+
   const {
     t
   } = useTranslation();
   const {
     login,
-    control
+    control,
+    popup,
+    setPopup,
+    loading
   } = useLogin();
+
+
+  
+     const { tenantSlug } = useParams();
+    const { colour: primary, secondaryColor: secondary } = useLogoColor();
+  
+  
+
+  
+
   const [showPassword, setShowPassword] = useState(false);
   return <>
-            <AuthLayout helpText={t("Enter your email address and password to access admin panel.")} bottomLinks={<BottomLink />}>
+            <AuthLayout helpText={t("Enter your email address and password to access admin panel.")} bottomLinks={<BottomLink />} >
 
                 <form onSubmit={login}>
 
-                    <div className="mb-3">
+                    <div className="mb-3" >
                         <Controller name="email" control={control} render={({
             field,
             fieldState
@@ -108,17 +132,39 @@ const Login = () => {
                     </div>
 
                     <div className="text-center d-grid">
-                        <Button variant="primary" type="submit">
-                            {t("Log In")}
-                        </Button>
+                    <Button style={{ background: primary, borderColor: primary, color: "#fff" }} type="submit" disabled={loading}>
+  {loading ? (
+    <Spinner
+      as="span"
+      animation="border"
+      size="sm"
+      role="status"
+      aria-hidden="true"
+    />
+  ) : (
+    t("Log In")
+  )}
+</Button>
                     </div>
                 </form>
 
-                <div className="text-center">
+                {/* SOCIAL LINK */}
+                {/* <div className="text-center">
                     <h5 className="mt-3 text-muted">{t("Sign in with")}</h5>
                     <SocialLinks />
-                </div>
+                </div> */}
             </AuthLayout>
+
+             {/* Render the Popup UI when it is visible */}
+             {popup.isVisible && (
+                <Popup
+                    message={popup.message}
+                    type={popup.type}
+                    onClose={() => setPopup({ ...popup, isVisible: false })}
+                    buttonLabel={popup.buttonLabel}
+                    buttonRoute={popup.buttonRoute}
+                />
+            )}
         </>;
 };
 export default Login;

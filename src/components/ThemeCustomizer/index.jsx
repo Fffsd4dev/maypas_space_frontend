@@ -72,8 +72,11 @@ const ThemeCustomizer = () => {
             case "vertical":
                 changeLayoutOrientation('vertical');
                 break;
+            case "vertical2":
+                changeLayoutOrientation('vertical2');
+                break;
             default:
-                changeLayoutOrientation('two-column');
+                changeLayoutOrientation('two-column2');
                 break;
         }
     };
@@ -200,13 +203,19 @@ const ThemeCustomizer = () => {
             <span className="d-block py-1">Theme Settings</span>
         </h6>
         <div className="p-3">
+            {/* <div>
+                Operating Time
+                <h6 className="fw-medium font-14 mt-4 mb-2 pb-1">Operating Hours</h6>
+
+            </div> */}
+
             <div className="alert alert-warning" role="alert">
                 <strong>Customize </strong> the overall color scheme, sidebar menu,
                 etc.
             </div>
 
             {/* Layouts */}
-            <LayoutTypes changeOrientation={changeOrientation} orientation={orientation}/>
+            {/* <LayoutTypes changeOrientation={changeOrientation} orientation={orientation}/> */}
 
             {/* Layout Modes */}
             {disableLayoutMode && <LayoutMode changeMode={changeMode} mode={mode}/>}
@@ -234,11 +243,11 @@ const ThemeCustomizer = () => {
             {disableSidebarUser &&
                 <SidebarUserInfo toggleLeftSidebarUserInfo={toggleUserInfo} showSidebarUserInfo={showUserInfo}/>}
 
-            <div className="d-grid mt-4">
+            {/* <div className="d-grid mt-4">
                 <button className="btn btn-primary" id="resetBtn" onClick={resetSettings}>
                     Reset to Default
                 </button>
-            </div>
+            </div> */}
         </div>
     </React.Fragment>;
 };

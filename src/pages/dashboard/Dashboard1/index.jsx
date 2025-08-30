@@ -25,7 +25,7 @@ const Dashboard1 = () => {
         <Col>
           <div className="page-title-box">
             <div className="page-title-right">
-              <form className="d-flex align-items-center mb-3">
+              {/* <form className="d-flex align-items-center mb-3">
                 <div className="input-group input-group-sm">
                   <HyperDatepicker value={selectedDate.toDateString()} inputClass="border" onChange={date => {
                   onDateChange(date);
@@ -37,7 +37,7 @@ const Dashboard1 = () => {
                 <button className="btn btn-blue btn-sm ms-1">
                   <i className="mdi mdi-filter-variant"></i>
                 </button>
-              </form>
+              </form> */}
             </div>
             <h4 className="page-title">Dashboard</h4>
           </div>
@@ -46,23 +46,25 @@ const Dashboard1 = () => {
 
       <Statistics />
 
-      <Row>
+      {/* <Row>
         <Col lg={4}>
           <RevenueChart />
         </Col>
         <Col lg={8}>
           <SalesAnalyticsChart />
         </Col>
-      </Row>
+      </Row> */}
 
       <Row>
-        <Col xl={6}>
+        <Col xl={12}>
           <UsersBalances balances={balances} />
         </Col>
-        <Col xl={6}>
+        {/* <Col xl={6}>
           <RevenueHistory revenueHistory={revenueHistory} />
-        </Col>
+        </Col> */}
       </Row>
     </>;
 };
 export default Dashboard1;
+
+

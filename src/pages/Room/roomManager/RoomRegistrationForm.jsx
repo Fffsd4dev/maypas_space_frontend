@@ -278,7 +278,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="Lavendier Room "
+              placeholder="eg. Lavendier Room "
             />
           </Form.Group>
          {
@@ -290,7 +290,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               name="space_number"
               value={formData.space_number}
               onChange={handleInputChange}
-              placeholder="3"
+              placeholder="eg. 3"
               disabled
             />
           </Form.Group>
@@ -302,7 +302,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               name="space_number"
               value={formData.space_number}
               onChange={handleInputChange}
-              placeholder="3"
+              placeholder="eg. 3"
             />
           </Form.Group>
           )
@@ -314,7 +314,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               name="space_discount"
               value={formData.space_discount}
               onChange={handleInputChange}
-              placeholder="10"
+              placeholder="eg. 10"
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="min_space_discount_time">
@@ -324,7 +324,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               name="min_space_discount_time"
               value={formData.min_space_discount_time}
               onChange={handleInputChange}
-              placeholder="1"
+              placeholder="eg. 1"
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="space_fee">
@@ -334,7 +334,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               name="space_fee"
               value={formData.space_fee}
               onChange={handleInputChange}
-              placeholder="30000"
+              placeholder="eg. 30000"
               required
             />
           </Form.Group>
@@ -345,7 +345,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
               type="number"
               name="space_fee"
               value={formData.space_fee * formData.space_number || 0} // Multiply space_fee by space_number
-              placeholder="30000"
+              placeholder="eg. 30000"
               disabled // Disable the input
             />
           </Form.Group>

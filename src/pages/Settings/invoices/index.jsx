@@ -314,7 +314,7 @@ const [currencySymbols, setCurrencySymbols] = useState({});
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/bank/delete`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/invoice/cancel`,
         {
           method: "POST",
           headers: {
@@ -329,17 +329,17 @@ const [currencySymbols, setCurrencySymbols] = useState({});
       if (!response.ok) throw new Error(result.message || "Failed to delete.");
 
       setPopup({
-        message: "Bank detail deleted successfully!",
+        message: "Invoice detail deleted successfully!",
         type: "success",
         isVisible: true,
       });
 
       fetchData();
     } catch (error) {
-      toast.error("Failed to delete this bank details!");
-      console.error("Error deleting bank details:", error);
+      toast.error("Failed to delete this invoice details!");
+      console.error("Error deleting invoice details:", error);
       setPopup({
-        message: "Failed to this bank details!",
+        message: "Failed to delete this invoice details!",
         type: "error",
         isVisible: true,
       });

@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
+import {
+  Modal,
+  Row,
+  Col,
+  Card,
+  Button,
+  Spinner,
+  Form,
+  InputGroup,
+} from "react-bootstrap";
+import PropTypes from "prop-types";
 import PageTitle from "../../../components/PageTitle";
 import RoomRegistrationModal from "./RoomRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
@@ -8,6 +18,9 @@ import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
 import { useLogoColor } from "../../../context/LogoColorContext";
+
+// ⬇️ New import
+import ChargesModal from "../../../components/ChargesModal";
 
 const Rooms = () => {
   const { user } = useAuthContext();
@@ -40,6 +53,12 @@ const Rooms = () => {
     myRoomID: null,
   });
 
+  // ⬇️ New state for charges modal
+  const [chargesModal, setChargesModal] = useState({
+    isVisible: false,
+    spaceId: null,
+  });
+
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -70,9 +89,7 @@ const Rooms = () => {
     setLoadingLocations(true);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/location/list-locations`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
         {
           headers: { Authorization: `Bearer ${user.tenantToken}` },
         }
@@ -96,19 +113,15 @@ const Rooms = () => {
     setSelectedLocation(locationId);
     setFormData((prev) => ({
       ...prev,
-      location_id: locationId, // Update formData with the selected location ID
+      location_id: locationId,
     }));
   };
 
   const fetchFloor = async (locationId) => {
     setLoadingFloor(true);
-    console.log("loadingFloor...");
-    console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/floor/list-floors/${locationId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
         {
           method: "GET",
           headers: {
@@ -124,14 +137,13 @@ const Rooms = () => {
       }
 
       const result = await response.json();
-      console.log("result", result);
       if (result && Array.isArray(result.data.data)) {
-        setFloorData(result.data.data); // Store floors in state
+        setFloorData(result.data.data);
       } else {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message); // Replaced setErrorMessage with toast.error
+      toast.error(error.message);
     } finally {
       setLoadingFloor(false);
     }
@@ -139,18 +151,15 @@ const Rooms = () => {
 
   useEffect(() => {
     if (selectedLocation) {
-      fetchFloor(selectedLocation); // Fetch floors based on the selected location ID
+      fetchFloor(selectedLocation);
     }
   }, [selectedLocation]);
 
   const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
     setLoading(true);
-    console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
@@ -158,7 +167,6 @@ const Rooms = () => {
           },
         }
       );
-      console.log("response for api", response);
 
       if (!response.ok) {
         throw new Error(
@@ -167,10 +175,7 @@ const Rooms = () => {
       }
 
       const result = await response.json();
-      console.log("rooms:", result);
       if (result && Array.isArray(result)) {
-        console.log("fff", result);
-
         const data = result;
         data.sort(
           (a, b) =>
@@ -189,7 +194,7 @@ const Rooms = () => {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message); // Replaced setErrorMessage with toast.error
+      toast.error(error.message);
       console.error(error);
     } finally {
       setLoading(false);
@@ -206,8 +211,8 @@ const Rooms = () => {
     const floorId = e.target.value;
     setFormData((prev) => ({
       ...prev,
-      floor_id: floorId, // Update formData with the selected floor ID
-      space_category_id: "", // Reset category when floor changes
+      floor_id: floorId,
+      space_category_id: "",
     }));
 
     if (floorId && selectedLocation) {
@@ -216,7 +221,7 @@ const Rooms = () => {
         floorId,
         pagination.currentPage,
         pagination.pageSize
-      ); // Fetch rooms immediately after floor selection
+      );
     }
   };
 
@@ -245,7 +250,6 @@ const Rooms = () => {
     setShow(false);
     setSelectedUser(null);
 
-    // Fetch rooms after closing the modal
     if (selectedLocation && formData.floor_id) {
       fetchRoom(
         selectedLocation,
@@ -260,7 +264,6 @@ const Rooms = () => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
-    console.log("Deleting Room ID:", myRoomID);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/delete`,
@@ -289,11 +292,7 @@ const Rooms = () => {
         isVisible: true,
       });
       if (formData.floor_id && selectedLocation) {
-        fetchRoom(
-          selectedLocation,
-          pagination.currentPage,
-          pagination.pageSize
-        ); // Reload users after deleting a user
+        fetchRoom(selectedLocation, pagination.currentPage, pagination.pageSize);
       }
     } catch (error) {
       toast.error("Failed to delete room!");
@@ -313,6 +312,12 @@ const Rooms = () => {
     const { myRoomID } = deletePopup;
     handleDelete(myRoomID);
     setDeletePopup({ isVisible: false, myRoomID: null });
+  };
+
+  // ⬇️ New handler for charges button
+  const handleChargesButton = (spaceId) => {
+    setChargesModal({ isVisible: true, spaceId });
+    
   };
 
   const columns = [
@@ -337,7 +342,6 @@ const Rooms = () => {
       accessor: "space_number",
       sort: true,
     },
-
     {
       Header: "Fee/Space",
       accessor: "space_fee",
@@ -378,6 +382,13 @@ const Rooms = () => {
             onClick={() => handleDeleteButton(row.original.id)}
           >
             <i className="mdi mdi-delete"></i>
+          </Link>
+          <Link
+            to="#"
+            className="action-icon"
+            onClick={() => handleChargesButton(row.original.id)}
+          >
+            <i className="mdi mdi-currency-usd"></i>
           </Link>
         </>
       ),
@@ -420,8 +431,7 @@ const Rooms = () => {
               <Card>
                 <Card.Body
                   style={{
-                    background:
-                      secondary,
+                    background: secondary,
                     marginTop: "30px",
                   }}
                 >
@@ -536,6 +546,25 @@ const Rooms = () => {
         onHide={handleClose}
         myRoom={selectedUser}
         onSubmit={() => {
+          if (selectedLocation && formData.floor_id) {
+            fetchRoom(
+              selectedLocation,
+              formData.floor_id,
+              pagination.currentPage,
+              pagination.pageSize
+            );
+          }
+        }}
+      />
+
+      {/* ⬇️ New Charges Modal */}
+      <ChargesModal
+        show={chargesModal.isVisible}
+        onHide={() => setChargesModal({ isVisible: false, spaceId: null })}
+        spaceId={chargesModal.spaceId}
+        tenantSlug={tenantSlug}
+        tenantToken={tenantToken}
+        onSaved={() => {
           if (selectedLocation && formData.floor_id) {
             fetchRoom(
               selectedLocation,

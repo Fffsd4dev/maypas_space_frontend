@@ -129,6 +129,8 @@ const Statistics = () => {
     return `from ${startStr} to ${endStr}`;
   };
 
+  const today = new Date();
+  console.log("Today's date:", today);
   // Fetch bookings data for today or custom range
   const fetchBookingsData = async (fromDate, toDate) => {
     try {
@@ -136,7 +138,7 @@ const Statistics = () => {
       if (fromDate && toDate) {
         url = `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/get?booking_type=past&start_time=${formatAPIDateTime(fromDate)}&end_time=${formatAPIDateTime(toDate)}`;
       } else {
-        url = `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/get?booking_type=today`;
+        url = `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/get?booking_type=today&start_time=${formatAPIDateTime(today)}`;
       }
       const res = await fetch(url, {
         method: "GET",

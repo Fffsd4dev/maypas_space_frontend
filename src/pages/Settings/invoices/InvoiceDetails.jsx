@@ -16,7 +16,7 @@ const InvoiceDetails = () => {
   console.log("User in InvoiceDetails:", user);
   const [invoice, setInvoice] = useState(location.state?.invoice);
   const [bank, setBank] = useState("");
-  const [space, setSpace] = useState("");
+  const [spaceInfo, setSpaceInfo] = useState("");
   const [loading, setLoading] = useState(!invoice);
   const tenantSlug = user?.tenant;
   const printRef = useRef();
@@ -76,7 +76,9 @@ useEffect(() => {
             setInvoice(response.data.invoice);
             console.log(response.data.bank);
             setBank(response.data.bank);
-            setSpace(response.data.space_info);
+
+            // console.log(response.data.space_info);
+            setSpaceInfo(response.data.space_info);
             setSelectedLocation(response.data.bank.location_id);
           } else {
             toast.error("No invoice details found.");
@@ -124,6 +126,11 @@ useEffect(() => {
       fetchCurrencySymbol(selectedLocation);
     }
   }, [selectedLocation]);
+
+  useEffect(() => {
+  if (spaceInfo) console.log("Updated spaceInfo:", spaceInfo);
+}, [spaceInfo]);
+
 
   // const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString("en-US");
 
@@ -180,24 +187,44 @@ useEffect(() => {
           </tr>
           
         </thead>
-        <tbody>
+       
+<tbody>
+  {invoice?.schedule && invoice.schedule.length > 0 ? (
+    invoice.schedule.map((item, index) => (
+      <tr key={index}>
+        <td>
+          <b>Date:</b>
+          <br />
+          <br />
+          <p className="ms-4">
+            <b>Start time:</b> {formatDateTime(item.start_time)} <br />
+            <b>End time:</b> {formatDateTime(item.end_time)}
+          </p>
+        </td>
+        <td>
+          {invoice.status == "paid" ? (
+            <>
+              Reserved spot - The <b>{spaceInfo?.category_name}</b> Category of{" "}
+              <b>{spaceInfo?.space_name}</b> at <b>{spaceInfo?.floor_name}</b> of the{" "}
+              <b>{spaceInfo?.location_name}</b> location
+            </>
+          ) : (
+            <>Reserved spot - No spot reserved yet, status might be pending</>
+          )}
+        </td>
+        <td>{Number(invoice?.amount) || "N/A"}</td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan={3} className="text-center text-muted">
+        No schedule found for this invoice.
+      </td>
+    </tr>
+  )}
+</tbody>
 
-          {(invoice?.schedule || []).map((item, index) => (
-            <tr key={index}>
-              <td>{<b>Date: <br/> <br/> <p className="ms-4"> Start time:  {formatDateTime(invoice?.schedule[0].start_time)}   <br/> End time: {formatDateTime(invoice?.schedule[0].end_time)}</p></b>}</td>
-              <td>{
-                space?.space ? (
-                                <td>Reserved spot - The <b> {space?.space?.category?.category} </b> Category of <b> {space?.space?.space_name} </b> at <b>{space?.floor?.name}</b> of the <b>{space?.location?.name} </b> location</td>
-                ) : (
-                                <td>Reserved spot - No spot reserved yet, status might be pending</td>
-                )}
-              </td>
-              <td>{Number(invoice?.amount) || 'N/A' }</td>
 
-            </tr>
-          ))}
-         
-        </tbody>
         <tfoot>
           <tr>
             <th colSpan={2}>Total:</th>

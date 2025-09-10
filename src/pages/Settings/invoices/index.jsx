@@ -314,7 +314,7 @@ const [currencySymbols, setCurrencySymbols] = useState({});
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/invoice/cancel`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/cancel`,
         {
           method: "POST",
           headers: {
@@ -628,7 +628,7 @@ const [currencySymbols, setCurrencySymbols] = useState({});
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this bank details?"
+          message="Are you sure you want to delete this invoice details?"
           type="confirm"
           onClose={() =>
             setDeletePopup({ isVisible: false, myInvoiceID: null })

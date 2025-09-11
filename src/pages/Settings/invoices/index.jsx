@@ -49,7 +49,7 @@ const [currencySymbols, setCurrencySymbols] = useState({});
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myInvoiceID: null,
+    spotID: null,
   });
 
   const sizePerPageList = [
@@ -308,11 +308,13 @@ const [currencySymbols, setCurrencySymbols] = useState({});
     }
   };
 
-  const handleDelete = async (myInvoiceRef, myInvoiceID) => {
+  const handleDelete = async (spotID) => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
     try {
+                console.log("body", { book_spot_id: spotID });
+
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/cancel`,
         {
@@ -321,7 +323,7 @@ const [currencySymbols, setCurrencySymbols] = useState({});
             Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myInvoiceID }),
+          body: JSON.stringify({ book_spot_id: spotID }),
         }
       );
       const result = await response.json();
@@ -329,17 +331,17 @@ const [currencySymbols, setCurrencySymbols] = useState({});
       if (!response.ok) throw new Error(result.message || "Failed to delete.");
 
       setPopup({
-        message: "Invoice detail deleted successfully!",
+        message: "Invoice detail deleted and booking canceled successfully!",
         type: "success",
         isVisible: true,
       });
 
       fetchData();
     } catch (error) {
-      toast.error("Failed to delete this invoice details!");
+      toast.error("Failed to delete this invoice details and cancel the booking!");
       console.error("Error deleting invoice details:", error);
       setPopup({
-        message: "Failed to delete this invoice details!",
+        message: "Failed to delete this invoice details and cancel the booking!",
         type: "error",
         isVisible: true,
       });
@@ -348,10 +350,10 @@ const [currencySymbols, setCurrencySymbols] = useState({});
     }
   };
 
-  const handleDeleteButton = (myInvoiceID) => {
+  const handleDeleteButton = (spotID) => {
     setDeletePopup({
       isVisible: true,
-      myInvoiceID,
+      spotID,
     });
   };
 
@@ -375,8 +377,9 @@ const [currencySymbols, setCurrencySymbols] = useState({});
   };
 
   const confirmDelete = () => {
-    handleDelete(deletePopup.myInvoiceID);
-    setDeletePopup({ isVisible: false, myInvoiceID: null });
+    const { spotID } = deletePopup;
+    handleDelete(spotID);
+    setDeletePopup({ isVisible: false, spotID: null });
   };
 
   const formatTime = (time) => {
@@ -506,7 +509,7 @@ const [currencySymbols, setCurrencySymbols] = useState({});
             to="#"
             className="action-icon"
             onClick={() =>
-              handleDeleteButton(selectedUser, row.original.user_id)
+              handleDeleteButton(row.original.book_spot.id)
             }
           >
             <i className="mdi mdi-delete"></i>
@@ -628,10 +631,10 @@ const [currencySymbols, setCurrencySymbols] = useState({});
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this invoice details?"
+          message="Are you sure you want to delete this invoice details and cancel the booking?"
           type="confirm"
           onClose={() =>
-            setDeletePopup({ isVisible: false, myInvoiceID: null })
+            setDeletePopup({ isVisible: false, spotID: null })
           }
           buttonLabel="Yes"
           onAction={confirmDelete}

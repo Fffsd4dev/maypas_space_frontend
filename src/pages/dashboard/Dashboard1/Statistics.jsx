@@ -66,7 +66,7 @@ const Statistics = () => {
       if (fromDate && toDate) {
         url = `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/get?booking_type=past&start_time=${formatAPIDateTime(fromDate)}&end_time=${formatAPIDateTime(toDate)}&page=${page}&per_page=${perPage}`;
       } else {
-        url = `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/get?booking_type=today&page=${page}&per_page=${perPage}`;
+        url = `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/get?booking_type=today&start_time=${formatAPIDateTime(today)}&page=${page}&per_page=${perPage}`;
       }
       const res = await fetch(url, {
         method: "GET",

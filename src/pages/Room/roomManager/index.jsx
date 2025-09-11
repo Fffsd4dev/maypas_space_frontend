@@ -9,6 +9,8 @@ import {
   Spinner,
   Form,
   InputGroup,
+  OverlayTrigger,
+  Tooltip,
 } from "react-bootstrap";
 import PropTypes from "prop-types";
 import PageTitle from "../../../components/PageTitle";
@@ -19,7 +21,7 @@ import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
 import { useLogoColor } from "../../../context/LogoColorContext";
 
-// ⬇️ New import
+//  New import
 import ChargesModal from "../../../components/ChargesModal";
 
 const Rooms = () => {
@@ -53,7 +55,7 @@ const Rooms = () => {
     myRoomID: null,
   });
 
-  // ⬇️ New state for charges modal
+  //  New state for charges modal
   const [chargesModal, setChargesModal] = useState({
     isVisible: false,
     spaceId: null,
@@ -369,13 +371,20 @@ const Rooms = () => {
       sort: false,
       Cell: ({ row }) => (
         <>
-          <Link
-            to="#"
-            className="action-icon"
-            onClick={() => handleEditClick(row.original)}
+          <OverlayTrigger
+            overlay={<Tooltip id={`tooltip-edit-${row.original.id}`}>Edit Room</Tooltip>}
           >
+            <Link
+              to="#"
+              className="action-icon"
+              onClick={() => handleEditClick(row.original)}
+            >
             <i className="mdi mdi-square-edit-outline"></i>
           </Link>
+          </OverlayTrigger>{" "}
+          <OverlayTrigger
+            overlay={<Tooltip id={`tooltip-delete-${row.original.id}`}>Delete Room</Tooltip>}
+          >
           <Link
             to="#"
             className="action-icon"
@@ -383,6 +392,10 @@ const Rooms = () => {
           >
             <i className="mdi mdi-delete"></i>
           </Link>
+          </OverlayTrigger>{" "}
+          <OverlayTrigger
+            overlay={<Tooltip id={`tooltip-charges-${row.original.id}`}>Manage Charges</Tooltip>}
+          >
           <Link
             to="#"
             className="action-icon"
@@ -390,6 +403,7 @@ const Rooms = () => {
           >
             <i className="mdi mdi-currency-usd"></i>
           </Link>
+          </OverlayTrigger>
         </>
       ),
     },

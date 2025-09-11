@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
+import { Row, Col, Card, Button, Spinner, Form, Tooltip, OverlayTrigger } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
 import InvoicesModal from "./InvoicesForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
@@ -331,17 +331,17 @@ const [currencySymbols, setCurrencySymbols] = useState({});
       if (!response.ok) throw new Error(result.message || "Failed to delete.");
 
       setPopup({
-        message: "Invoice detail deleted and booking canceled successfully!",
+        message: "Booking canceled successfully!",
         type: "success",
         isVisible: true,
       });
 
       fetchData();
     } catch (error) {
-      toast.error("Failed to delete this invoice details and cancel the booking!");
-      console.error("Error deleting invoice details:", error);
+      toast.error("Failed to cancel this booking!");
+      console.error("Error cancelling this booking:", error);
       setPopup({
-        message: "Failed to delete this invoice details and cancel the booking!",
+        message: "Failed to cancel this booking!",
         type: "error",
         isVisible: true,
       });
@@ -505,6 +505,12 @@ const [currencySymbols, setCurrencySymbols] = useState({});
             </Button>
           )}
 
+        {row.original.space_payment[0].payment_status !== "completed" &&
+        row.original.space_payment[0].payment_status !== "cancelled" && (
+           <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip id={`tooltip-delete-${row.original.id}`}> Cancel Booking</Tooltip>}
+          >
           <Link
             to="#"
             className="action-icon"
@@ -514,6 +520,8 @@ const [currencySymbols, setCurrencySymbols] = useState({});
           >
             <i className="mdi mdi-delete"></i>
           </Link>
+           </OverlayTrigger>
+        )}
         </>
       ),
     },
@@ -631,7 +639,7 @@ const [currencySymbols, setCurrencySymbols] = useState({});
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this invoice details and cancel the booking?"
+          message="Are you sure you want to cancel this booking?"
           type="confirm"
           onClose={() =>
             setDeletePopup({ isVisible: false, spotID: null })

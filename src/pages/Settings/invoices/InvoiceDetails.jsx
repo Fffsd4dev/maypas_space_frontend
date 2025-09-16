@@ -17,6 +17,7 @@ const InvoiceDetails = () => {
   const [invoice, setInvoice] = useState(location.state?.invoice);
   const [bank, setBank] = useState("");
   const [spaceInfo, setSpaceInfo] = useState("");
+  const [charges, setCharges] = useState([]);
   const [loading, setLoading] = useState(!invoice);
   const tenantSlug = user?.tenant;
   const printRef = useRef();
@@ -79,6 +80,7 @@ useEffect(() => {
 
             // console.log(response.data.space_info);
             setSpaceInfo(response.data.space_info);
+            setCharges(response.data.charges);
             setSelectedLocation(response.data.bank.location_id);
           } else {
             toast.error("No invoice details found.");
@@ -190,31 +192,40 @@ useEffect(() => {
        
 <tbody>
   {invoice?.schedule && invoice.schedule.length > 0 ? (
-    invoice.schedule.map((item, index) => (
-      <tr key={index}>
-        <td>
-          <b>Date:</b>
-          <br />
-          <br />
-          <p className="ms-4">
-            <b>Start time:</b> {formatDateTime(item.start_time)} <br />
-            <b>End time:</b> {formatDateTime(item.end_time)}
-          </p>
-        </td>
-        <td>
-          {invoice.status == "paid" ? (
-            <>
-              Reserved spot - The <b>{spaceInfo?.category_name}</b> Category of{" "}
-              <b>{spaceInfo?.space_name}</b> at <b>{spaceInfo?.floor_name}</b> of the{" "}
-              <b>{spaceInfo?.location_name}</b> location
-            </>
-          ) : (
-            <>Reserved spot - No spot reserved yet, status might be pending</>
-          )}
-        </td>
-        <td>{Number(invoice?.amount) || "N/A"}</td>
-      </tr>
-    ))
+    <>
+      {invoice.schedule.map((item, index) => (
+        <tr key={index}>
+          <td>
+            <b>Date:</b>
+            <br />
+            <br />
+            <p className="ms-4">
+              <b>Start time:</b> {formatDateTime(item.start_time)} <br />
+              <b>End time:</b> {formatDateTime(item.end_time)}
+            </p>
+          </td>
+          <td>
+            {invoice.status == "paid" ? (
+              <>
+                Reserved spot - The <b>{spaceInfo?.category_name}</b> Category of{" "}
+                <b>{spaceInfo?.space_name}</b> at <b>{spaceInfo?.floor_name}</b> of the{" "}
+                <b>{spaceInfo?.location_name}</b> location
+              </>
+            ) : (
+              <>Reserved spot - No spot reserved yet, status might be pending</>
+            )}
+          </td>
+          <td>{Number(spaceInfo?.space_fee) || "N/A"}</td>
+        </tr>
+      ))}
+      {charges && charges.length > 0 && charges.map((charge, idx) => (
+        <tr key={`charge-${idx}`}>
+          <td>  Charges: </td>
+          <td> {charge.name} </td>
+          <td> {charge.fee} </td>
+        </tr>
+      ))}
+    </>
   ) : (
     <tr>
       <td colSpan={3} className="text-center text-muted">

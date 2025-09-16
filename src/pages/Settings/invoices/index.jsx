@@ -289,7 +289,7 @@ const [currencySymbols, setCurrencySymbols] = useState({});
         prevData.filter((myInvoice) => myInvoice.id !== myInvoiceID)
       );
       setPopup({
-        message: "This invoice has been closed!",
+        message: "This invoice has been marked as complete!",
         type: "success",
         isVisible: true,
       });
@@ -299,7 +299,7 @@ const [currencySymbols, setCurrencySymbols] = useState({});
     } catch (error) {
       console.error("Error promoting member:", error);
       setPopup({
-        message: "Failed to close this invoice!",
+        message: "Failed to mark this invoice as complete!",
         type: "error",
         isVisible: true,
       });
@@ -486,6 +486,10 @@ const [currencySymbols, setCurrencySymbols] = useState({});
       Cell: ({ row }) => (
         <>
           {row.original.space_payment[0].payment_status === "pending" && (
+             <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip id={`tooltip-delete-${row.original.id}`}> Mark as Complete </Tooltip>}
+          >
             <Button
               variant="danger"
               className="waves-effect waves-light"
@@ -495,31 +499,40 @@ const [currencySymbols, setCurrencySymbols] = useState({});
                   row.original.invoice_ref
                 )
               }
-              style={{
-                backgroundColor: primary,
+               style={{
+               backgroundColor: "#fff",
                 borderColor: primary,
-                color: "#fff",
+                color: primary,
+                gap: "12px",
               }}
+             
             >
-              Close Invoice
-            </Button>
-          )}
 
+             <i className="fas fa-check"></i> Complete
+            </Button>
+            </OverlayTrigger> 
+          )}
+{"   "}
         {row.original.space_payment[0].payment_status !== "completed" &&
         row.original.space_payment[0].payment_status !== "cancelled" && (
            <OverlayTrigger
             placement="top"
-            overlay={<Tooltip id={`tooltip-delete-${row.original.id}`}> Cancel Booking</Tooltip>}
+            overlay={<Tooltip id={`tooltip-delete-${row.original.book_spot_id}`}> Cancel Booking</Tooltip>}
           >
-          <Link
+          <Button
+          variant="danger"
+              className="waves-effect waves-light"
             to="#"
-            className="action-icon"
+             style={{
+                backgroundColor: primary,
+                borderColor: primary,
+                color: "#fff",
+              }}
             onClick={() =>
-              handleDeleteButton(row.original.book_spot.id)
+              handleDeleteButton(row.original.book_spot_id)
             }
           >
-            <i className="mdi mdi-delete"></i>
-          </Link>
+            <i className="fas fa-times"></i> Cancel      </Button>
            </OverlayTrigger>
         )}
         </>
@@ -651,7 +664,7 @@ const [currencySymbols, setCurrencySymbols] = useState({});
 
       {closeInvoicePopup.isVisible && (
         <Popup
-          message="Are you sure you want to close this invoice?"
+          message="Are you sure you want to mark this invoice as complete?"
           type="confirm"
           onClose={() =>
             setCloseInvoicePopup({ isVisible: false, myInvoiceID: null })

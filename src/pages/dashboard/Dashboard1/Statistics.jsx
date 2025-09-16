@@ -130,6 +130,8 @@ const Statistics = () => {
   };
 
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   console.log("Today's date:", today);
   // Fetch bookings data for today or custom range
   const fetchBookingsData = async (fromDate, toDate) => {

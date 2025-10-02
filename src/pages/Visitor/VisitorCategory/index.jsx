@@ -603,27 +603,26 @@ const VisitorCategory = () => {
           headers["Authorization"] = `Bearer ${visitorToken}`;
         }
         const categorySpacesRes = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/spaces/category/${locationId}/?category_id=${categoryId}`,
-          { headers },
-          { "Content-Type": "application/json" }
+          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/spaces/category/${locationId}?category_id=${categoryId}`,
+          {method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
         );
         console.log("categoryspaces", categorySpacesRes)
         const categorySpacesData = await categorySpacesRes.json();
+                    console.log("Category fetch failed", categorySpacesRes.status, categorySpacesData);
+
         if (!categorySpacesRes.ok || !Array.isArray(categorySpacesData.data) || categorySpacesData.data.length === 0) {
-          setNotFound(true);
+            console.log("Category fetch failed", categorySpacesRes.status, categorySpacesData);
+            setNotFound(true);
           setLoading(false);
           return;
         }
 
         // 5. The API returns an array of spaces in this category. Wrap in a single category object for rendering.
-        setRoomsData([
-          {
-            category_id: categoryId,
-            category_name: decodedCategory,
-            images: matchedCategory?.images || [],
-            spots: categorySpacesData.data,
-          },
-        ]);
+         setRoomsData(categorySpacesData.data);
       } catch (error) {
         setNotFound(true);
       } finally {
@@ -830,7 +829,7 @@ const VisitorCategory = () => {
                       </span>
                     </Card.Text>
                     <div className="text-center mb-1">
-                      <strong>Charged {room.book_time} </strong>
+                      <strong>Charged: {category.booking_type} </strong>
                     </div>
                     <div className="mt-auto">
                       <Button

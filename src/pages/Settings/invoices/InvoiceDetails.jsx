@@ -1,3 +1,7 @@
+
+
+
+
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { Card, Row, Col, Spinner, Button } from "react-bootstrap";
@@ -12,12 +16,11 @@ const InvoiceDetails = () => {
   const { id } = useParams();
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
-  console.log("Tenant Token in InvoiceDetails:", tenantToken);
-  console.log("User in InvoiceDetails:", user);
   const [invoice, setInvoice] = useState(location.state?.invoice);
   const [bank, setBank] = useState("");
   const [space, setSpace] = useState("");
   const [loading, setLoading] = useState(!invoice);
+  const [charges, setCharges] = useState([]); // State for charges
   const tenantSlug = user?.tenant;
   const printRef = useRef();
   const [currencySymbol, setCurrencySymbol] = useState("$");
@@ -35,7 +38,7 @@ const InvoiceDetails = () => {
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
 
-    const handlePrint = () => {
+  const handlePrint = () => {
     window.print();
   };
 
@@ -51,33 +54,54 @@ const InvoiceDetails = () => {
     };
     html2pdf().set(opt).from(element).save();
   };
-useEffect(() => {
-  console.log("Updated user context:", user);
-}, [user]);
- 
+
+  useEffect(() => {
+    // console.log("Updated user context:", user);
+  }, [user]);
+
+  // Function to calculate total from charges
+  const calculateChargesTotal = () => {
+    return charges.reduce((total, charge) => total + (Number(charge.fee) || 0), 0);
+  };
+
+  // Function to calculate base amount (invoice amount minus charges)
+  const calculateBaseAmount = () => {
+    const invoiceAmount = Number(invoice?.amount) || 0;
+    const chargesTotal = calculateChargesTotal();
+    return invoiceAmount - chargesTotal;
+  };
+
+  // Function to calculate grand total (should be same as invoice.amount)
+  const calculateGrandTotal = () => {
+    const baseAmount = calculateBaseAmount();
+    const chargesTotal = calculateChargesTotal();
+    return baseAmount + chargesTotal;
+  };
 
   useEffect(() => {
     if (!invoice) {
-      
       const fetchInvoice = async () => {
         try {
           const response = await axios.get(
-            `${
-              import.meta.env.VITE_BACKEND_URL
-            }/api/${tenantSlug}/invoice/show/${id}`,
+            `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/invoice/show/${id}`,
             {
               headers: { Authorization: `Bearer ${user?.tenantToken}` },
             }
           );
-          console.log(response);
+          console.log("response", response);
           
           if (response.data.invoice || response.data.bank) {
-            console.log(response.data.invoice);
             setInvoice(response.data.invoice);
-            console.log(response.data.bank);
             setBank(response.data.bank);
             setSpace(response.data.space_info);
             setSelectedLocation(response.data.bank.location_id);
+            
+            // Set charges from the API response
+            if (response.data.charges && Array.isArray(response.data.charges)) {
+              setCharges(response.data.charges);
+            } else {
+              setCharges([]);
+            }
           } else {
             toast.error("No invoice details found.");
           }
@@ -91,7 +115,7 @@ useEffect(() => {
     }
   }, [id, invoice, user]);
 
-   const fetchCurrencySymbol = async (locationId) => {
+  const fetchCurrencySymbol = async (locationId) => {
     if (!locationId) {
       setCurrencySymbol("₦");
       return;
@@ -113,19 +137,17 @@ useEffect(() => {
         setCurrencySymbol(result.data[0].symbol || "₦");
       } else {
         setCurrencySymbol("₦");
-    }
+      }
     } catch (err) {
       setCurrencySymbol("₦");
     }
   };
 
-    useEffect(() => {
+  useEffect(() => {
     if (selectedLocation) {
       fetchCurrencySymbol(selectedLocation);
     }
   }, [selectedLocation]);
-
-  // const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString("en-US");
 
   if (loading) {
     return (
@@ -149,98 +171,160 @@ useEffect(() => {
         title={`Invoice Details - ${invoice.invoice_ref}`}
       />
 
-     <Card className="shadow">
-  <Card.Body>
-    {/* Only this div will be converted to PDF */}
-    <div ref={printRef}>
-      <div className="mb-2">
-        <h3 className="text-center">Invoice</h3>
-        <div className="d-flex justify-content-between">
-          <div>
-            <h5 className="mb-1">Billed To:</h5>
-            <p className="mb-0">{invoice?.user?.first_name} { invoice?.user?.last_name}</p>
-            <p className="mb-0">{invoice.email}</p>
-            <p>{invoice.phone_number}</p>
-          </div>
-          <div className="text-end">
-            <h6 className="mb-1">Invoice Ref:</h6>
-            <p>{invoice.invoice_ref}</p>
-            <h6 className="mb-1">Date Issued:</h6>
-            <p>{formatDateTime(invoice.created_at)}</p>
-          </div>
-        </div>
-      </div>
+      <Card className="shadow">
+        <Card.Body>
+          {/* Only this div will be converted to PDF */}
+          <div ref={printRef}>
+            <div className="mb-2">
+              <h3 className="text-center">Invoice</h3>
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h5 className="mb-1">Billed To:</h5>
+                  <p className="mb-0">{invoice?.user?.first_name} {invoice?.user?.last_name}</p>
+                  <p className="mb-0">{invoice.email}</p>
+                  <p>{invoice.phone_number}</p>
+                </div>
+                <div className="text-end">
+                  <h6 className="mb-1">Invoice Ref:</h6>
+                  <p>{invoice.invoice_ref}</p>
+                  <h6 className="mb-1">Date Issued:</h6>
+                  <p>{formatDateTime(invoice.created_at)}</p>
+                </div>
+              </div>
+            </div>
 
-      <table className="table table-bordered">
-        <thead className="table-light">
-          <tr>
-            <th>Booked Days</th>
-            <th>Description</th>
-            <th>Amount ({currencySymbol})</th>
-          </tr>
-          
-        </thead>
-        <tbody>
+            <table className="table table-bordered">
+              <thead className="table-light">
+                <tr>
+                  <th>Description</th>
+                  <th>Amount ({currencySymbol})</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Main Booking Item (Base amount minus charges) */}
+                <tr>
+                  <td>
+                    <b>Space Booking - {space?.space_name || 'Spot'}</b>
+                    <div className="ms-3 mt-2">
+                      {space ? (
+                        <div>
+                          <small>
+                            <b>Location:</b> {space?.location_name}<br/>
+                            <b>Floor:</b> {space?.floor_name}<br/>
+                            <b>Category:</b> {space?.category_name}<br/>
+                            <b>Booking Type:</b> {space?.booking_type}
+                          </small>
+                        </div>
+                      ) : (
+                        <small>Reserved spot - No spot reserved yet, status might be pending</small>
+                      )}
+                    </div>
+                    <div className="ms-3 mt-2">
+                      <small>
+                        <b>Booking Details:</b><br/>
+                        {invoice?.schedule?.map((item, index) => (
+                          <div key={index}>
+                            Date: {item.date}<br/>
+                            Start: {formatDateTime(item.start_time)}<br/>
+                            End: {formatDateTime(item.end_time)}
+                          </div>
+                        ))}
+                      </small>
+                    </div>
+                  </td>
+                  <td className="align-middle">
+                    {calculateBaseAmount().toLocaleString()}
+                  </td>
+                </tr>
 
-          {(invoice?.schedule || []).map((item, index) => (
-            <tr key={index}>
-              <td>{<b>Date: <br/> <br/> <p className="ms-4"> Start time:  {formatDateTime(invoice?.schedule[0].start_time)}   <br/> End time: {formatDateTime(invoice?.schedule[0].end_time)}</p></b>}</td>
-              <td>{
-                space?.space ? (
-                                <td>Reserved spot - The <b> {space?.space?.category?.category} </b> Category of <b> {space?.space?.space_name} </b> at <b>{space?.floor?.name}</b> of the <b>{space?.location?.name} </b> location</td>
+                {/* Additional Charges */}
+                {charges.length > 0 ? (
+                  charges.map((charge, index) => (
+                    <tr key={`charge-${index}`}>
+                      <td>
+                        <b>{charge.name || 'Additional Charge'}</b>
+                      </td>
+                      <td className="align-middle">
+                        {Number(charge.fee).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
                 ) : (
-                                <td>Reserved spot - No spot reserved yet, status might be pending</td>
+                  <tr>
+                    <td colSpan="2" className="text-center text-muted">
+                      No additional charges
+                    </td>
+                  </tr>
                 )}
-              </td>
-              <td>{Number(invoice?.amount) || 'N/A' }</td>
-
-            </tr>
-          ))}
-         
-        </tbody>
-        <tfoot>
-          <tr>
-            <th colSpan={2}>Total:</th>
+              </tbody>
+              <tfoot>
+                {/* Base Amount (Invoice amount minus charges) */}
+                <tr>
+                  <th>Base Amount:</th>
+                  <th>{currencySymbol} {calculateBaseAmount().toLocaleString()}</th>
+                </tr>
+                
+                {/* Additional Charges Total */}
+                {charges.length > 0 && (
+                  <tr>
+                    <th>Additional Charges:</th>
+                    <th>{currencySymbol} {calculateChargesTotal().toLocaleString()}</th>
+                  </tr>
+                )}
+                
+                {/* Grand Total (should match invoice.amount) */}
+                <tr className="table-active">
+                  <th>Grand Total:</th>
+                  <th>{currencySymbol} {Number(invoice.amount).toLocaleString()}</th>
+                </tr>
+              </tfoot>
+            </table>
             
-            <th>{currencySymbol} {Number(invoice.amount).toLocaleString()}</th>
-          </tr>
-        </tfoot>
-      </table>
-      {bank ? (
-        <div className="text-center">
-              <p className="ms-4"> <b> Bank Name: </b>  {bank?.bank_name}   <br/> <b> Account Name: </b> {bank?.account_name} <br/> <b> Account Number: </b> {bank?.account_number} </p>
+            {bank && (
+              <div className="text-center mt-4">
+                <h6>Payment Information</h6>
+                <p className="mb-1">
+                  <b>Bank Name:</b> {bank?.bank_name}
+                </p>
+                <p className="mb-1">
+                  <b>Account Name:</b> {bank?.account_name}
+                </p>
+                <p className="mb-0">
+                  <b>Account Number:</b> {bank?.account_number}
+                </p>
+              </div>
+            )}
+            
+            <div className="mt-4">
+              <p>
+                <strong>Status:</strong>{" "}
+                <span
+                  className={`badge ${
+                    invoice.status === "completed"
+                      ? "bg-success"
+                      : "bg-warning text-dark"
+                  }`}
+                >
+                  {invoice.status.toUpperCase()}
+                </span>
+              </p>
+              <p className="text-muted">
+                <small>Invoice ID: {invoice.id}</small>
+              </p>
+            </div>
+          </div> {/* End of printable content */}
 
-      </div>
-      ) : ("") }
-      
-      <div className="mt-4">
-        <p>
-          <strong>Status:</strong>{" "}
-          <span
-            className={`badge ${
-              invoice.status === "completed"
-                ? "bg-success"
-                : "bg-warning text-dark"
-            }`}
-          >
-            {invoice.status.toUpperCase()}
-          </span>
-        </p>
-      </div>
-    </div> {/* End of printable content */}
-
-    {/* ⛔️ Not included in PDF */}
-    <div className="text-end mt-3">
-      <Button variant="primary" onClick={handlePrint} className="me-2">
-        Print Invoice
-      </Button>
-      <Button variant="success" onClick={handleDownloadPDF}>
-        Download as PDF
-      </Button>
-    </div>
-  </Card.Body>
-</Card>
-
+          {/* ⛔️ Not included in PDF */}
+          <div className="text-end mt-3">
+            <Button variant="primary" onClick={handlePrint} className="me-2">
+              Print Invoice
+            </Button>
+            <Button variant="success" onClick={handleDownloadPDF}>
+              Download as PDF
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
     </>
   );
 };

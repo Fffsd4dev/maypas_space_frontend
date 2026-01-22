@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { Card, Row, Col, Spinner, Button } from "react-bootstrap";
@@ -18,9 +14,9 @@ const InvoiceDetails = () => {
   const tenantToken = user?.tenantToken;
   const [invoice, setInvoice] = useState(location.state?.invoice);
   const [bank, setBank] = useState("");
-  const [space, setSpace] = useState("");
+  const [space, setSpace] = useState(null);
   const [loading, setLoading] = useState(!invoice);
-  const [charges, setCharges] = useState([]); // State for charges
+  const [charges, setCharges] = useState([]);
   const tenantSlug = user?.tenant;
   const printRef = useRef();
   const [currencySymbol, setCurrencySymbol] = useState("$");
@@ -59,19 +55,16 @@ const InvoiceDetails = () => {
     // console.log("Updated user context:", user);
   }, [user]);
 
-  // Function to calculate total from charges
   const calculateChargesTotal = () => {
     return charges.reduce((total, charge) => total + (Number(charge.fee) || 0), 0);
   };
 
-  // Function to calculate base amount (invoice amount minus charges)
   const calculateBaseAmount = () => {
     const invoiceAmount = Number(invoice?.amount) || 0;
     const chargesTotal = calculateChargesTotal();
     return invoiceAmount - chargesTotal;
   };
 
-  // Function to calculate grand total (should be same as invoice.amount)
   const calculateGrandTotal = () => {
     const baseAmount = calculateBaseAmount();
     const chargesTotal = calculateChargesTotal();
@@ -94,9 +87,9 @@ const InvoiceDetails = () => {
             setInvoice(response.data.invoice);
             setBank(response.data.bank);
             setSpace(response.data.space_info);
+            setCharges(response.data.charges);
             setSelectedLocation(response.data.bank.location_id);
             
-            // Set charges from the API response
             if (response.data.charges && Array.isArray(response.data.charges)) {
               setCharges(response.data.charges);
             } else {
@@ -173,7 +166,6 @@ const InvoiceDetails = () => {
 
       <Card className="shadow">
         <Card.Body>
-          {/* Only this div will be converted to PDF */}
           <div ref={printRef}>
             <div className="mb-2">
               <h3 className="text-center">Invoice</h3>
@@ -201,7 +193,6 @@ const InvoiceDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                {/* Main Booking Item (Base amount minus charges) */}
                 <tr>
                   <td>
                     <b>Space Booking - {space?.space_name || 'Spot'}</b>
@@ -237,7 +228,6 @@ const InvoiceDetails = () => {
                   </td>
                 </tr>
 
-                {/* Additional Charges */}
                 {charges.length > 0 ? (
                   charges.map((charge, index) => (
                     <tr key={`charge-${index}`}>
@@ -258,13 +248,11 @@ const InvoiceDetails = () => {
                 )}
               </tbody>
               <tfoot>
-                {/* Base Amount (Invoice amount minus charges) */}
                 <tr>
                   <th>Base Amount:</th>
                   <th>{currencySymbol} {calculateBaseAmount().toLocaleString()}</th>
                 </tr>
                 
-                {/* Additional Charges Total */}
                 {charges.length > 0 && (
                   <tr>
                     <th>Additional Charges:</th>
@@ -272,7 +260,6 @@ const InvoiceDetails = () => {
                   </tr>
                 )}
                 
-                {/* Grand Total (should match invoice.amount) */}
                 <tr className="table-active">
                   <th>Grand Total:</th>
                   <th>{currencySymbol} {Number(invoice.amount).toLocaleString()}</th>
@@ -312,9 +299,8 @@ const InvoiceDetails = () => {
                 <small>Invoice ID: {invoice.id}</small>
               </p>
             </div>
-          </div> {/* End of printable content */}
+          </div>
 
-          {/* ⛔️ Not included in PDF */}
           <div className="text-end mt-3">
             <Button variant="primary" onClick={handlePrint} className="me-2">
               Print Invoice

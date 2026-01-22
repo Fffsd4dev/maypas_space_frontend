@@ -1163,6 +1163,7 @@ const SeatBookingSystem = () => {
                               <div>
                                 <strong>Floor/Section:</strong> {spot.floor_name}
                               </div>
+                              <div><strong> Charged: </strong> {spot.booking_type}</div>
                             </Card.Text>
                             <div className="mt-auto">
                               <Button

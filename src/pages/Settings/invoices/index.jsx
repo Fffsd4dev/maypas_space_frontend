@@ -660,7 +660,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
+import { Row, Col, Card, Button, Spinner, Form, Tooltip, OverlayTrigger } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
 import InvoicesModal from "./InvoicesForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
@@ -709,7 +709,7 @@ const Invoices = () => {
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myInvoiceID: null,
+    spotID: null,
   });
 
   const sizePerPageList = [
@@ -946,7 +946,7 @@ const Invoices = () => {
         prevData.filter((myInvoice) => myInvoice.id !== myInvoiceID)
       );
       setPopup({
-        message: "This invoice has been closed!",
+        message: "This invoice has been marked as complete!",
         type: "success",
         isVisible: true,
       });
@@ -956,7 +956,7 @@ const Invoices = () => {
     } catch (error) {
       console.error("Error promoting member:", error);
       setPopup({
-        message: "Failed to close this invoice!",
+        message: "Failed to mark this invoice as complete!",
         type: "error",
         isVisible: true,
       });
@@ -965,20 +965,22 @@ const Invoices = () => {
     }
   };
 
-  const handleDelete = async (myInvoiceRef, myInvoiceID) => {
+  const handleDelete = async (spotID) => {
     if (!user?.tenantToken) return;
 
     setIsLoading(true);
     try {
+                console.log("body", { book_spot_id: spotID });
+
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/bank/delete`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/cancel`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${user?.tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myInvoiceID }),
+          body: JSON.stringify({ book_spot_id: spotID }),
         }
       );
       const result = await response.json();
@@ -986,17 +988,17 @@ const Invoices = () => {
       if (!response.ok) throw new Error(result.message || "Failed to delete.");
 
       setPopup({
-        message: "Bank detail deleted successfully!",
+        message: "Booking canceled successfully!",
         type: "success",
         isVisible: true,
       });
 
       fetchData();
     } catch (error) {
-      toast.error("Failed to delete this bank details!");
-      console.error("Error deleting bank details:", error);
+      toast.error("Failed to cancel this booking!");
+      console.error("Error cancelling this booking:", error);
       setPopup({
-        message: "Failed to this bank details!",
+        message: "Failed to cancel this booking!",
         type: "error",
         isVisible: true,
       });
@@ -1005,10 +1007,10 @@ const Invoices = () => {
     }
   };
 
-  const handleDeleteButton = (myInvoiceID) => {
+  const handleDeleteButton = (spotID) => {
     setDeletePopup({
       isVisible: true,
-      myInvoiceID,
+      spotID,
     });
   };
 
@@ -1036,8 +1038,9 @@ const Invoices = () => {
   };
 
   const confirmDelete = () => {
-    handleDelete(deletePopup.myInvoiceID);
-    setDeletePopup({ isVisible: false, myInvoiceID: null });
+    const { spotID } = deletePopup;
+    handleDelete(spotID);
+    setDeletePopup({ isVisible: false, spotID: null });
   };
 
   const formatTime = (time) => {
@@ -1138,43 +1141,60 @@ const Invoices = () => {
       Header: "Action",
       accessor: "action",
       sort: false,
-      Cell: ({ row }) => {
-        const spacePayment = getSpacePayment(row.original);
-        
-        return (
-          <>
-            {spacePayment.payment_status === "pending" && (
-              <Button
-                variant="danger"
-                className="waves-effect waves-light"
-                onClick={() =>
-                  handleCloseInvoiceButton(
-                    row.original.id,
-                    row.original.invoice_ref
-                  )
-                }
-                style={{
-                  backgroundColor: primary,
-                  borderColor: primary,
-                  color: "#fff",
-                }}
-              >
-                Close Invoice
-              </Button>
-            )}
-
-            <Link
-              to="#"
-              className="action-icon"
+      Cell: ({ row }) => (
+        <>
+          {row.original.space_payment[0].payment_status === "pending" && (
+             <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip id={`tooltip-delete-${row.original.id}`}> Mark as Complete </Tooltip>}
+          >
+            <Button
+              variant="danger"
+              className="waves-effect waves-light"
               onClick={() =>
-                handleDeleteButton(row.original.user_id)
+                handleCloseInvoiceButton(
+                  row.original.id,
+                  row.original.invoice_ref
+                )
               }
+               style={{
+               backgroundColor: "#fff",
+                borderColor: primary,
+                color: primary,
+                gap: "12px",
+              }}
+             
             >
-              <i className="mdi mdi-delete"></i>
-            </Link>
-          </>
-        );
-      },
+
+             <i className="fas fa-check"></i> Complete
+            </Button>
+            </OverlayTrigger> 
+          )}
+{"   "}
+        {row.original.space_payment[0].payment_status !== "completed" &&
+        row.original.space_payment[0].payment_status !== "cancelled" && (
+           <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip id={`tooltip-delete-${row.original.book_spot_id}`}> Cancel Booking</Tooltip>}
+          >
+          <Button
+          variant="danger"
+              className="waves-effect waves-light"
+            to="#"
+             style={{
+                backgroundColor: primary,
+                borderColor: primary,
+                color: "#fff",
+              }}
+            onClick={() =>
+              handleDeleteButton(row.original.book_spot_id)
+            }
+          >
+            <i className="fas fa-times"></i> Cancel      </Button>
+           </OverlayTrigger>
+        )}
+        </>
+      ),
     },
   ];
 
@@ -1281,10 +1301,10 @@ const Invoices = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this bank details?"
+          message="Are you sure you want to cancel this booking?"
           type="confirm"
           onClose={() =>
-            setDeletePopup({ isVisible: false, myInvoiceID: null })
+            setDeletePopup({ isVisible: false, spotID: null })
           }
           buttonLabel="Yes"
           onAction={confirmDelete}
@@ -1293,7 +1313,7 @@ const Invoices = () => {
 
       {closeInvoicePopup.isVisible && (
         <Popup
-          message="Are you sure you want to close this invoice?"
+          message="Are you sure you want to mark this invoice as complete?"
           type="confirm"
           onClose={() =>
             setCloseInvoicePopup({ isVisible: false, myInvoiceID: null })

@@ -1,14 +1,26 @@
 import { Card, Row, Col } from "react-bootstrap";
 import classNames from "classnames";
 import CountUp from "react-countup";
+import { useLogoColor } from "@/context/LogoColorContext";
+
 const StatisticsWidget = props => {
+
+  const { colour: primary, secondary } = useLogoColor();
   return <>
       <Card className="widget-rounded-circle">
         <Card.Body>
           <Row>
             <Col className="col-6">
-              <div className={classNames("avatar-lg", "rounded-circle", "bg-soft-" + props["variant"], "border-" + props["variant"], "border")}>
-                <i className={classNames(props["icon"], "avatar-title", "font-22", "text-" + props["variant"])}></i>
+              {/* <div className={classNames("avatar-lg", "rounded-circle", "bg-soft-" + props["variant"], "border-" + props["variant"], "border")} style={{backgroundColor: primary, borderColor: primary}}> */}
+              <div 
+  className={classNames("avatar-lg", "rounded-circle")} 
+  style={{
+    backgroundColor: primary, 
+    // borderColor: primary,
+    // border: "1px solid"
+  }}
+>
+                <i className={classNames(props["icon"], "avatar-title", "font-22")} style={{color: "#ffffff"}}></i>
               </div>
             </Col>
             <Col className="col-6">

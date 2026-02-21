@@ -76,7 +76,6 @@ const WorkspaceRegistrationModal = ({ show, onHide, workspace, onSubmit }) => {
             });
 
             const result = await response.json();
-            console.log(result);
 
             if (response.ok) {
                 toast.success(workspace ? "Workspace updated successfully!" : "Workspace registered successfully!");
@@ -96,7 +95,6 @@ const WorkspaceRegistrationModal = ({ show, onHide, workspace, onSubmit }) => {
                 }
 
                 toast.error(errorMsg);
-                console.log(result);
 
                 
             }

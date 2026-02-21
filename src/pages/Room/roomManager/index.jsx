@@ -1,18 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Link } from "react-router-dom";
 import {
-  Modal,
   Row,
   Col,
   Card,
   Button,
   Spinner,
   Form,
-  InputGroup,
   OverlayTrigger,
   Tooltip,
 } from "react-bootstrap";
-import PropTypes from "prop-types";
 import PageTitle from "../../../components/PageTitle";
 import RoomRegistrationModal from "./RoomRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
@@ -20,8 +17,6 @@ import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
 import { useLogoColor } from "../../../context/LogoColorContext";
-
-//  New import
 import ChargesModal from "../../../components/ChargesModal";
 
 const Rooms = () => {
@@ -30,14 +25,19 @@ const Rooms = () => {
   const tenantSlug = user?.tenant;
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
+  // Refs to prevent duplicate calls
+  const isMounted = useRef(true);
+  const isFetching = useRef(false);
+  const isFetchingLocations = useRef(false);
+  const isFetchingFloors = useRef(false);
+
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [loadingFloor, setLoadingFloor] = useState(false);
   const [floorData, setFloorData] = useState([]);
-
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState({
     message: "",
@@ -46,16 +46,15 @@ const Rooms = () => {
     buttonLabel: "",
     buttonRoute: "",
   });
-  const [isError, setIsError] = useState(false);
   const [locations, setLocations] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedFloor, setSelectedFloor] = useState("");
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myRoomID: null,
+    roomId: null,
   });
 
-  //  New state for charges modal
   const [chargesModal, setChargesModal] = useState({
     isVisible: false,
     spaceId: null,
@@ -69,201 +68,203 @@ const Rooms = () => {
     pageSize: 10,
   });
 
-  const formatDateTime = (isoString) => {
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const formatDateTime = useCallback((isoString) => {
+    if (!isoString) return "";
     const options = {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
-  };
+  }, []);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    location_id: "",
-    floor_id: "",
-  });
-
-  const fetchLocations = async () => {
+  const fetchLocations = useCallback(async () => {
+    if (isFetchingLocations.current || !tenantToken || !tenantSlug) return;
+    
+    isFetchingLocations.current = true;
     setLoadingLocations(true);
+    
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations?per_page=100`,
         {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
+          headers: { Authorization: `Bearer ${tenantToken}` },
         }
       );
       const result = await response.json();
-      if (response.ok) {
-        console.log("Location:", result.data.data);
-        setLocations(result.data.data || []);
-      } else {
+      
+      if (isMounted.current && response.ok) {
+        setLocations(result.data?.data || []);
+      } else if (isMounted.current) {
         throw new Error(result.message || "Failed to fetch locations.");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingLocations(false);
+      if (isMounted.current) {
+        setLoadingLocations(false);
+      }
+      isFetchingLocations.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  const handleLocationChange = (e) => {
-    const locationId = e.target.value;
-    setSelectedLocation(locationId);
-    setFormData((prev) => ({
-      ...prev,
-      location_id: locationId,
-    }));
-  };
-
-  const fetchFloor = async (locationId) => {
+  const fetchFloors = useCallback(async (locationId) => {
+    if (isFetchingFloors.current || !tenantToken || !tenantSlug || !locationId) return;
+    
+    isFetchingFloors.current = true;
     setLoadingFloor(true);
+    
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}?per_page=100`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
-      if (result && Array.isArray(result.data.data)) {
+      
+      if (isMounted.current && result?.data?.data) {
         setFloorData(result.data.data);
-      } else {
+      } else if (isMounted.current) {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingFloor(false);
+      if (isMounted.current) {
+        setLoadingFloor(false);
+      }
+      isFetchingFloors.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  useEffect(() => {
-    if (selectedLocation) {
-      fetchFloor(selectedLocation);
-    }
-  }, [selectedLocation]);
-
-  const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
+  const fetchRooms = useCallback(async (locationId, floorId, page = 1, pageSize = 10) => {
+    if (isFetching.current || !tenantToken || !tenantSlug || !locationId || !floorId) return;
+    
+    isFetching.current = true;
     setLoading(true);
+    
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
-      if (result && Array.isArray(result)) {
-        const data = result;
-        data.sort(
+      
+      if (isMounted.current && Array.isArray(result)) {
+        const sortedData = [...result].sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
-        setData(data);
-        setPagination({
-          currentPage: result.current_page,
-          totalPages: result.last_page,
-          nextPageUrl: result.next_page_url,
-          prevPageUrl: result.prev_page_url,
-          pageSize: pageSize,
-        });
-      } else {
+        setData(sortedData);
+        // Update pagination if available in response
+        if (result.pagination) {
+          setPagination({
+            currentPage: result.pagination.current_page || 1,
+            totalPages: result.pagination.last_page || 1,
+            nextPageUrl: result.pagination.next_page_url || null,
+            prevPageUrl: result.pagination.prev_page_url || null,
+            pageSize: pageSize,
+          });
+        }
+      } else if (isMounted.current) {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message);
-      console.error(error);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
+      isFetching.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
+  // Fetch locations once on mount
   useEffect(() => {
-    if (user?.tenantToken) {
+    if (tenantToken && tenantSlug) {
       fetchLocations();
     }
-  }, [user?.tenantToken]);
+  }, [tenantToken, tenantSlug, fetchLocations]);
 
-  const handleFloorChange = (e) => {
-    const floorId = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      floor_id: floorId,
-      space_category_id: "",
-    }));
-
-    if (floorId && selectedLocation) {
-      fetchRoom(
-        selectedLocation,
-        floorId,
-        pagination.currentPage,
-        pagination.pageSize
-      );
-    }
-  };
-
+  // Fetch floors when location changes
   useEffect(() => {
-    if (formData.floor_id && user?.tenantToken) {
-      fetchRoom(
-        selectedLocation,
-        formData.floor_id,
-        pagination.currentPage,
-        pagination.pageSize
-      );
+    if (tenantToken && tenantSlug && selectedLocation) {
+      fetchFloors(selectedLocation);
+      // Reset floor selection when location changes
+      setSelectedFloor("");
     }
-  }, [
-    user?.tenantToken,
-    selectedLocation,
-    pagination.currentPage,
-    pagination.pageSize,
-  ]);
+  }, [tenantToken, tenantSlug, selectedLocation, fetchFloors]);
 
-  const handleEditClick = (myRoom) => {
-    setSelectedUser(myRoom);
+  // Fetch rooms when floor or pagination changes
+  useEffect(() => {
+    if (tenantToken && tenantSlug && selectedLocation && selectedFloor) {
+      fetchRooms(selectedLocation, selectedFloor, pagination.currentPage, pagination.pageSize);
+    }
+  }, [tenantToken, tenantSlug, selectedLocation, selectedFloor, pagination.currentPage, pagination.pageSize, fetchRooms]);
+
+  const handleLocationChange = useCallback((e) => {
+    const locationId = e.target.value;
+    setSelectedLocation(locationId);
+    // Reset to first page when location changes
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  }, []);
+
+  const handleFloorChange = useCallback((e) => {
+    const floorId = e.target.value;
+    setSelectedFloor(floorId);
+    // Reset to first page when floor changes
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  }, []);
+
+  const handleEditClick = useCallback((room) => {
+    setSelectedRoom(room);
     setShow(true);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setShow(false);
-    setSelectedUser(null);
+    setSelectedRoom(null);
+    // Don't fetch here - let useEffect handle it
+  }, []);
 
-    if (selectedLocation && formData.floor_id) {
-      fetchRoom(
-        selectedLocation,
-        formData.floor_id,
-        pagination.currentPage,
-        pagination.pageSize
-      );
-    }
-  };
-
-  const handleDelete = async (myRoomID) => {
-    if (!user?.tenantToken) return;
+  const handleDelete = useCallback(async (roomId) => {
+    if (!tenantToken) return;
 
     setIsLoading(true);
     try {
@@ -272,57 +273,80 @@ const Rooms = () => {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myRoomID }),
+          body: JSON.stringify({ id: roomId }),
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       setData((prevData) =>
-        prevData.filter((myRoom) => myRoom.id !== myRoomID)
+        prevData.filter((room) => room.id !== roomId)
       );
+      
       setPopup({
         message: "Room deleted successfully!",
         type: "success",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
-      if (formData.floor_id && selectedLocation) {
-        fetchRoom(selectedLocation, pagination.currentPage, pagination.pageSize);
+      
+      // Refresh data
+      if (selectedLocation && selectedFloor) {
+        fetchRooms(selectedLocation, selectedFloor, pagination.currentPage, pagination.pageSize);
       }
     } catch (error) {
       toast.error("Failed to delete room!");
+      setPopup({
+        message: "Failed to delete room!",
+        type: "error",
+        isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
+      });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tenantToken, tenantSlug, selectedLocation, selectedFloor, fetchRooms, pagination.currentPage, pagination.pageSize]);
 
-  const handleDeleteButton = (myRoomID) => {
+  const handleDeleteButton = useCallback((roomId) => {
     setDeletePopup({
       isVisible: true,
-      myRoomID,
+      roomId,
     });
-  };
+  }, []);
 
-  const confirmDelete = () => {
-    const { myRoomID } = deletePopup;
-    handleDelete(myRoomID);
-    setDeletePopup({ isVisible: false, myRoomID: null });
-  };
+  const confirmDelete = useCallback(() => {
+    const { roomId } = deletePopup;
+    handleDelete(roomId);
+    setDeletePopup({ isVisible: false, roomId: null });
+  }, [deletePopup, handleDelete]);
 
-  // ⬇️ New handler for charges button
-  const handleChargesButton = (spaceId) => {
+  const handleChargesButton = useCallback((spaceId) => {
     setChargesModal({ isVisible: true, spaceId });
-    
-  };
+  }, []);
 
-  const columns = [
+  const handlePageChange = useCallback((page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  }, []);
+
+  const handlePageSizeChange = useCallback((pageSize) => {
+    setPagination((prev) => ({ ...prev, pageSize, currentPage: 1 }));
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    if (selectedLocation && selectedFloor) {
+      fetchRooms(selectedLocation, selectedFloor, pagination.currentPage, pagination.pageSize);
+    }
+  }, [selectedLocation, selectedFloor, fetchRooms, pagination.currentPage, pagination.pageSize]);
+
+  // Memoized columns
+  const columns = useMemo(() => [
     {
       Header: "S/N",
       accessor: (row, i) => i + 1,
@@ -333,11 +357,15 @@ const Rooms = () => {
       Header: "Room Name",
       accessor: "space_name",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "Category",
       accessor: "category.category",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "Space Number",
@@ -348,16 +376,13 @@ const Rooms = () => {
       Header: "Fee/Space",
       accessor: "space_fee",
       sort: true,
+      Cell: ({ value }) => value ? `₦${value.toLocaleString()}` : "",
     },
     {
       Header: "Space Discount (%)",
       accessor: "space_discount",
       sort: true,
-    },
-    {
-      Header: "Min. Time for a Space Discount",
-      accessor: "min_space_discount_time",
-      sort: true,
+      Cell: ({ value }) => value ? `${value}%` : "0%",
     },
     {
       Header: "Updated On",
@@ -370,44 +395,57 @@ const Rooms = () => {
       accessor: "action",
       sort: false,
       Cell: ({ row }) => (
-        <>
+        <div style={{ whiteSpace: "nowrap" }}>
           <OverlayTrigger
             overlay={<Tooltip id={`tooltip-edit-${row.original.id}`}>Edit Room</Tooltip>}
           >
             <Link
               to="#"
               className="action-icon"
-              onClick={() => handleEditClick(row.original)}
+              onClick={(e) => {
+                e.preventDefault();
+                handleEditClick(row.original);
+              }}
+              style={{ marginRight: "10px" }}
             >
-            <i className="mdi mdi-square-edit-outline"></i>
-          </Link>
-          </OverlayTrigger>{" "}
+              <i className="mdi mdi-square-edit-outline"></i>
+            </Link>
+          </OverlayTrigger>
+          
           <OverlayTrigger
             overlay={<Tooltip id={`tooltip-delete-${row.original.id}`}>Delete Room</Tooltip>}
           >
-          <Link
-            to="#"
-            className="action-icon"
-            onClick={() => handleDeleteButton(row.original.id)}
-          >
-            <i className="mdi mdi-delete"></i>
-          </Link>
-          </OverlayTrigger>{" "}
+            <Link
+              to="#"
+              className="action-icon"
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteButton(row.original.id);
+              }}
+              style={{ marginRight: "10px" }}
+            >
+              <i className="mdi mdi-delete"></i>
+            </Link>
+          </OverlayTrigger>
+          
           <OverlayTrigger
             overlay={<Tooltip id={`tooltip-charges-${row.original.id}`}>Manage Charges</Tooltip>}
           >
-          <Link
-            to="#"
-            className="action-icon"
-            onClick={() => handleChargesButton(row.original.id)}
-          >
-            <i className="mdi mdi-currency-usd"></i>
-          </Link>
+            <Link
+              to="#"
+              className="action-icon"
+              onClick={(e) => {
+                e.preventDefault();
+                handleChargesButton(row.original.id);
+              }}
+            >
+              <i className="mdi mdi-currency-usd"></i>
+            </Link>
           </OverlayTrigger>
-        </>
+        </div>
       ),
     },
-  ];
+  ], [handleEditClick, handleDeleteButton, handleChargesButton, formatDateTime]);
 
   return (
     <>
@@ -429,15 +467,32 @@ const Rooms = () => {
                     className="waves-effect waves-light"
                     onClick={() => {
                       setShow(true);
-                      setSelectedUser(null);
+                      setSelectedRoom(null);
                     }}
                     style={{
                       backgroundColor: primary,
                       borderColor: primary,
                       color: "#fff",
                     }}
+                    disabled={!selectedLocation || !selectedFloor}
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a Room
+                  </Button>
+                  {(!selectedLocation || !selectedFloor) && (
+                    <small className="text-muted d-block mt-1">
+                      Please select location and floor first
+                    </small>
+                  )}
+                </Col>
+                <Col sm={8} className="text-end">
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={loading || !selectedLocation || !selectedFloor}
+                  >
+                    <i className="mdi mdi-refresh me-1"></i>
+                    Refresh
                   </Button>
                 </Col>
               </Row>
@@ -450,28 +505,26 @@ const Rooms = () => {
                   }}
                 >
                   {loadingLocations ? (
-                    <div className="text-center">
+                    <div className="text-center py-4">
                       <Spinner animation="border" role="status">
                         <span className="visually-hidden">Loading...</span>
-                      </Spinner>{" "}
-                      Loading your locations...
+                      </Spinner>
+                      <p className="mt-2">Loading your locations...</p>
                     </div>
                   ) : (
                     <div>
                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
-                        Select a location to view or update the room.
+                        Select a location to view or update rooms.
                       </p>
                       <Form.Select
                         style={{ marginBottom: "25px", fontSize: "1rem" }}
-                        value={selectedLocation || ""}
+                        value={selectedLocation}
                         onChange={handleLocationChange}
                       >
-                        <option value="" disabled>
-                          Select a location
-                        </option>
+                        <option value="">Select a location</option>
                         {locations.map((location) => (
                           <option key={location.id} value={location.id}>
-                            {location.name} at {location.state}
+                            {location.name} - {location.state}
                           </option>
                         ))}
                       </Form.Select>
@@ -479,49 +532,52 @@ const Rooms = () => {
                   )}
 
                   {selectedLocation && (
-                    <Form.Group className="mb-3" controlId="location_id">
+                    <Form.Group className="mb-3" controlId="floor_id">
                       {loadingFloor ? (
-                        <div className="text-center">
-                          <Spinner animation="border" role="status">
-                            <span className="visually-hidden">
-                              Loading floors/sections...
-                            </span>
+                        <div className="text-center py-3">
+                          <Spinner animation="border" size="sm" role="status">
+                            <span className="visually-hidden">Loading...</span>
                           </Spinner>
+                          <p className="mt-2">Loading floors/sections...</p>
                         </div>
                       ) : (
                         <>
                           <Form.Label>
-                            Select the Floor of the room you want to view.
+                            Select the Floor/Section to view rooms.
                           </Form.Label>
                           <Form.Select
                             name="floor_id"
-                            value={formData.floor_id}
+                            value={selectedFloor}
                             onChange={handleFloorChange}
                             required
                           >
                             <option value="">Select a Floor/Section</option>
-                            {Array.isArray(floorData) &&
-                              floorData.map((floor) => (
-                                <option key={floor.id} value={floor.id}>
-                                  {floor.name}
-                                </option>
-                              ))}
+                            {floorData.map((floor) => (
+                              <option key={floor.id} value={floor.id}>
+                                {floor.name}
+                              </option>
+                            ))}
                           </Form.Select>
                         </>
                       )}
                     </Form.Group>
                   )}
 
-                  {formData.floor_id && (
+                  {selectedFloor && (
                     <>
                       {loading ? (
-                        <p>Loading rooms...</p>
+                        <div className="text-center py-4">
+                          <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                          </Spinner>
+                          <p className="mt-2">Loading rooms...</p>
+                        </div>
                       ) : isLoading ? (
-                        <div className="text-center">
+                        <div className="text-center py-4">
                           <Spinner animation="border" role="status">
                             <span className="visually-hidden">Deleting...</span>
-                          </Spinner>{" "}
-                          Deleting...
+                          </Spinner>
+                          <p className="mt-2">Deleting...</p>
                         </div>
                       ) : (
                         <Table2
@@ -536,13 +592,8 @@ const Rooms = () => {
                           paginationProps={{
                             currentPage: pagination.currentPage,
                             totalPages: pagination.totalPages,
-                            onPageChange: (page) =>
-                              setPagination((prev) => ({
-                                ...prev,
-                                currentPage: page,
-                              })),
-                            onPageSizeChange: (pageSize) =>
-                              setPagination((prev) => ({ ...prev, pageSize })),
+                            onPageChange: handlePageChange,
+                            onPageSizeChange: handlePageSizeChange,
                           }}
                         />
                       )}
@@ -558,20 +609,15 @@ const Rooms = () => {
       <RoomRegistrationModal
         show={show}
         onHide={handleClose}
-        myRoom={selectedUser}
+        room={selectedRoom}
+        locations={locations}
         onSubmit={() => {
-          if (selectedLocation && formData.floor_id) {
-            fetchRoom(
-              selectedLocation,
-              formData.floor_id,
-              pagination.currentPage,
-              pagination.pageSize
-            );
+          if (selectedLocation && selectedFloor) {
+            fetchRooms(selectedLocation, selectedFloor, pagination.currentPage, pagination.pageSize);
           }
         }}
       />
 
-      {/* ⬇️ New Charges Modal */}
       <ChargesModal
         show={chargesModal.isVisible}
         onHide={() => setChargesModal({ isVisible: false, spaceId: null })}
@@ -579,13 +625,8 @@ const Rooms = () => {
         tenantSlug={tenantSlug}
         tenantToken={tenantToken}
         onSaved={() => {
-          if (selectedLocation && formData.floor_id) {
-            fetchRoom(
-              selectedLocation,
-              formData.floor_id,
-              pagination.currentPage,
-              pagination.pageSize
-            );
+          if (selectedLocation && selectedFloor) {
+            fetchRooms(selectedLocation, selectedFloor, pagination.currentPage, pagination.pageSize);
           }
         }}
       />
@@ -604,7 +645,7 @@ const Rooms = () => {
         <Popup
           message="Are you sure you want to delete this room?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
+          onClose={() => setDeletePopup({ isVisible: false, roomId: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />

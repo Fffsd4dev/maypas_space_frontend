@@ -140,7 +140,7 @@ const CreateSubscription = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+      // second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
@@ -159,7 +159,6 @@ const CreateSubscription = () => {
         `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/view-plans?page=${page}&per_page=${pageSize}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log(response);
       const data = Array.isArray(response.data.data)
         ? response.data.data
         : response.data?.data?.subscriptions || [];
@@ -356,7 +355,6 @@ const sizePerPageList = [
       }
 
       const result = await response.json();
-      console.log("Fetched Subscription Plan details:", result);
 
       const newWindow = window.open(`/plan-details/${id}`, "_blank");
       if (newWindow) {
@@ -387,24 +385,40 @@ const sizePerPageList = [
       Header: "Subscription Name",
       accessor: "name",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
       classes: "table-user",
     },
     {
       Header: "Price",
       accessor: "price",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
     },
    
     {
       Header: "Created At",
       accessor: "created_at",
       sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
       Cell: ({ row }) => formatDateTime(row.original.created_at),
     },
     {
       Header: "Updated At",
       accessor: "updated_at",
       sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
       Cell: ({ row }) => formatDateTime(row.original.updated_at),
     },
 
@@ -423,10 +437,7 @@ const sizePerPageList = [
   ];
 
   const onSubmit = async (data) => {
-    console.log("submitting");
-    console.log(data);
     try {
-      console.log(token);
       setLoading(true);
       
         const payload = {
@@ -447,12 +458,9 @@ const sizePerPageList = [
         );
 
       const result = res;
-      console.log(res);
-      console.log(result);
 
 
       if (res.status === 201 || res.status === 200) {
-        console.log(res.ok);
 
         setPopup({
           message: "Plan Created successfully!",

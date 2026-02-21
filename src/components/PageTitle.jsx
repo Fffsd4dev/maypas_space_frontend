@@ -22,7 +22,6 @@ const PageTitle = (props) => {
   const tenantFirstName = user?.tenantFirstName || "";
   const tenantLastName = user?.tenantLastName || "";
   const companyName = user?.CName || "";
-  console.log(companyName);
   const { logoImg } = useLogoColor();
   const { colour: primary } = useLogoColor();
 
@@ -50,7 +49,7 @@ const PageTitle = (props) => {
         <div className="page-title-box">
           <div className="page-title-right">
             <Breadcrumb>
-              <Breadcrumb.Item
+              {/* <Breadcrumb.Item
                 href={
                   hasTenant
                     ? `/${tenantSlug}/${hasToken ? "tenantDashboard" : "home"}`
@@ -67,7 +66,7 @@ const PageTitle = (props) => {
                   : hasToken
                   ? "MayPas Booking"
                   : "Booking"}
-              </Breadcrumb.Item>
+              </Breadcrumb.Item> */}
 
               {(props["breadCrumbItems"] || []).map((item, index) => {
                 return item.active ? (

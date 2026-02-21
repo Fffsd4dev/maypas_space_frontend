@@ -34,7 +34,6 @@ const Logout2 = () => {
 
   useEffect(() => {
     const logout = async () => {
-      console.log(token);
       try {
         const res = await axios.post(
           `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/logout`,
@@ -48,7 +47,6 @@ const Logout2 = () => {
         );
 
         if (res.status === 200) {
-          console.log(res.data.message);
           removeSession();
 
         } else {

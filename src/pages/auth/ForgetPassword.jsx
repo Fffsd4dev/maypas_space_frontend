@@ -24,13 +24,16 @@ const BottomLink = () => {
   const {
     t
   } = useTranslation();
-        const { tenantSlug } = useParams();
+    const { tenantSlug } = useParams();
+    const { colour: primary } = useLogoColor();
 
   return <Row className="mt-3">
             <Col className="text-center">
-                <p className="text-white-50">
+                <p className="text-red-50">
                     {t("Back to")}{" "}
-                    <Link to={`/${tenantSlug}/auth/login`} className="text-white ms-1">
+                    <Link to={`/${tenantSlug}/auth/login`} className="text-red ms-1" style={{
+                          color: primary
+                        }}>
                         <b>{t("Log in")}</b>
                     </Link>
                 </p>

@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
-import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useLogoColor } from "../../../context/LogoColorContext";
 
-const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
+const LocationRegistrationModal = ({ show, onHide, location, onSubmit }) => {
   const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
 
   const { colour: primary } = useLogoColor();
 
-  const [roles, setRoles] = useState([]);
+  const isMounted = useRef(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,15 +19,23 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     address: "",
   });
 
-  const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Cleanup on unmount
   useEffect(() => {
-    if (myUser) {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Reset form when location changes or modal opens/closes
+  useEffect(() => {
+    if (location) {
       setFormData({
-        name: myUser.name || "",
-        state: myUser.state || "",
-        address: myUser.address || "",
+        name: location.name || "",
+        state: location.state || "",
+        address: location.address || "",
       });
     } else {
       setFormData({
@@ -36,152 +44,142 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
         address: "",
       });
     }
-  }, [myUser]);
+  }, [location, show]);
 
-  // Fetch roles when modal opens
-  const fetchRoles = async () => {
-    try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/usertype/list-user-types`,
-        {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
-        }
-      );
-      const result = await response.json();
-      if (response.ok) {
-        console.log("Roles:", result.data.data);
-        setRoles(result.data.data || []);
-      } else {
-        throw new Error(result.message || "Failed to fetch roles.");
-      }
-    } catch (error) {
-      toast.error(error.message);
-      setIsError(true);
-    }
-  };
-
-  useEffect(() => {
-    if (show && user?.tenantToken) {
-      fetchRoles();
-    }
-  }, [show, user?.tenantToken]);
-
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "company_countries"
-          ? value.split(",").map((c) => c.trim())
-          : value,
+      [name]: value,
     }));
-  };
+  }, []);
 
-  const handleSubmit = async (e) => {
+  const validateForm = useCallback(() => {
+    if (!formData.name.trim()) {
+      toast.error("Location name is required");
+      return false;
+    }
+    if (!formData.state.trim()) {
+      toast.error("State is required");
+      return false;
+    }
+    if (!formData.address.trim()) {
+      toast.error("Address is required");
+      return false;
+    }
+    return true;
+  }, [formData]);
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsLoading(true);
-    console.log(formData);
-    console.log(user?.tenantToken);
 
     try {
-      if (!user?.tenantToken)
-        throw new Error("Authorization token is missing.");
+      if (!tenantToken) throw new Error("Authorization token is missing.");
 
-      const url = myUser
-        ? `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/${tenantSlug}/location/update/${myUser.id}`
-        : `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/${tenantSlug}/location/create`;
+      const url = location
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/update/${location.id}`
+        : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/create`;
 
-      const method = myUser ? "POST" : "POST";
       const response = await fetch(url, {
-        method,
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.tenantToken}`,
+          Authorization: `Bearer ${tenantToken}`,
         },
         body: JSON.stringify(formData),
       });
 
       const result = await response.json();
-      console.log(result);
 
       if (response.ok) {
         toast.success(
-          myUser
+          location
             ? "Location updated successfully!"
-            : "Location registered successfully!"
+            : "Location created successfully!"
         );
-        setIsError(false);
+        
+        // Call onSubmit to refresh the list
+        if (onSubmit) {
+          await onSubmit();
+        }
+        
+        // Close modal after success
         setTimeout(() => {
-          onSubmit(); // Call onSubmit to reload users
-          onHide();
-        }, 2000);
+          if (isMounted.current) {
+            onHide();
+          }
+        }, 1500);
       } else {
-        let errorMsg = "An error Occurred."; // Default message
+        let errorMsg = "An error occurred.";
 
         if (result?.errors) {
-          // Extract all error messages and join them into a single string
-          errorMsg = Object.values(result.errors)
-            .flat() // Flatten array in case multiple errors per field
-            .join("\n"); // Join errors with line breaks
+          errorMsg = Object.values(result.errors).flat().join("\n");
         } else if (result?.message) {
           errorMsg = result.message;
         }
 
         toast.error(errorMsg);
-        console.log(result);
-        setIsError(true);
       }
     } catch (error) {
+      console.error("Submission error:", error);
       toast.error("An error occurred. Contact Admin");
-      console.log(error);
-      setIsError(true);
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [tenantToken, tenantSlug, location, formData, onSubmit, onHide, validateForm]);
 
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Header className="bg-light" closeButton>
         <Modal.Title>
-          {myUser ? "Location User" : "Add a New Location"}
+          {location ? "Edit Location" : "Add a New Location"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="name">
-            <Form.Label>Location Name</Form.Label>
+            <Form.Label>Location Name *</Form.Label>
             <Form.Control
               type="text"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
+              placeholder="Enter location name"
+              required
+              disabled={isLoading}
             />
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="state">
-            <Form.Label>State</Form.Label>
+            <Form.Label>State *</Form.Label>
             <Form.Control
               type="text"
               name="state"
               value={formData.state}
               onChange={handleInputChange}
+              placeholder="Enter state"
+              required
+              disabled={isLoading}
             />
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="address">
-            <Form.Label>Address</Form.Label>
+            <Form.Label>Address *</Form.Label>
             <Form.Control
-              type="text"
+              as="textarea"
+              rows={3}
               name="address"
               value={formData.address}
               onChange={handleInputChange}
+              placeholder="Enter full address"
+              required
+              disabled={isLoading}
             />
           </Form.Group>
 
@@ -197,19 +195,20 @@ const LocationRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             }}
           >
             {isLoading ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : myUser ? (
-              "Update"
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                {location ? "Updating..." : "Creating..."}
+              </>
             ) : (
-              "Create"
-            )}{" "}
-            Location
+              <>{location ? "Update" : "Create"} Location</>
+            )}
           </Button>
         </Form>
       </Modal.Body>

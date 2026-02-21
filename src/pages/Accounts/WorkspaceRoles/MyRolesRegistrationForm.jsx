@@ -116,8 +116,6 @@ const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        console.log(formData);
-        console.log(JSON.stringify(formData));
 
         try {
             if (!user?.token) throw new Error("Authorization token is missing.");
@@ -154,11 +152,9 @@ const MyRolesRegistrationForm = ({ show, onHide, selectedAdmin }) => {
                 }
 
                 toast.error(errorMsg);
-                console.log(result);
             }
         } catch (error) {
             toast.error("An error occurred. Contact Admin");
-            console.log(error);
         } finally {
             setIsLoading(false);
         }

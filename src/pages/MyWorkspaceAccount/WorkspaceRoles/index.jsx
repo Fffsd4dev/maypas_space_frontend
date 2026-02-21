@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
@@ -14,6 +14,10 @@ const WorkspaceRoles = () => {
   const tenantSlugg = user?.tenant;
 
   const { colour: primary } = useLogoColor();
+
+  // Refs to prevent duplicate calls
+  const isMounted = useRef(true);
+  const isFetching = useRef(false);
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -41,94 +45,97 @@ const WorkspaceRoles = () => {
     prevPageUrl: null,
     pageSize: 5,
   });
-  const formatDateTime = (isoString) => {
+
+  const [rowLoading, setRowLoading] = useState(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const formatDateTime = useCallback((isoString) => {
+    if (!isoString) return "";
     const options = {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
-  };
-  const [rowLoading, setRowLoading] = useState(null); // State for row loading
+  }, []);
 
-  const handleRowClick = async (id, event) => {
-    // Prevent row click if the event target is an action icon
-    if (event.target.closest(".action-icon")) return;
+  const handleRowClick = useCallback(async (id, event) => {
+    if (event.target.closest(".action-icon") || !tenantToken || !tenantSlugg) return;
 
-    setRowLoading(id); // Set the row loading state
+    setRowLoading(id);
+    
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlugg}/usertype/user-type/${id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/usertype/user-type/${id}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log("Fetched role details:", result);
-
+      
       const newWindow = window.open(`/role-details/${id}`, "_blank");
       if (newWindow) {
-        newWindow.onload = () => {
-          newWindow.role = result.data;
-        };
-      } else {
-        console.error(
-          "Failed to open new window. It might be blocked by the browser."
-        );
+        newWindow.roleData = result.data;
       }
     } catch (error) {
-      console.error("Error fetching Subscription Plan details:", error);
+      console.error("Error fetching role details:", error);
+      toast.error("Failed to fetch role details");
     } finally {
-      setRowLoading(null); // Reset the row loading state
+      if (isMounted.current) {
+        setRowLoading(null);
+      }
     }
-  };
+  }, [tenantToken, tenantSlugg]);
 
-  const fetchData = async (page = 1, pageSize = 5) => {
+  const fetchData = useCallback(async (page = 1, pageSize = 5) => {
+    if (isFetching.current || !tenantToken || !tenantSlugg) return;
+    
+    isFetching.current = true;
     setLoading(true);
     setError(null);
+    
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlugg}/usertype/list-user-types?page=${page}&per_page=${pageSize}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/usertype/list-user-types?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.message}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
-      if (result && Array.isArray(result.data.data)) {
-        const data = result.data.data;
-        data.sort(
+      
+      if (isMounted.current && result?.data?.data) {
+        const sortedData = [...result.data.data].sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
-        setData(data);
+        
+        setData(sortedData);
         setPagination({
           currentPage: result.data.current_page,
           totalPages: result.data.last_page,
@@ -136,45 +143,47 @@ const WorkspaceRoles = () => {
           prevPageUrl: result.data.prev_page_url,
           pageSize: pageSize,
         });
-      } else {
-        throw new Error("Invalid response format");
       }
     } catch (error) {
-      setError(error.message);
+      if (isMounted.current) {
+        setError(error.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
+      isFetching.current = false;
     }
-  };
+  }, [tenantToken, tenantSlugg]);
 
   useEffect(() => {
-    if (!tenantToken) return;
-    fetchData(pagination.currentPage, pagination.pageSize);
-  }, [user, pagination.currentPage, pagination.pageSize]);
+    if (tenantToken && tenantSlugg) {
+      fetchData(pagination.currentPage, pagination.pageSize);
+    }
+  }, [tenantToken, tenantSlugg, pagination.currentPage, pagination.pageSize, fetchData]);
 
-  const handleEditClick = (role) => {
+  const handleEditClick = useCallback((role) => {
     setSelectedRole(role);
     setShow(true);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setShow(false);
     setSelectedRole(null);
-    fetchData(pagination.currentPage, pagination.pageSize); // Reload roles after closing the modal
-  };
+    fetchData(pagination.currentPage, pagination.pageSize);
+  }, [fetchData, pagination.currentPage, pagination.pageSize]);
 
-  const handleDelete = async (roleID) => {
-    if (!user?.tenantToken) return;
+  const handleDelete = useCallback(async (roleID) => {
+    if (!tenantToken) return;
 
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlugg}/usertype/delete`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/usertype/delete`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.token}`,
+            Authorization: `Bearer ${tenantToken}`, // Fixed: using tenantToken
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ id: roleID }),
@@ -182,9 +191,7 @@ const WorkspaceRoles = () => {
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       setData((prevData) => prevData.filter((role) => role.id !== roleID));
@@ -192,33 +199,46 @@ const WorkspaceRoles = () => {
         message: "Role deleted successfully!",
         type: "success",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
-      fetchData(pagination.currentPage, pagination.pageSize); // Reload roles after deleting a role
+      
+      fetchData(pagination.currentPage, pagination.pageSize);
     } catch (error) {
       setPopup({
         message: "Failed to delete role!",
         type: "error",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tenantToken, tenantSlugg, fetchData, pagination.currentPage, pagination.pageSize]);
 
-  const handleDeleteButton = (roleID) => {
+  const handleDeleteButton = useCallback((roleID) => {
     setDeletePopup({
       isVisible: true,
       roleID,
     });
-  };
+  }, []);
 
-  const confirmDelete = () => {
+  const confirmDelete = useCallback(() => {
     const { roleID } = deletePopup;
     handleDelete(roleID);
     setDeletePopup({ isVisible: false, roleID: null });
-  };
+  }, [deletePopup, handleDelete]);
 
-  const columns = [
+  const handlePageChange = useCallback((page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  }, []);
+
+  const handlePageSizeChange = useCallback((pageSize) => {
+    setPagination((prev) => ({ ...prev, pageSize, currentPage: 1 }));
+  }, []);
+
+  const columns = useMemo(() => [
     {
       Header: "S/N",
       accessor: (row, i) => i + 1,
@@ -229,6 +249,8 @@ const WorkspaceRoles = () => {
       Header: "Role Name",
       accessor: "user_type",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "Created On",
@@ -252,26 +274,28 @@ const WorkspaceRoles = () => {
             to="#"
             className="action-icon"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent row click
+              e.stopPropagation();
               handleEditClick(row.original);
             }}
+            title="Edit Role"
           >
             <i className="mdi mdi-square-edit-outline"></i>
           </Link>
           <Link
             to="#"
-            className="action-icon"
+            className="action-icon text-danger"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent row click
+              e.stopPropagation();
               handleDeleteButton(row.original.id);
             }}
+            title="Delete Role"
           >
             <i className="mdi mdi-delete"></i>
           </Link>
         </>
       ),
     },
-  ];
+  ], [handleEditClick, handleDeleteButton, formatDateTime]);
 
   return (
     <>
@@ -295,8 +319,7 @@ const WorkspaceRoles = () => {
                       setShow(true);
                       setSelectedRole(null);
                     }}
-                                        style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
+                    style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a Role
                   </Button>
@@ -306,7 +329,12 @@ const WorkspaceRoles = () => {
               {error ? (
                 <p className="text-danger">Error: {error}</p>
               ) : loading ? (
-                <p>Loading Roles...</p>
+                <div className="text-center">
+                  <Spinner animation="border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </Spinner>{" "}
+                  Loading Roles...
+                </div>
               ) : isLoading ? (
                 <div className="text-center">
                   <Spinner animation="border" role="status">
@@ -327,23 +355,17 @@ const WorkspaceRoles = () => {
                   getRowProps={(row) => ({
                     style: {
                       cursor: "pointer",
-                      opacity: rowLoading === row.original.id ? 0.4 : 1, // visually indicate loading
-
+                      opacity: rowLoading === row.original.id ? 0.4 : 1,
                       transition: "opacity 0.3s ease",
                       position: "relative",
-                      display:
-                        rowLoading === row.original.id ? "hidden" : "table-row",
                     },
                     onClick: (event) => handleRowClick(row.original.id, event),
                   })}
-                  rowLoading={rowLoading} // Pass the row loading state
                   paginationProps={{
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
-                    onPageChange: (page) =>
-                      setPagination((prev) => ({ ...prev, currentPage: page })),
-                    onPageSizeChange: (pageSize) =>
-                      setPagination((prev) => ({ ...prev, pageSize })),
+                    onPageChange: handlePageChange,
+                    onPageSizeChange: handlePageSizeChange,
                   }}
                 />
               )}
@@ -355,7 +377,7 @@ const WorkspaceRoles = () => {
       <MyRolesRegistrationForm
         show={show}
         onHide={handleClose}
-        selectedAdmin={selectedRole}
+        selectedRole={selectedRole}
       />
 
       {popup.isVisible && (

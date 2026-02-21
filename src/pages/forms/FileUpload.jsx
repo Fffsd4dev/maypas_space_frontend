@@ -25,12 +25,6 @@ const FileUpload = () => {
                 DropzoneJS is an open source library that provides drag’n’drop
                 file uploads with image previews.
               </p>
-
-              {/* <FileUploader
-                onFileUpload={(files) => {
-                  console.log("Uploaded files - ", files);
-                }}
-               /> */}
               <DropzoneFormInput className="py-5" text="Drop your images here, or click to browse" helpText={<span className="text-muted fs-13 ">(1600 x 1200 (4:3) recommended. PNG, JPG and GIF files are allowed )</span>} showPreview />
             </Card.Body>
           </Card>

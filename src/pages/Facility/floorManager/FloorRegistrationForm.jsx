@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useLogoColor } from "../../../context/LogoColorContext";
 
-const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
+const FloorRegistrationModal = ({ show, onHide, floor, locations = [], onSubmit }) => {
   const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
   const { colour: primary } = useLogoColor();
 
-  const [locations, setLocations] = useState([]);
+  const isMounted = useRef(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,11 +20,20 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  // Cleanup on unmount
   useEffect(() => {
-    if (myFloor) {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Reset form when floor changes or modal opens/closes
+  useEffect(() => {
+    if (floor) {
       setFormData({
-        name: myFloor.name || "",
-        location_id: myFloor.location_id || "",
+        name: floor.name || "",
+        location_id: floor.location_id || "",
       });
     } else {
       setFormData({
@@ -31,88 +41,77 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
         location_id: "",
       });
     }
-  }, [myFloor]);
+  }, [floor, show]);
 
-  // Fetch locations when modal opens
-  const fetchLocations = async () => {
-    try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/location/list-locations`,
-        {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
-        }
-      );
-      const result = await response.json();
-      if (response.ok) {
-        console.log("Locations:", result.data.data);
-        setLocations(result.data.data || []);
-      } else {
-        throw new Error(result.message || "Failed to fetch locations.");
-      }
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
-  useEffect(() => {
-    if (show && user?.tenantToken) {
-      fetchLocations();
-    }
-  }, [show, user?.tenantToken]);
-
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-  };
+  }, []);
 
-  const handleSubmit = async (e) => {
+  const validateForm = useCallback(() => {
+    if (!formData.name.trim()) {
+      toast.error("Floor name is required");
+      return false;
+    }
+    if (!formData.location_id) {
+      toast.error("Please select a location");
+      return false;
+    }
+    return true;
+  }, [formData]);
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsLoading(true);
-    console.log(formData);
-    console.log(user?.tenantToken);
 
     try {
-      if (!user?.tenantToken)
-        throw new Error("Authorization token is missing.");
+      if (!tenantToken) throw new Error("Authorization token is missing.");
 
-      const url = myFloor
-        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/update/${
-            myFloor.id
-          }`
+      const url = floor
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/update/${floor.id}`
         : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/create`;
 
-      const method = myFloor ? "POST" : "POST";
       const response = await fetch(url, {
-        method,
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.tenantToken}`,
+          Authorization: `Bearer ${tenantToken}`,
         },
         body: JSON.stringify(formData),
       });
 
       const result = await response.json();
-      console.log(result);
 
       if (response.ok) {
         toast.success(
-          myFloor
+          floor
             ? "Floor updated successfully!"
-            : "Floor registered successfully!"
+            : "Floor created successfully!"
         );
+        
+        // Reset form
         setFormData({
           name: "",
           location_id: "",
         });
+        
+        // Call onSubmit to refresh the list
+        if (onSubmit) {
+          await onSubmit();
+        }
+        
+        // Close modal after success
         setTimeout(() => {
-          onSubmit();
-          onHide();
-        }, 1000);
+          if (isMounted.current) {
+            onHide();
+          }
+        }, 1500);
       } else {
         let errorMsg = "An error occurred.";
 
@@ -123,51 +122,58 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
         }
 
         toast.error(errorMsg);
-        console.log(result);
       }
     } catch (error) {
+      console.error("Submission error:", error);
       toast.error("An error occurred. Contact Admin");
-      console.log(error);
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [tenantToken, tenantSlug, floor, formData, onSubmit, onHide, validateForm]);
 
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Header className="bg-light" closeButton>
         <Modal.Title>
-          {myFloor ? "Floor" : "Add a New Floor/Section"}
+          {floor ? "Edit Floor/Section" : "Add a New Floor/Section"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="name">
-            <Form.Label>Floor Name/Section Name</Form.Label>
+            <Form.Label>Floor Name/Section Name *</Form.Label>
             <Form.Control
               type="text"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="Ground Floor"
+              placeholder="e.g., Ground Floor, Section A"
+              required
+              disabled={isLoading}
             />
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="location_id">
-            <Form.Label>Location</Form.Label>
+            <Form.Label>Location *</Form.Label>
             <Form.Select
               name="location_id"
               value={formData.location_id}
               onChange={handleInputChange}
               required
+              disabled={isLoading}
             >
               <option value="">Select a location</option>
-              {Array.isArray(locations) &&
+              {Array.isArray(locations) && locations.length > 0 ? (
                 locations.map((location) => (
                   <option key={location.id} value={location.id}>
-                    {location.name} at {location.state} state
+                    {location.name} - {location.state}
                   </option>
-                ))}
+                ))
+              ) : (
+                <option value="" disabled>No locations available</option>
+              )}
             </Form.Select>
           </Form.Group>
 
@@ -183,19 +189,20 @@ const FloorRegistrationModal = ({ show, onHide, myFloor, onSubmit }) => {
             }}
           >
             {isLoading ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                locations="status"
-                aria-hidden="true"
-              />
-            ) : myFloor ? (
-              "Update"
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                {floor ? "Updating..." : "Creating..."}
+              </>
             ) : (
-              "Create"
-            )}{" "}
-            Floor
+              <>{floor ? "Update" : "Create"} Floor</>
+            )}
           </Button>
         </Form>
       </Modal.Body>

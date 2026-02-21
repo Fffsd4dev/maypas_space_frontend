@@ -41,32 +41,6 @@ const VisitorLogout = () => {
   const token = user?.tenantToken;
 
   useEffect(() => {
-    // const logout = async () => {
-    //   console.log(token);
-    //   try {
-    //     const res = await axios.post(
-    //       `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/logout`,
-    //       {},
-    //       {
-    //         headers: {
-    //           Authorization: `Bearer ${token}`,
-    //           "Content-Type": "multipart/form-data",
-    //         },
-    //       }
-    //     );
-
-    //     if (res.status === 200) {
-    //       console.log(res.data.message);
-    //       removeSession();
-
-    //     } else {
-    //       console.error('VisitorLogout Failed:', res);
-    //     }
-    //   } catch (e) {
-    //     console.error('Error during VisitorLogout:', e);
-       
-    //   }
-    // };
     removeSession();
     // logout();
   }, [visitorSlug, removeSession, navigate, token]);

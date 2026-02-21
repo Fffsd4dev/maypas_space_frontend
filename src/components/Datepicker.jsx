@@ -4,7 +4,7 @@ import classNames from "classnames";
 /* Datepicker with Input */
 const DatepickerInput = forwardRef((props, ref) => {
   const onDateValueChange = () => {
-    console.log("date value changed");
+    
   };
   return <input type="text" className={classNames("form-control", props.inputClass)} onClick={props.onClick} value={props.value} onChange={onDateValueChange} ref={ref} />;
 });

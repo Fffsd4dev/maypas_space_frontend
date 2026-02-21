@@ -10,7 +10,6 @@ import Popup from "../../components/Popup/Popup";
 
 const Tenants = () => {
   const { user } = useAuthContext();
-  console.log("Auth Token:", user?.token);
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
@@ -30,7 +29,7 @@ const Tenants = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+      // second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
@@ -60,16 +59,28 @@ const Tenants = () => {
       Header: "Company Name",
       accessor: "company_name",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
     },
     {
       Header: "Amount of Locations",
       accessor: "company_no_location",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
     },
     {
       Header: "Countries",
       accessor: "company_countries",
       sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
       Cell: ({ row }) => {
         try {
           const countries = JSON.parse(row.original.company_countries);
@@ -84,6 +95,10 @@ const Tenants = () => {
       Header: "Created On",
       accessor: "created_at",
       sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
       Cell: ({ row }) => formatDateTime(row.original.created_at),
     },
     {
@@ -133,7 +148,6 @@ const Tenants = () => {
       }
 
       const result = await response.json();
-      console.log("Parsed response data:", result.data.data);
 
       if (result && Array.isArray(result.data.data)) {
         const workspaces = result.data.data;

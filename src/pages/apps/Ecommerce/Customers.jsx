@@ -69,6 +69,10 @@ const columns = [{
   Header: "Customer",
   accessor: "name",
   sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
   Cell: NameColumn,
   classes: "table-user"
 }, {
@@ -87,11 +91,19 @@ const columns = [{
   Header: "Last Order",
   accessor: "last_order",
   sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
   Cell: LastOrderColumn
 }, {
   Header: "Status",
   accessor: "status",
   sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
   Cell: StatusColumn
 }, {
   Header: "Action",

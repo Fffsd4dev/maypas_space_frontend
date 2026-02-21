@@ -1,5 +1,1223 @@
+// import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+// import { Link } from "react-router-dom";
+// import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
+// import PageTitle from "../../../components/PageTitle";
+// import { useAuthContext } from "@/context/useAuthContext.jsx";
+// import Popup from "../../../components/Popup/Popup";
+// import Table2 from "../../../components/Table2";
+// import { toast } from "react-toastify";
+// import UsersRegistrationModal from "../../MyWorkspaceAccount/Personal/UsersRegistrationForm";
+// import DatePicker from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
+// import { format, parseISO, isBefore, addHours } from "date-fns";
+// import { useLogoColor } from "../../../context/LogoColorContext";
 
-import React, { useState, useEffect } from "react";
+// const SeatBookingSystem = () => {
+//   const { user } = useAuthContext();
+//   const tenantToken = user?.tenantToken;
+//   const tenantSlug = user?.tenant;
+//   const { colour: primary, secondaryColor: secondary } = useLogoColor();
+
+//   // Refs to prevent duplicate calls
+//   const isMounted = useRef(true);
+//   const isFetchingLocations = useRef(false);
+//   const isFetchingFloors = useRef(false);
+//   const isFetchingRooms = useRef(false);
+//   const isFetchingRoomDetails = useRef(false);
+//   const isFetchingUsers = useRef(false);
+
+//   const [showUserModal, setShowUserModal] = useState(false);
+//   const [locations, setLocations] = useState([]);
+//   const [floorData, setFloorData] = useState([]);
+//   const [roomsData, setRoomsData] = useState([]);
+//   const [selectedRoom, setSelectedRoom] = useState(null);
+//   const [roomDetails, setRoomDetails] = useState(null);
+//   const [spaceCards, setSpaceCards] = useState([]);
+//   const [loading, setLoading] = useState({
+//     locations: true,
+//     floors: false,
+//     rooms: false,
+//     roomDetails: false,
+//     users: false,
+//     booking: false
+//   });
+//   const [error, setError] = useState(null);
+//   const [selectedLocation, setSelectedLocation] = useState("");
+//   const [selectedFloor, setSelectedFloor] = useState("");
+//   const [users, setUsers] = useState([]);
+//   const [selectedUser, setSelectedUser] = useState(null);
+//   const [showBookingPopup, setShowBookingPopup] = useState(false);
+//   const [selectedSpace, setSelectedSpace] = useState(null);
+//   const [currencySymbol, setCurrencySymbol] = useState("$");
+//   const [popup, setPopup] = useState({
+//     message: "",
+//     type: "",
+//     isVisible: false,
+//     buttonLabel: "",
+//     buttonRoute: "",
+//   });
+
+//   // Invoice state variables
+//   const [invoiceType, setInvoiceType] = useState("default");
+//   const [invoiceItems, setInvoiceItems] = useState([
+//     { name: "", charge: "", number: "1" }
+//   ]);
+
+//   // Booking form state
+//   const [bookingFormData, setBookingFormData] = useState({
+//     type: "one-off",
+//     chosen_days: [{
+//       start_time: null,
+//       end_time: null
+//     }],
+//     number_weeks: "0",
+//     number_months: "0",
+//     user_id: ""
+//   });
+
+//   const [pagination, setPagination] = useState({
+//     currentPage: 1,
+//     totalPages: 1,
+//     pageSize: 10,
+//   });
+
+//   // Cleanup on unmount
+//   useEffect(() => {
+//     isMounted.current = true;
+//     return () => {
+//       isMounted.current = false;
+//     };
+//   }, []);
+
+//   const formatDateTime = useCallback((isoString) => {
+//     if (!isoString) return "N/A";
+//     const options = {
+//       year: "numeric",
+//       month: "long",
+//       day: "numeric",
+//       hour: "2-digit",
+//       minute: "2-digit",
+//     };
+//     return new Date(isoString).toLocaleDateString("en-US", options);
+//   }, []);
+
+//   const scrollToSpots = useCallback(() => {
+//     const spotsSection = document.getElementById("spots-section");
+//     if (spotsSection) {
+//       spotsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+//     }
+//   }, []);
+
+//   const fetchLocations = useCallback(async () => {
+//     if (isFetchingLocations.current || !tenantToken || !tenantSlug) return;
+    
+//     isFetchingLocations.current = true;
+//     setLoading(prev => ({ ...prev, locations: true }));
+    
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations?per_page=100`,
+//         {
+//           headers: { Authorization: `Bearer ${tenantToken}` },
+//         }
+//       );
+//       const result = await response.json();
+      
+//       if (isMounted.current && response.ok) {
+//         setLocations(result.data?.data || []);
+//       } else if (isMounted.current) {
+//         throw new Error(result.message || "Failed to fetch locations.");
+//       }
+//     } catch (error) {
+//       if (isMounted.current) {
+//         toast.error(error.message);
+//       }
+//     } finally {
+//       if (isMounted.current) {
+//         setLoading(prev => ({ ...prev, locations: false }));
+//       }
+//       isFetchingLocations.current = false;
+//     }
+//   }, [tenantToken, tenantSlug]);
+
+//   const fetchUsers = useCallback(async () => {
+//     if (isFetchingUsers.current || !tenantToken || !tenantSlug) return;
+    
+//     isFetchingUsers.current = true;
+//     setLoading(prev => ({ ...prev, users: true }));
+    
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-users?per_page=100`,
+//         {
+//           headers: { Authorization: `Bearer ${tenantToken}` },
+//         }
+//       );
+//       const result = await response.json();
+      
+//       if (isMounted.current && response.ok) {
+//         setUsers(result.data?.data || []);
+//       } else if (isMounted.current) {
+//         throw new Error(result.message || "Failed to fetch users.");
+//       }
+//     } catch (error) {
+//       if (isMounted.current) {
+//         toast.error(error.message);
+//       }
+//     } finally {
+//       if (isMounted.current) {
+//         setLoading(prev => ({ ...prev, users: false }));
+//       }
+//       isFetchingUsers.current = false;
+//     }
+//   }, [tenantToken, tenantSlug]);
+
+//   const fetchFloors = useCallback(async (locationId) => {
+//     if (isFetchingFloors.current || !tenantToken || !tenantSlug || !locationId) return;
+    
+//     isFetchingFloors.current = true;
+//     setLoading(prev => ({ ...prev, floors: true }));
+    
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}?per_page=100`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${tenantToken}`,
+//           },
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+      
+//       if (isMounted.current && result?.data?.data) {
+//         setFloorData(result.data.data);
+//       } else if (isMounted.current) {
+//         throw new Error("Invalid response format");
+//       }
+//     } catch (error) {
+//       if (isMounted.current) {
+//         toast.error(error.message);
+//       }
+//     } finally {
+//       if (isMounted.current) {
+//         setLoading(prev => ({ ...prev, floors: false }));
+//       }
+//       isFetchingFloors.current = false;
+//     }
+//   }, [tenantToken, tenantSlug]);
+
+//   const fetchRooms = useCallback(async (locationId, floorId, page = 1, pageSize = 10) => {
+//     if (isFetchingRooms.current || !tenantToken || !tenantSlug || !locationId || !floorId) return;
+    
+//     isFetchingRooms.current = true;
+//     setLoading(prev => ({ ...prev, rooms: true }));
+    
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${tenantToken}`,
+//           },
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+
+//       if (isMounted.current && Array.isArray(result)) {
+//         const sortedData = [...result].sort(
+//           (a, b) =>
+//             new Date(b.updated_at || b.created_at) -
+//             new Date(a.updated_at || a.created_at)
+//         );
+//         setRoomsData(sortedData);
+        
+//         // Update pagination if available
+//         if (result.pagination) {
+//           setPagination({
+//             currentPage: result.pagination.current_page || page,
+//             totalPages: result.pagination.last_page || 1,
+//             pageSize: pageSize,
+//           });
+//         } else {
+//           // Client-side pagination
+//           const totalPages = Math.ceil(sortedData.length / pageSize);
+//           setPagination({
+//             currentPage: page,
+//             totalPages: totalPages,
+//             pageSize: pageSize,
+//           });
+//         }
+//       } else if (isMounted.current) {
+//         throw new Error("Invalid response format");
+//       }
+//     } catch (error) {
+//       if (isMounted.current) {
+//         toast.error(error.message);
+//       }
+//     } finally {
+//       if (isMounted.current) {
+//         setLoading(prev => ({ ...prev, rooms: false }));
+//       }
+//       isFetchingRooms.current = false;
+//     }
+//   }, [tenantToken, tenantSlug]);
+
+//   const fetchRoomDetails = useCallback(async (roomId) => {
+//     if (isFetchingRoomDetails.current || !tenantToken || !tenantSlug || !roomId) {
+//       setRoomDetails(null);
+//       setSpaceCards([]);
+//       return;
+//     }
+
+//     isFetchingRoomDetails.current = true;
+//     setLoading(prev => ({ ...prev, roomDetails: true }));
+    
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${tenantToken}`,
+//           },
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`Failed to fetch room details: Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+      
+//       if (isMounted.current && result?.data) {
+//         setRoomDetails(result.data);
+        
+//         // Generate space cards
+//         if (result.data.spots && Array.isArray(result.data.spots)) {
+//           const cards = result.data.spots.map((spot, index) => ({
+//             id: spot.id,
+//             space_number: index + 1,
+//             is_available: true,
+//             space_fee: spot.price || result.data.price || result.data.space_fee || 0,
+//             space_type: spot.type || result.data.space_type || 'Standard',
+//             spotData: spot
+//           }));
+//           setSpaceCards(cards);
+//         } else {
+//           const cards = Array.from({ length: result.data.space_number || 0 }, (_, i) => ({
+//             id: i + 1,
+//             space_number: i + 1,
+//             is_available: true,
+//             space_fee: result.data.price || result.data.space_fee || 0,
+//             space_type: result.data.space_type || 'Standard'
+//           }));
+//           setSpaceCards(cards);
+//         }
+//       } else if (isMounted.current) {
+//         throw new Error("Invalid room details format");
+//       }
+//     } catch (error) {
+//       if (isMounted.current) {
+//         toast.error(error.message);
+//       }
+//     } finally {
+//       if (isMounted.current) {
+//         setLoading(prev => ({ ...prev, roomDetails: false }));
+//       }
+//       isFetchingRoomDetails.current = false;
+//     }
+//   }, [tenantToken, tenantSlug]);
+
+//   const fetchCurrencySymbol = useCallback(async (locationId) => {
+//     if (!locationId || !tenantToken || !tenantSlug) return "₦";
+    
+//     try {
+//       const response = await fetch(
+//         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/fetch/currency/location`,
+//         {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//             Authorization: `Bearer ${tenantToken}`,
+//           },
+//           body: JSON.stringify({ location_id: locationId }),
+//         }
+//       );
+//       const result = await response.json();
+//       if (Array.isArray(result.data) && result.data.length > 0) {
+//         return result.data[0].symbol || "₦";
+//       }
+//       return "₦";
+//     } catch (err) {
+//       return "₦";
+//     }
+//   }, [tenantToken, tenantSlug]);
+
+//   // Initial data fetch
+//   useEffect(() => {
+//     if (tenantToken && tenantSlug) {
+//       fetchLocations();
+//       fetchUsers();
+//     }
+//   }, [tenantToken, tenantSlug, fetchLocations, fetchUsers]);
+
+//   // Fetch floors when location changes
+//   useEffect(() => {
+//     if (tenantToken && tenantSlug && selectedLocation) {
+//       fetchFloors(selectedLocation);
+//       // Reset floor and room selection
+//       setSelectedFloor("");
+//       setRoomsData([]);
+//       setSelectedRoom(null);
+//       setSpaceCards([]);
+//       setRoomDetails(null);
+      
+//       // Fetch currency symbol for new location
+//       fetchCurrencySymbol(selectedLocation).then(symbol => {
+//         if (isMounted.current) setCurrencySymbol(symbol);
+//       });
+//     }
+//   }, [tenantToken, tenantSlug, selectedLocation, fetchFloors, fetchCurrencySymbol]);
+
+//   // Fetch rooms when floor changes
+//   useEffect(() => {
+//     if (tenantToken && tenantSlug && selectedLocation && selectedFloor) {
+//       fetchRooms(selectedLocation, selectedFloor, pagination.currentPage, pagination.pageSize);
+//       // Reset room selection
+//       setSelectedRoom(null);
+//       setSpaceCards([]);
+//       setRoomDetails(null);
+//     }
+//   }, [tenantToken, tenantSlug, selectedLocation, selectedFloor, pagination.currentPage, pagination.pageSize, fetchRooms]);
+
+//   // Fetch room details when room changes
+//   useEffect(() => {
+//     if (selectedRoom) {
+//       fetchRoomDetails(selectedRoom.id);
+//     } else {
+//       setSpaceCards([]);
+//       setRoomDetails(null);
+//     }
+//   }, [selectedRoom, fetchRoomDetails]);
+
+//   const handleLocationChange = useCallback((e) => {
+//     const locationId = e.target.value;
+//     setSelectedLocation(locationId);
+//     setPagination(prev => ({ ...prev, currentPage: 1 }));
+//   }, []);
+
+//   const handleFloorChange = useCallback((e) => {
+//     const floorId = e.target.value;
+//     setSelectedFloor(floorId);
+//     setPagination(prev => ({ ...prev, currentPage: 1 }));
+//   }, []);
+
+//   const handleViewSpotsClick = useCallback(async (room) => {
+//     setSelectedRoom(room);
+//     setTimeout(scrollToSpots, 300);
+//   }, [scrollToSpots]);
+
+//   const handleBookNowClick = useCallback((space) => {
+//     setSelectedSpace(space);
+//     setBookingFormData({
+//       type: "one-off",
+//       chosen_days: [{
+//         start_time: null,
+//         end_time: null
+//       }],
+//       number_weeks: "0",
+//       number_months: "0",
+//       user_id: ""
+//     });
+//     setInvoiceType("default");
+//     setInvoiceItems([{ name: "", charge: "", number: "1" }]);
+//     setShowBookingPopup(true);
+//   }, []);
+
+//   const handleBookingClose = useCallback(() => {
+//     setShowBookingPopup(false);
+//     setSelectedSpace(null);
+//     setInvoiceType("default");
+//     setInvoiceItems([{ name: "", charge: "", number: "1" }]);
+//   }, []);
+
+//   const handleDayChange = useCallback((index, field, value) => {
+//     setBookingFormData(prev => {
+//       const updatedDays = [...prev.chosen_days];
+      
+//       if (field === 'start_time' && value) {
+//         const dayName = format(value, 'EEEE').toLowerCase();
+//         updatedDays[index] = {
+//           day: dayName,
+//           start_time: value,
+//           end_time: updatedDays[index]?.end_time
+//         };
+        
+//         if (updatedDays[index].end_time && isBefore(updatedDays[index].end_time, value)) {
+//           updatedDays[index].end_time = addHours(value, 1);
+//         }
+//       } else if (field === 'end_time') {
+//         updatedDays[index] = {
+//           ...updatedDays[index],
+//           end_time: value
+//         };
+//       }
+      
+//       return {
+//         ...prev,
+//         chosen_days: updatedDays
+//       };
+//     });
+//   }, []);
+
+//   const addDay = useCallback(() => {
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: [
+//         ...prev.chosen_days,
+//         { start_time: null, end_time: null }
+//       ]
+//     }));
+//   }, []);
+
+//   const removeDay = useCallback((index) => {
+//     setBookingFormData(prev => ({
+//       ...prev,
+//       chosen_days: prev.chosen_days.filter((_, i) => i !== index)
+//     }));
+//   }, []);
+
+//   const handleBookingInputChange = useCallback((e) => {
+//     const { name, value } = e.target;
+    
+//     setBookingFormData(prev => {
+//       if (name === "type" && value === "one-off") {
+//         return {
+//           ...prev,
+//           type: value,
+//           number_weeks: "0",
+//           number_months: "0"
+//         };
+//       }
+//       return {
+//         ...prev,
+//         [name]: value
+//       };
+//     });
+//   }, []);
+
+//   const handleInvoiceTypeChange = useCallback((e) => {
+//     setInvoiceType(e.target.value);
+//     if (e.target.value === "default") {
+//       setInvoiceItems([{ name: "", charge: "", number: "1" }]);
+//     }
+//   }, []);
+
+//   const handleInvoiceItemChange = useCallback((index, field, value) => {
+//     setInvoiceItems(prev => {
+//       const updated = [...prev];
+//       updated[index] = { ...updated[index], [field]: value };
+//       return updated;
+//     });
+//   }, []);
+
+//   const addInvoiceItem = useCallback(() => {
+//     setInvoiceItems(prev => [
+//       ...prev,
+//       { name: "", charge: "", number: "1" }
+//     ]);
+//   }, []);
+
+//   const removeInvoiceItem = useCallback((index) => {
+//     if (invoiceItems.length > 1) {
+//       setInvoiceItems(prev => prev.filter((_, i) => i !== index));
+//     }
+//   }, [invoiceItems.length]);
+
+//   const calculateInvoiceTotal = useCallback(() => {
+//     return invoiceItems.reduce((total, item) => {
+//       const charge = parseFloat(item.charge) || 0;
+//       const number = parseInt(item.number) || 1;
+//       return total + (charge * number);
+//     }, 0);
+//   }, [invoiceItems]);
+
+//   const formatTimeForAPI = useCallback((date) => {
+//     if (!date) return "";
+//     return format(date, "yyyy-MM-dd HH:mm:ss");
+//   }, []);
+
+//   const createDynamicInvoice = useCallback(async (bookingData) => {
+//     const invoiceData = {
+//       spot_id: bookingData.spot_id,
+//       user_id: bookingData.user_id,
+//       type: bookingData.type,
+//       spot_fee: selectedSpace.space_fee,
+//       item_name: invoiceItems.map(item => item.name),
+//       item_charge: invoiceItems.map(item => parseFloat(item.charge) || 0),
+//       item_number: invoiceItems.map(item => parseInt(item.number) || 1),
+//       number_weeks: bookingData.number_weeks,
+//       number_months: bookingData.number_months,
+//       chosen_days: bookingData.chosen_days
+//     };
+
+//     const response = await fetch(
+//       `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/dynamic/invoice/create`,
+//       {
+//         method: "POST",
+//         headers: {
+//           "Authorization": `Bearer ${tenantToken}`,
+//           "Content-Type": "application/json",
+//           "Accept": "application/json",
+//           "Timezone-Offset": new Date().getTimezoneOffset()
+//         },
+//         body: JSON.stringify(invoiceData),
+//       }
+//     );
+
+//     if (!response.ok) {
+//       const errorData = await response.json();
+//       throw new Error(errorData.message || "Failed to create dynamic invoice");
+//     }
+
+//     return await response.json();
+//   }, [tenantToken, tenantSlug, selectedSpace, invoiceItems]);
+
+//   const createRegularBooking = useCallback(async (bookingData) => {
+//     const response = await fetch(
+//       `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/book`,
+//       {
+//         method: "POST",
+//         headers: {
+//           "Authorization": `Bearer ${tenantToken}`,
+//           "Content-Type": "application/json",
+//           "Accept": "application/json",
+//           "Timezone-Offset": new Date().getTimezoneOffset()
+//         },
+//         body: JSON.stringify(bookingData),
+//       }
+//     );
+
+//     if (!response.ok) {
+//       const errorData = await response.json();
+//       throw new Error(errorData.message || "Failed to book space");
+//     }
+
+//     return await response.json();
+//   }, [tenantToken, tenantSlug]);
+
+//   const handleBookingSubmit = useCallback(async (e) => {
+//     e.preventDefault();
+//     setLoading(prev => ({ ...prev, booking: true }));
+    
+//     try {
+//       // Validate form
+//       const hasEmptyFields = bookingFormData.chosen_days.some(day => 
+//         !day.day || !day.start_time || !day.end_time
+//       ) || !bookingFormData.user_id;
+      
+//       if (hasEmptyFields) {
+//         throw new Error("Please fill in all required fields");
+//       }
+
+//       // Prepare booking data
+//       const bookingData = {
+//         spot_id: selectedSpace.id.toString(),
+//         user_id: bookingFormData.user_id,
+//         type: bookingFormData.type,
+//         number_weeks: bookingFormData.number_weeks || "0",
+//         number_months: bookingFormData.number_months || "0",
+//         chosen_days: bookingFormData.chosen_days.map(day => ({
+//           day: day.day.toLowerCase(),
+//           start_time: formatTimeForAPI(day.start_time),
+//           end_time: formatTimeForAPI(day.end_time)
+//         }))
+//       };
+
+//       // Validate time ranges
+//       for (const day of bookingData.chosen_days) {
+//         const start = parseISO(day.start_time.replace(' ', 'T') + 'Z');
+//         const end = parseISO(day.end_time.replace(' ', 'T') + 'Z');
+        
+//         if (isBefore(end, start)) {
+//           throw new Error("End time must be after start time");
+//         }
+//       }
+
+//       let result;
+      
+//       if (invoiceType === "dynamic") {
+//         const hasEmptyInvoiceItems = invoiceItems.some(item => 
+//           !item.name.trim() || !item.charge
+//         );
+        
+//         if (hasEmptyInvoiceItems) {
+//           throw new Error("Please fill in all invoice item fields");
+//         }
+
+//         result = await createDynamicInvoice(bookingData);
+//       } else {
+//         result = await createRegularBooking(bookingData);
+//       }
+
+//       toast.success(result.message || "Space booked successfully!");
+      
+//       handleBookingClose();
+      
+//       // Refresh room details
+//       if (selectedRoom) {
+//         await fetchRoomDetails(selectedRoom.id);
+//       }
+//     } catch (error) {
+//       toast.error(error.message || "Failed to process booking");
+//     } finally {
+//       if (isMounted.current) {
+//         setLoading(prev => ({ ...prev, booking: false }));
+//       }
+//     }
+//   }, [bookingFormData, selectedSpace, invoiceType, invoiceItems, createDynamicInvoice, createRegularBooking, handleBookingClose, selectedRoom, fetchRoomDetails, formatTimeForAPI]);
+
+//   // Paginate rooms data
+//   const paginatedRooms = useMemo(() => {
+//     const start = (pagination.currentPage - 1) * pagination.pageSize;
+//     const end = start + pagination.pageSize;
+//     return roomsData.slice(start, end);
+//   }, [roomsData, pagination.currentPage, pagination.pageSize]);
+
+//   return (
+//     <>
+//       <PageTitle
+//         breadCrumbItems={[
+//           { label: "Book Spot", path: "/booking/book-spot", active: true },
+//         ]}
+//         title="Book a Spot"
+//       />
+
+//       <Row>
+//         <Col>
+//           <Card>
+//             <Card.Body>
+//               <Card>
+//                 <Card.Body style={{ background: secondary, marginTop: "30px" }}>
+//                   {/* Location Selection */}
+//                   {loading.locations ? (
+//                     <div className="text-center py-4">
+//                       <Spinner animation="border" role="status">
+//                         <span className="visually-hidden">Loading...</span>
+//                       </Spinner>
+//                       <p className="mt-2">Loading locations...</p>
+//                     </div>
+//                   ) : (
+//                     <div>
+//                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
+//                         Select a location to view available rooms.
+//                       </p>
+//                       <Form.Select
+//                         style={{ marginBottom: "25px", fontSize: "1rem" }}
+//                         value={selectedLocation}
+//                         onChange={handleLocationChange}
+//                       >
+//                         <option value="">Select a location</option>
+//                         {locations.map((location) => (
+//                           <option key={location.id} value={location.id}>
+//                             {location.name} - {location.state}
+//                           </option>
+//                         ))}
+//                       </Form.Select>
+//                     </div>
+//                   )}
+
+//                   {/* Floor Selection */}
+//                   {selectedLocation && (
+//                     <Form.Group className="mb-3" controlId="floor_id">
+//                       {loading.floors ? (
+//                         <div className="text-center py-3">
+//                           <Spinner animation="border" size="sm" role="status">
+//                             <span className="visually-hidden">Loading...</span>
+//                           </Spinner>
+//                           <p className="mt-2">Loading floors...</p>
+//                         </div>
+//                       ) : (
+//                         <>
+//                           <Form.Label>
+//                             Select the floor/section to view rooms.
+//                           </Form.Label>
+//                           <Form.Select
+//                             name="floor_id"
+//                             value={selectedFloor}
+//                             onChange={handleFloorChange}
+//                             required
+//                           >
+//                             <option value="">Select a Floor/Section</option>
+//                             {floorData.map((floor) => (
+//                               <option key={floor.id} value={floor.id}>
+//                                 {floor.name}
+//                               </option>
+//                             ))}
+//                           </Form.Select>
+//                         </>
+//                       )}
+//                     </Form.Group>
+//                   )}
+
+//                   {/* Rooms Display */}
+//                   {selectedFloor && (
+//                     <>
+//                       {loading.rooms ? (
+//                         <div className="text-center py-4">
+//                           <Spinner animation="border" role="status">
+//                             <span className="visually-hidden">Loading...</span>
+//                           </Spinner>
+//                           <p className="mt-2">Loading rooms...</p>
+//                         </div>
+//                       ) : (
+//                         <>
+//                           <h4 className="mb-3">Available Rooms</h4>
+//                           {paginatedRooms.length > 0 ? (
+//                             <Row>
+//                               {paginatedRooms.map((room) => (
+//                                 <Col key={room.id} md={4} className="mb-3">
+//                                   <Card className="h-100">
+//                                     <Card.Body className="d-flex flex-column">
+//                                       <Card.Title className="d-flex justify-content-between align-items-center">
+//                                         <span>{room.space_name}</span>
+//                                         <Badge bg="info">Spots: {room.space_number}</Badge>
+//                                       </Card.Title>
+//                                       <Card.Text className="flex-grow-1">
+//                                         <div>
+//                                           <strong>Category:</strong> {room.category?.category || 'N/A'}
+//                                         </div>
+//                                         <div>
+//                                           <strong>Fee/Spot:</strong> {currencySymbol}{room.space_fee}
+//                                         </div>
+//                                       </Card.Text>
+//                                       <div className="mt-auto">
+//                                         <Button
+//                                           variant="primary"
+//                                           size="sm"
+//                                           className="w-100"
+//                                           onClick={() => handleViewSpotsClick(room)}
+//                                           style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+//                                           disabled={loading.roomDetails && selectedRoom?.id === room.id}
+//                                         >
+//                                           {loading.roomDetails && selectedRoom?.id === room.id ? (
+//                                             <>
+//                                               <Spinner size="sm" animation="border" className="me-1" />
+//                                               Loading...
+//                                             </>
+//                                           ) : "View Spots"}
+//                                         </Button>
+//                                       </div>
+//                                     </Card.Body>
+//                                   </Card>
+//                                 </Col>
+//                               ))}
+//                             </Row>
+//                           ) : (
+//                             <Alert variant="info">No rooms found for this floor/section.</Alert>
+//                           )}
+//                         </>
+//                       )}
+
+//                       {/* Room Details and Spaces Section */}
+//                       {selectedRoom && (
+//                         <div className="mt-4" id="spots-section">
+//                           <h4 className="mb-3">Available Spots in {selectedRoom.space_name}</h4>
+                          
+//                           {loading.roomDetails ? (
+//                             <div className="text-center py-4">
+//                               <Spinner animation="border" role="status">
+//                                 <span className="visually-hidden">Loading spots...</span>
+//                               </Spinner>
+//                               <p className="mt-2">Loading available spots...</p>
+//                             </div>
+//                           ) : spaceCards.length > 0 ? (
+//                             <>
+//                               <p className="mb-3">
+//                                 <strong>Total spots:</strong> {spaceCards.length} | 
+//                                 <strong> Fee per spot:</strong> {currencySymbol}{spaceCards[0]?.space_fee}
+//                               </p>
+//                               <Row>
+//                                 {spaceCards.map((space, index) => (
+//                                   <Col key={space.id} md={3} className="mb-3">
+//                                     <Card className="h-100">
+//                                       <Card.Body className="d-flex flex-column">
+//                                         <Card.Title className="d-flex justify-content-between align-items-center">
+//                                           <span>Spot {index + 1}</span>
+//                                           <Badge bg="success">Available</Badge>
+//                                         </Card.Title>
+//                                         <Card.Text className="flex-grow-1">
+//                                           <div><strong>Number:</strong> {index + 1}</div>
+//                                           <div><strong>Fee:</strong> {currencySymbol}{space.space_fee}</div>
+//                                         </Card.Text>
+//                                         <div className="mt-auto">
+//                                           <Button
+//                                             variant="primary"
+//                                             size="sm"
+//                                             className="w-100"
+//                                             onClick={() => handleBookNowClick(space)}
+//                                             style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+//                                           >
+//                                             Book Now
+//                                           </Button>
+//                                         </div>
+//                                       </Card.Body>
+//                                     </Card>
+//                                   </Col>
+//                                 ))}
+//                               </Row>
+//                             </>
+//                           ) : (
+//                             <Alert variant="info">No spots available in this room.</Alert>
+//                           )}
+                          
+//                           <Button
+//                             variant="outline-secondary"
+//                             size="sm"
+//                             className="mt-3"
+//                             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+//                           >
+//                             <i className="mdi mdi-arrow-up me-1"></i>
+//                             Back to Top
+//                           </Button>
+//                         </div>
+//                       )}
+//                     </>
+//                   )}
+//                 </Card.Body>
+//               </Card>
+//             </Card.Body>
+//           </Card>
+//         </Col>
+//       </Row>
+
+//       {/* User Registration Modal */}
+//       <UsersRegistrationModal
+//         show={showUserModal}
+//         onHide={() => setShowUserModal(false)}
+//         myUser={selectedUser}
+//         onSubmit={fetchUsers}
+//       />
+
+//       {/* Booking Popup */}
+//       {showBookingPopup && selectedSpace && (
+//         <Popup
+//           title={`Book Spot #${selectedSpace.space_number}`}
+//           isVisible={showBookingPopup}
+//           onClose={handleBookingClose}
+//           size="lg"
+//         >
+//           <div style={{ maxHeight: "70vh", maxWidth: "80vw", overflowY: "auto", paddingRight: "8px" }}>
+//             <Form onSubmit={handleBookingSubmit}>
+//               <Row>
+//                 <Col md={12}>
+//                   <Form.Group className="mb-3">
+//                     <Form.Label>Booking Type *</Form.Label>
+//                     <Form.Select
+//                       name="type"
+//                       value={bookingFormData.type}
+//                       onChange={handleBookingInputChange}
+//                       required
+//                     >
+//                       <option value="one-off">One-time Booking</option>
+//                       <option value="recurrent">Recurring Booking</option>
+//                     </Form.Select>
+//                   </Form.Group>
+//                 </Col>
+//               </Row>
+
+//               <Row>
+//                 <Col md={12}>
+//                   <Form.Group className="mb-3">
+//                     <Form.Label>Select User *</Form.Label>
+//                     <div className="d-flex align-items-center">
+//                       {loading.users ? (
+//                         <Spinner animation="border" size="sm" />
+//                       ) : (
+//                         <Form.Select
+//                           name="user_id"
+//                           value={bookingFormData.user_id}
+//                           onChange={handleBookingInputChange}
+//                           required
+//                           className="flex-grow-1 me-2"
+//                         >
+//                           <option value="">Select a user</option>
+//                           {users.map((user) => (
+//                             <option key={user.id} value={user.id}>
+//                               {user.first_name} {user.last_name} ({user.email})
+//                             </option>
+//                           ))}
+//                         </Form.Select>
+//                       )}
+//                       <Button 
+//                         variant="outline-primary" 
+//                         size="sm" 
+//                         onClick={() => {
+//                           setSelectedUser(null);
+//                           setShowUserModal(true);
+//                         }}
+//                         style={{ borderColor: primary, color: primary }}
+//                       >
+//                         <i className="mdi mdi-plus"></i> New User
+//                       </Button>
+//                     </div>
+//                   </Form.Group>
+//                 </Col>
+//               </Row>
+
+//               {/* Invoice Type Selection */}
+//               <Row>
+//                 <Col md={12}>
+//                   <Form.Group className="mb-3">
+//                     <Form.Label>Invoice Type</Form.Label>
+//                     <Form.Select
+//                       value={invoiceType}
+//                       onChange={handleInvoiceTypeChange}
+//                       required
+//                     >
+//                       <option value="default">Standard Invoice (Space Fee Only)</option>
+//                       <option value="dynamic">Custom Invoice (Add Items)</option>
+//                     </Form.Select>
+//                   </Form.Group>
+//                 </Col>
+//               </Row>
+
+//               {/* Dynamic Invoice Items */}
+//               {invoiceType === "dynamic" && (
+//                 <>
+//                   <h6 className="mt-3 mb-2">Additional Items</h6>
+//                   {invoiceItems.map((item, index) => (
+//                     <div key={index} className="border p-3 mb-3 rounded">
+//                       <Row>
+//                         <Col md={5}>
+//                           <Form.Group className="mb-2">
+//                             <Form.Label>Item Name *</Form.Label>
+//                             <Form.Control
+//                               type="text"
+//                               value={item.name}
+//                               onChange={(e) => handleInvoiceItemChange(index, 'name', e.target.value)}
+//                               placeholder="e.g., Setup fee, Extras"
+//                               required={invoiceType === "dynamic"}
+//                             />
+//                           </Form.Group>
+//                         </Col>
+//                         <Col md={3}>
+//                           <Form.Group className="mb-2">
+//                             <Form.Label>Charge ({currencySymbol}) *</Form.Label>
+//                             <Form.Control
+//                               type="number"
+//                               value={item.charge}
+//                               onChange={(e) => handleInvoiceItemChange(index, 'charge', e.target.value)}
+//                               placeholder="0.00"
+//                               min="0"
+//                               step="0.01"
+//                               required={invoiceType === "dynamic"}
+//                             />
+//                           </Form.Group>
+//                         </Col>
+//                         <Col md={2}>
+//                           <Form.Group className="mb-2">
+//                             <Form.Label>Qty *</Form.Label>
+//                             <Form.Control
+//                               type="number"
+//                               value={item.number}
+//                               onChange={(e) => handleInvoiceItemChange(index, 'number', e.target.value)}
+//                               min="1"
+//                               required={invoiceType === "dynamic"}
+//                             />
+//                           </Form.Group>
+//                         </Col>
+//                         <Col md={2} className="d-flex align-items-end">
+//                           {invoiceItems.length > 1 && (
+//                             <Button 
+//                               variant="danger" 
+//                               size="sm" 
+//                               onClick={() => removeInvoiceItem(index)}
+//                               className="mb-2 w-100"
+//                             >
+//                               Remove
+//                             </Button>
+//                           )}
+//                         </Col>
+//                       </Row>
+//                     </div>
+//                   ))}
+                  
+//                   <Button 
+//                     variant="outline-primary" 
+//                     size="sm" 
+//                     onClick={addInvoiceItem}
+//                     className="mb-3"
+//                     style={{ borderColor: primary, color: primary }}
+//                   >
+//                     Add Another Item
+//                   </Button>
+                  
+//                   <div className="border-top pt-2 mb-3">
+//                     <div className="d-flex justify-content-between">
+//                       <strong>Space Fee:</strong>
+//                       <span>{currencySymbol}{selectedSpace.space_fee}</span>
+//                     </div>
+//                     <div className="d-flex justify-content-between">
+//                       <strong>Additional Items Total:</strong>
+//                       <span>{currencySymbol}{calculateInvoiceTotal().toFixed(2)}</span>
+//                     </div>
+//                     <div className="d-flex justify-content-between">
+//                       <strong>Grand Total:</strong>
+//                       <strong>{currencySymbol}{(calculateInvoiceTotal() + parseFloat(selectedSpace.space_fee || 0)).toFixed(2)}</strong>
+//                     </div>
+//                   </div>
+//                 </>
+//               )}
+
+//               {/* Recurring Booking Options */}
+//               {bookingFormData.type === "recurrent" && (
+//                 <Row>
+//                   <Col md={6}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>Number of Weeks</Form.Label>
+//                       <Form.Control
+//                         type="number"
+//                         name="number_weeks"
+//                         value={bookingFormData.number_weeks}
+//                         onChange={handleBookingInputChange}
+//                         min="1"
+//                         required={bookingFormData.type === "recurrent"}
+//                       />
+//                     </Form.Group>
+//                   </Col>
+//                   <Col md={6}>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>Number of Months</Form.Label>
+//                       <Form.Control
+//                         type="number"
+//                         name="number_months"
+//                         value={bookingFormData.number_months}
+//                         onChange={handleBookingInputChange}
+//                         min="0"
+//                         required={bookingFormData.type === "recurrent"}
+//                       />
+//                     </Form.Group>
+//                   </Col>
+//                 </Row>
+//               )}
+
+//               <h5 className="mt-3">Booking Schedule</h5>
+//               {bookingFormData.chosen_days.map((day, index) => (
+//                 <div key={index} className="border p-3 mb-3 rounded">
+//                   <Row>
+//                     <Col md={6}>
+//                       <Form.Group className="mb-2">
+//                         <Form.Label>Start Time *</Form.Label>
+//                         <DatePicker
+//                           selected={day.start_time}
+//                           onChange={(date) => handleDayChange(index, 'start_time', date)}
+//                           showTimeSelect
+//                           timeFormat="HH:mm"
+//                           timeIntervals={15}
+//                           dateFormat="MMM d, yyyy h:mm aa"
+//                           className="form-control"
+//                           placeholderText="Select start date & time"
+//                           minDate={new Date()}
+//                           required
+//                         />
+//                       </Form.Group>
+//                     </Col>
+//                     <Col md={6}>
+//                       <Form.Group className="mb-2">
+//                         <Form.Label>End Time *</Form.Label>
+//                         <DatePicker
+//                           selected={day.end_time}
+//                           onChange={(date) => handleDayChange(index, 'end_time', date)}
+//                           showTimeSelect
+//                           timeFormat="HH:mm"
+//                           timeIntervals={15}
+//                           dateFormat="MMM d, yyyy h:mm aa"
+//                           className="form-control"
+//                           placeholderText="Select end date & time"
+//                           minDate={day.start_time || new Date()}
+//                           required
+//                           disabled={!day.start_time}
+//                         />
+//                       </Form.Group>
+//                     </Col>
+//                   </Row>
+//                   {index > 0 && (
+//                     <Button 
+//                       variant="danger" 
+//                       size="sm" 
+//                       onClick={() => removeDay(index)}
+//                       className="mt-2"
+//                     >
+//                       Remove Time Slot
+//                     </Button>
+//                   )}
+//                 </div>
+//               ))}
+
+//               <Button 
+//                 variant="outline-primary" 
+//                 size="sm" 
+//                 onClick={addDay}
+//                 className="mb-3"
+//                 style={{ borderColor: primary, color: primary }}
+//               >
+//                 Add Another Time Slot
+//               </Button>
+
+//               <div className="d-flex justify-content-end gap-2">
+//                 <Button variant="secondary" onClick={handleBookingClose}>
+//                   Cancel
+//                 </Button>
+//                 <Button 
+//                   variant="primary" 
+//                   type="submit" 
+//                   disabled={loading.booking}
+//                   style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+//                 >
+//                   {loading.booking ? (
+//                     <>
+//                       <Spinner as="span" animation="border" size="sm" className="me-1" />
+//                       Processing...
+//                     </>
+//                   ) : 'Confirm Booking'}
+//                 </Button>
+//               </div>
+//             </Form>
+//           </div>
+//         </Popup>
+//       )}
+
+//       {/* Popups */}
+//       {popup.isVisible && (
+//         <Popup
+//           message={popup.message}
+//           type={popup.type}
+//           onClose={() => setPopup({ ...popup, isVisible: false })}
+//           buttonLabel={popup.buttonLabel}
+//           buttonRoute={popup.buttonRoute}
+//         />
+//       )}
+//     </>
+//   );
+// };
+
+// export default SeatBookingSystem;
+
+
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form, Badge, Alert } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
@@ -10,7 +1228,7 @@ import { toast } from "react-toastify";
 import UsersRegistrationModal from "../../MyWorkspaceAccount/Personal/UsersRegistrationForm";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { format, parseISO, isBefore, addHours, addDays } from "date-fns";
+import { format, parseISO, isBefore, addHours } from "date-fns";
 import { useLogoColor } from "../../../context/LogoColorContext";
 
 const SeatBookingSystem = () => {
@@ -18,42 +1236,51 @@ const SeatBookingSystem = () => {
   const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
-  const [currencySymbol, setCurrencySymbol] = useState("$");
 
-  // State variables
-  const [show, setShow] = useState(false);
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingLocations, setLoadingLocations] = useState(true);
-  const [loadingFloor, setLoadingFloor] = useState(false);
+  // Refs to prevent duplicate calls
+  const isMounted = useRef(true);
+  const isFetchingLocations = useRef(false);
+  const isFetchingFloors = useRef(false);
+  const isFetchingRooms = useRef(false);
+  const isFetchingRoomDetails = useRef(false);
+  const isFetchingUsers = useRef(false);
+
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [locations, setLocations] = useState([]);
   const [floorData, setFloorData] = useState([]);
   const [roomsData, setRoomsData] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [roomDetails, setRoomDetails] = useState(null);
   const [spaceCards, setSpaceCards] = useState([]);
-  const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [locations, setLocations] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [loading, setLoading] = useState({
+    locations: true,
+    floors: false,
+    rooms: false,
+    roomDetails: false,
+    users: false,
+    booking: false
+  });
+  const [error, setError] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedFloor, setSelectedFloor] = useState("");
   const [users, setUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState(null);
+  const [currencySymbol, setCurrencySymbol] = useState("$");
+  const [popup, setPopup] = useState({
+    message: "",
+    type: "",
+    isVisible: false,
+    buttonLabel: "",
+    buttonRoute: "",
+  });
 
   // Invoice state variables
-  const [invoiceType, setInvoiceType] = useState("default"); // "default" or "dynamic"
+  const [invoiceType, setInvoiceType] = useState("default");
   const [invoiceItems, setInvoiceItems] = useState([
     { name: "", charge: "", number: "1" }
   ]);
-
-  const scrollToSpots = () => {
-    const spotsSection = document.getElementById("spots-section");
-    if (spotsSection) {
-      spotsSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
 
   // Booking form state
   const [bookingFormData, setBookingFormData] = useState({
@@ -67,120 +1294,116 @@ const SeatBookingSystem = () => {
     user_id: ""
   });
 
-  const [popup, setPopup] = useState({
-    message: "",
-    type: "",
-    isVisible: false,
-    buttonLabel: "",
-    buttonRoute: "",
-  });
-
-  const [deletePopup, setDeletePopup] = useState({
-    isVisible: false,
-    myRoomID: null,
-  });
-
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
-    nextPageUrl: null,
-    prevPageUrl: null,
     pageSize: 10,
   });
 
-  const [formData, setFormData] = useState({
-    name: "",
-    location_id: "",
-    floor_id: "",
-    room_id: ""
-  });
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
-  // Format date time
-  const formatDateTime = (isoString) => {
+  const formatDateTime = useCallback((isoString) => {
+    if (!isoString) return "N/A";
     const options = {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
-  };
+  }, []);
 
-  // Fetch locations
-  const fetchLocations = async () => {
-    setLoadingLocations(true);
+  const scrollToSpots = useCallback(() => {
+    const spotsSection = document.getElementById("spots-section");
+    if (spotsSection) {
+      spotsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
+
+  const fetchLocations = useCallback(async () => {
+    if (isFetchingLocations.current || !tenantToken || !tenantSlug) return;
+    
+    isFetchingLocations.current = true;
+    setLoading(prev => ({ ...prev, locations: true }));
+    
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations?per_page=100`,
         {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
+          headers: { Authorization: `Bearer ${tenantToken}` },
         }
       );
       const result = await response.json();
-      if (response.ok) {
-        setLocations(result.data.data || []);
-      } else {
+      
+      if (isMounted.current && response.ok) {
+        setLocations(result.data?.data || []);
+      } else if (isMounted.current) {
         throw new Error(result.message || "Failed to fetch locations.");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingLocations(false);
+      if (isMounted.current) {
+        setLoading(prev => ({ ...prev, locations: false }));
+      }
+      isFetchingLocations.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  // Fetch users
-  const fetchUsers = async () => {
-    setLoadingUsers(true);
+  const fetchUsers = useCallback(async () => {
+    if (isFetchingUsers.current || !tenantToken || !tenantSlug) return;
+    
+    isFetchingUsers.current = true;
+    setLoading(prev => ({ ...prev, users: true }));
+    
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-users`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-users?per_page=100`,
         {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
+          headers: { Authorization: `Bearer ${tenantToken}` },
         }
       );
       const result = await response.json();
-      if (response.ok) {
-        setUsers(result.data.data || []);
-      } else {
+      
+      if (isMounted.current && response.ok) {
+        setUsers(result.data?.data || []);
+      } else if (isMounted.current) {
         throw new Error(result.message || "Failed to fetch users.");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingUsers(false);
+      if (isMounted.current) {
+        setLoading(prev => ({ ...prev, users: false }));
+      }
+      isFetchingUsers.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  // Handle location change
-  const handleLocationChange = (e) => {
-    const locationId = e.target.value;
-    setSelectedLocation(locationId);
-    setFormData((prev) => ({
-      ...prev,
-      location_id: locationId,
-      floor_id: "",
-      room_id: ""
-    }));
-    setFloorData([]);
-    setRoomsData([]);
-    setData([]);
-    setSpaceCards([]);
-    setRoomDetails(null);
-  };
-
-  // Fetch floors for selected location
-  const fetchFloor = async (locationId) => {
-    setLoadingFloor(true);
+  const fetchFloors = useCallback(async (locationId) => {
+    if (isFetchingFloors.current || !tenantToken || !tenantSlug || !locationId) return;
+    
+    isFetchingFloors.current = true;
+    setLoading(prev => ({ ...prev, floors: true }));
+    
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/floor/list-floors/${locationId}?per_page=100`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
@@ -190,28 +1413,37 @@ const SeatBookingSystem = () => {
       }
 
       const result = await response.json();
-      if (result && Array.isArray(result.data.data)) {
+      
+      if (isMounted.current && result?.data?.data) {
         setFloorData(result.data.data);
-      } else {
+      } else if (isMounted.current) {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingFloor(false);
+      if (isMounted.current) {
+        setLoading(prev => ({ ...prev, floors: false }));
+      }
+      isFetchingFloors.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  // Fetch rooms for selected floor
-  const fetchRoom = async (locationId, floorId, page = 1, pageSize = 10) => {
-    setLoading(true);
+  const fetchRooms = useCallback(async (locationId, floorId, page = 1, pageSize = 12) => {
+    if (isFetchingRooms.current || !tenantToken || !tenantSlug || !locationId || !floorId) return;
+    
+    isFetchingRooms.current = true;
+    setLoading(prev => ({ ...prev, rooms: true }));
+    
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/list-spaces/${locationId}/${floorId}?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
@@ -222,58 +1454,62 @@ const SeatBookingSystem = () => {
 
       const result = await response.json();
 
-      if (result && Array.isArray(result)) {
-        const sortedData = result.sort(
+      if (isMounted.current && Array.isArray(result)) {
+        const sortedData = [...result].sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
         setRoomsData(sortedData);
-        setData(sortedData);
-        setPagination({
-          currentPage: result.current_page,
-          totalPages: result.last_page,
-          nextPageUrl: result.next_page_url,
-          prevPageUrl: result.prev_page_url,
-          pageSize: pageSize,
-        });
-      } else {
+        
+        // Update pagination if available
+        if (result.pagination) {
+          setPagination({
+            currentPage: result.pagination.current_page || page,
+            totalPages: result.pagination.last_page || 1,
+            pageSize: pageSize,
+          });
+        } else {
+          // Client-side pagination
+          const totalPages = Math.ceil(sortedData.length / pageSize);
+          setPagination({
+            currentPage: page,
+            totalPages: totalPages,
+            pageSize: pageSize,
+          });
+        }
+      } else if (isMounted.current) {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(prev => ({ ...prev, rooms: false }));
+      }
+      isFetchingRooms.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  // Generate space cards based on space_number (fallback)
-  const generateSpaceCards = (spaceNumber, roomDetails) => {
-    return Array.from({ length: spaceNumber }, (_, i) => ({
-      id: i + 1,
-      space_number: i + 1,
-      is_available: true,
-      space_fee: roomDetails?.price || roomDetails?.space_fee || 0,
-      space_type: roomDetails?.space_type || 'Standard'
-    }));
-  };
-
-  // Fetch individual room details and generate space cards
-  const fetchRoomDetails = async (roomId) => {
-    if (!roomId) {
+  const fetchRoomDetails = useCallback(async (roomId) => {
+    if (isFetchingRoomDetails.current || !tenantToken || !tenantSlug || !roomId) {
       setRoomDetails(null);
       setSpaceCards([]);
       return;
     }
 
-    setLoadingRoomDetails(true);
+    isFetchingRoomDetails.current = true;
+    setLoading(prev => ({ ...prev, roomDetails: true }));
+    
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/show/${roomId}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
@@ -284,171 +1520,135 @@ const SeatBookingSystem = () => {
 
       const result = await response.json();
       
-      if (result && result.data) {
+      if (isMounted.current && result?.data) {
         setRoomDetails(result.data);
         
+        // Generate space cards
         if (result.data.spots && Array.isArray(result.data.spots)) {
-          const cards = result.data.spots.map(spot => ({
+          const cards = result.data.spots.map((spot, index) => ({
             id: spot.id,
-            space_number: spot.spot_number || spot.id,
+            space_number: index + 1,
             is_available: true,
             space_fee: spot.price || result.data.price || result.data.space_fee || 0,
             space_type: spot.type || result.data.space_type || 'Standard',
             spotData: spot
           }));
-          
           setSpaceCards(cards);
         } else {
-          const cards = generateSpaceCards(result.data.space_number, result.data);
+          const cards = Array.from({ length: result.data.space_number || 0 }, (_, i) => ({
+            id: i + 1,
+            space_number: i + 1,
+            is_available: true,
+            space_fee: result.data.price || result.data.space_fee || 0,
+            space_type: result.data.space_type || 'Standard'
+          }));
           setSpaceCards(cards);
         }
-      } else {
+      } else if (isMounted.current) {
         throw new Error("Invalid room details format");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingRoomDetails(false);
+      if (isMounted.current) {
+        setLoading(prev => ({ ...prev, roomDetails: false }));
+      }
+      isFetchingRoomDetails.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  // Handle floor change
-  const handleFloorChange = (e) => {
-    const floorId = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      floor_id: floorId,
-      room_id: ""
-    }));
-    setSelectedRoom(null);
-    setSpaceCards([]);
-    setRoomDetails(null);
-
-    if (floorId && selectedLocation) {
-      fetchRoom(selectedLocation, floorId, pagination.currentPage, pagination.pageSize);
+  const fetchCurrencySymbol = useCallback(async (locationId) => {
+    if (!locationId || !tenantToken || !tenantSlug) return "₦";
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/fetch/currency/location`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${tenantToken}`,
+          },
+          body: JSON.stringify({ location_id: locationId }),
+        }
+      );
+      const result = await response.json();
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        return result.data[0].symbol || "₦";
+      }
+      return "₦";
+    } catch (err) {
+      return "₦";
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  // Handle room change
-  const handleRoomChange = async (e) => {
-    const roomId = e.target.value;
-    setSelectedRoom(roomId);
-    setFormData((prev) => ({
-      ...prev,
-      room_id: roomId
-    }));
+  // Initial data fetch
+  useEffect(() => {
+    if (tenantToken && tenantSlug) {
+      fetchLocations();
+      fetchUsers();
+    }
+  }, [tenantToken, tenantSlug, fetchLocations, fetchUsers]);
 
-    if (roomId) {
-      const filteredData = roomsData.filter(room => room.id === roomId);
-      setData(filteredData);
-      await fetchRoomDetails(roomId);
-    } else {
-      setData(roomsData);
+  // Fetch floors when location changes
+  useEffect(() => {
+    if (tenantToken && tenantSlug && selectedLocation) {
+      fetchFloors(selectedLocation);
+      // Reset floor and room selection
+      setSelectedFloor("");
+      setRoomsData([]);
+      setSelectedRoom(null);
+      setSpaceCards([]);
+      setRoomDetails(null);
+      
+      // Fetch currency symbol for new location
+      fetchCurrencySymbol(selectedLocation).then(symbol => {
+        if (isMounted.current) setCurrencySymbol(symbol);
+      });
+    }
+  }, [tenantToken, tenantSlug, selectedLocation, fetchFloors, fetchCurrencySymbol]);
+
+  // Fetch rooms when floor changes
+  useEffect(() => {
+    if (tenantToken && tenantSlug && selectedLocation && selectedFloor) {
+      fetchRooms(selectedLocation, selectedFloor, pagination.currentPage, pagination.pageSize);
+      // Reset room selection
+      setSelectedRoom(null);
       setSpaceCards([]);
       setRoomDetails(null);
     }
-  };
+  }, [tenantToken, tenantSlug, selectedLocation, selectedFloor, pagination.currentPage, pagination.pageSize, fetchRooms]);
 
-  // Handle edit click
-  const handleEditClick = (myRoom) => {
-    setSelectedUser(myRoom);
-    setShow(true);
-  };
-
-  // Handle close modal
-  const handleClose = () => {
-    setShow(false);
-    setSelectedUser(null);
-
-    if (selectedLocation && formData.floor_id) {
-      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
+  // Fetch room details when room changes
+  useEffect(() => {
+    if (selectedRoom) {
+      fetchRoomDetails(selectedRoom.id);
+    } else {
+      setSpaceCards([]);
+      setRoomDetails(null);
     }
-  };
+  }, [selectedRoom, fetchRoomDetails]);
 
-  // Handle changes to day fields
-  const handleDayChange = (index, field, value) => {
-    const updatedDays = [...bookingFormData.chosen_days];
-    
-    if (field === 'start_time' && value) {
-      const dayName = format(value, 'EEEE').toLowerCase();
-      updatedDays[index].day = dayName;
-      updatedDays[index].start_time = value;
-      
-      if (updatedDays[index].end_time && isBefore(updatedDays[index].end_time, value)) {
-        updatedDays[index].end_time = addHours(value, 1);
-      }
-    } else if (field === 'end_time') {
-      updatedDays[index].end_time = value;
-    }
-    
-    setBookingFormData(prev => ({
-      ...prev,
-      chosen_days: updatedDays
-    }));
-  };
+  const handleLocationChange = useCallback((e) => {
+    const locationId = e.target.value;
+    setSelectedLocation(locationId);
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
+  }, []);
 
-  // Add a new day to the booking
-  const addDay = () => {
-    setBookingFormData(prev => ({
-      ...prev,
-      chosen_days: [
-        ...prev.chosen_days,
-        { start_time: null, end_time: null }
-      ]
-    }));
-  };
+  const handleFloorChange = useCallback((e) => {
+    const floorId = e.target.value;
+    setSelectedFloor(floorId);
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
+  }, []);
 
-  // Remove a day from the booking
-  const removeDay = (index) => {
-    setBookingFormData(prev => ({
-      ...prev,
-      chosen_days: prev.chosen_days.filter((_, i) => i !== index)
-    }));
-  };
+  const handleViewSpotsClick = useCallback(async (room) => {
+    setSelectedRoom(room);
+    setTimeout(scrollToSpots, 300);
+  }, [scrollToSpots]);
 
-  // Invoice type change handler
-  const handleInvoiceTypeChange = (e) => {
-    setInvoiceType(e.target.value);
-    if (e.target.value === "default") {
-      // Clear invoice items when switching to default
-      setInvoiceItems([{ name: "", charge: "", number: "1" }]);
-    }
-  };
-
-  // Handle invoice item change
-  const handleInvoiceItemChange = (index, field, value) => {
-    const updatedItems = [...invoiceItems];
-    updatedItems[index][field] = value;
-    setInvoiceItems(updatedItems);
-  };
-
-  // Add new invoice item
-  const addInvoiceItem = () => {
-    setInvoiceItems([
-      ...invoiceItems,
-      { name: "", charge: "", number: "1" }
-    ]);
-  };
-
-  // Remove invoice item
-  const removeInvoiceItem = (index) => {
-    if (invoiceItems.length > 1) {
-      const updatedItems = invoiceItems.filter((_, i) => i !== index);
-      setInvoiceItems(updatedItems);
-    }
-  };
-
-  // Calculate total for dynamic invoice
-  const calculateInvoiceTotal = () => {
-    return invoiceItems.reduce((total, item) => {
-      const charge = parseFloat(item.charge) || 0;
-      const number = parseInt(item.number) || 1;
-      return total + (charge * number);
-    }, 0);
-  };
-
-  // Handle book now click
-  const handleBookNowClick = (space) => {
+  const handleBookNowClick = useCallback((space) => {
     setSelectedSpace(space);
     setBookingFormData({
       type: "one-off",
@@ -460,21 +1660,65 @@ const SeatBookingSystem = () => {
       number_months: "0",
       user_id: ""
     });
-    // Reset invoice fields
     setInvoiceType("default");
     setInvoiceItems([{ name: "", charge: "", number: "1" }]);
     setShowBookingPopup(true);
-  };
+  }, []);
 
-  const handleBookingClose = () => {
+  const handleBookingClose = useCallback(() => {
     setShowBookingPopup(false);
     setSelectedSpace(null);
-    // Reset invoice fields
     setInvoiceType("default");
     setInvoiceItems([{ name: "", charge: "", number: "1" }]);
-  };
+  }, []);
 
-  const handleBookingInputChange = (e) => {
+  const handleDayChange = useCallback((index, field, value) => {
+    setBookingFormData(prev => {
+      const updatedDays = [...prev.chosen_days];
+      
+      if (field === 'start_time' && value) {
+        const dayName = format(value, 'EEEE').toLowerCase();
+        updatedDays[index] = {
+          day: dayName,
+          start_time: value,
+          end_time: updatedDays[index]?.end_time
+        };
+        
+        if (updatedDays[index].end_time && isBefore(updatedDays[index].end_time, value)) {
+          updatedDays[index].end_time = addHours(value, 1);
+        }
+      } else if (field === 'end_time') {
+        updatedDays[index] = {
+          ...updatedDays[index],
+          end_time: value
+        };
+      }
+      
+      return {
+        ...prev,
+        chosen_days: updatedDays
+      };
+    });
+  }, []);
+
+  const addDay = useCallback(() => {
+    setBookingFormData(prev => ({
+      ...prev,
+      chosen_days: [
+        ...prev.chosen_days,
+        { start_time: null, end_time: null }
+      ]
+    }));
+  }, []);
+
+  const removeDay = useCallback((index) => {
+    setBookingFormData(prev => ({
+      ...prev,
+      chosen_days: prev.chosen_days.filter((_, i) => i !== index)
+    }));
+  }, []);
+
+  const handleBookingInputChange = useCallback((e) => {
     const { name, value } = e.target;
     
     setBookingFormData(prev => {
@@ -486,72 +1730,97 @@ const SeatBookingSystem = () => {
           number_months: "0"
         };
       }
-      
       return {
         ...prev,
         [name]: value
       };
     });
-  };
+  }, []);
 
-  const formatTimeForAPI = (date) => {
+  const handleInvoiceTypeChange = useCallback((e) => {
+    setInvoiceType(e.target.value);
+    if (e.target.value === "default") {
+      setInvoiceItems([{ name: "", charge: "", number: "1" }]);
+    }
+  }, []);
+
+  const handleInvoiceItemChange = useCallback((index, field, value) => {
+    setInvoiceItems(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  }, []);
+
+  const addInvoiceItem = useCallback(() => {
+    setInvoiceItems(prev => [
+      ...prev,
+      { name: "", charge: "", number: "1" }
+    ]);
+  }, []);
+
+  const removeInvoiceItem = useCallback((index) => {
+    if (invoiceItems.length > 1) {
+      setInvoiceItems(prev => prev.filter((_, i) => i !== index));
+    }
+  }, [invoiceItems.length]);
+
+  const calculateInvoiceTotal = useCallback(() => {
+    return invoiceItems.reduce((total, item) => {
+      const charge = parseFloat(item.charge) || 0;
+      const number = parseInt(item.number) || 1;
+      return total + (charge * number);
+    }, 0);
+  }, [invoiceItems]);
+
+  const formatTimeForAPI = useCallback((date) => {
     if (!date) return "";
     return format(date, "yyyy-MM-dd HH:mm:ss");
-  };
+  }, []);
 
-  // Function to create dynamic invoice
-  const createDynamicInvoice = async (bookingData) => {
-    try {
-      // Prepare invoice data according to API format
-      const invoiceData = {
-        spot_id: bookingData.spot_id,
-        user_id: bookingData.user_id,
-        type: bookingData.type,
-        spot_fee: selectedSpace.space_fee, // Get the space fee from selected space
-        item_name: invoiceItems.map(item => item.name),
-        item_charge: invoiceItems.map(item => parseFloat(item.charge) || 0),
-        item_number: invoiceItems.map(item => parseInt(item.number) || 1),
-        number_weeks: bookingData.number_weeks,
-        number_months: bookingData.number_months,
-        chosen_days: bookingData.chosen_days
-      };
+  const createDynamicInvoice = useCallback(async (bookingData) => {
+    const invoiceData = {
+      spot_id: bookingData.spot_id,
+      user_id: bookingData.user_id,
+      type: bookingData.type,
+      spot_fee: selectedSpace.space_fee,
+      item_name: invoiceItems.map(item => item.name),
+      item_charge: invoiceItems.map(item => parseFloat(item.charge) || 0),
+      item_number: invoiceItems.map(item => parseInt(item.number) || 1),
+      number_weeks: bookingData.number_weeks,
+      number_months: bookingData.number_months,
+      chosen_days: bookingData.chosen_days
+    };
 
-      console.log('Dynamic invoice payload:', JSON.stringify(invoiceData, null, 2));
-
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/dynamic/invoice/create`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${user?.tenantToken}`,
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Timezone-Offset": new Date().getTimezoneOffset()
-          },
-          body: JSON.stringify(invoiceData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create dynamic invoice");
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/dynamic/invoice/create`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${tenantToken}`,
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Timezone-Offset": new Date().getTimezoneOffset()
+        },
+        body: JSON.stringify(invoiceData),
       }
+    );
 
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to create dynamic invoice");
     }
-  };
 
-  // Function to create regular booking
-  const createRegularBooking = async (bookingData) => {
+    return await response.json();
+  }, [tenantToken, tenantSlug, selectedSpace, invoiceItems]);
+
+  const createRegularBooking = useCallback(async (bookingData) => {
     const response = await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/book`,
       {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${user?.tenantToken}`,
+          "Authorization": `Bearer ${tenantToken}`,
           "Content-Type": "application/json",
           "Accept": "application/json",
           "Timezone-Offset": new Date().getTimezoneOffset()
@@ -566,14 +1835,14 @@ const SeatBookingSystem = () => {
     }
 
     return await response.json();
-  };
+  }, [tenantToken, tenantSlug]);
 
-  const handleBookingSubmit = async (e) => {
+  const handleBookingSubmit = useCallback(async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(prev => ({ ...prev, booking: true }));
     
     try {
-      // Validate chosen days
+      // Validate form
       const hasEmptyFields = bookingFormData.chosen_days.some(day => 
         !day.day || !day.start_time || !day.end_time
       ) || !bookingFormData.user_id;
@@ -582,7 +1851,7 @@ const SeatBookingSystem = () => {
         throw new Error("Please fill in all required fields");
       }
 
-      // Prepare the booking data
+      // Prepare booking data
       const bookingData = {
         spot_id: selectedSpace.id.toString(),
         user_id: bookingFormData.user_id,
@@ -596,8 +1865,6 @@ const SeatBookingSystem = () => {
         }))
       };
 
-      console.log('Booking payload:', JSON.stringify(bookingData, null, 2));
-
       // Validate time ranges
       for (const day of bookingData.chosen_days) {
         const start = parseISO(day.start_time.replace(' ', 'T') + 'Z');
@@ -610,9 +1877,7 @@ const SeatBookingSystem = () => {
 
       let result;
       
-      // Decide which API to call based on invoice type
       if (invoiceType === "dynamic") {
-        // Validate invoice items
         const hasEmptyInvoiceItems = invoiceItems.some(item => 
           !item.name.trim() || !item.charge
         );
@@ -621,98 +1886,50 @@ const SeatBookingSystem = () => {
           throw new Error("Please fill in all invoice item fields");
         }
 
-        // Call dynamic invoice API
         result = await createDynamicInvoice(bookingData);
       } else {
-        // Call regular booking API
         result = await createRegularBooking(bookingData);
       }
 
-      toast.success(result.message || invoiceType === "dynamic" 
-        ? "Space booked successfully!" 
-        : "Space booked successfully!");
+      toast.success(result.message || "Space booked successfully!");
       
       handleBookingClose();
       
-      // Refresh the space data
+      // Refresh room details
       if (selectedRoom) {
         await fetchRoomDetails(selectedRoom.id);
       }
     } catch (error) {
       toast.error(error.message || "Failed to process booking");
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Use effects
-  useEffect(() => {
-    if (user?.tenantToken) {
-      fetchLocations();
-      fetchUsers();
-    }
-  }, [user?.tenantToken]);
-
-  useEffect(() => {
-    if (selectedLocation) {
-      fetchFloor(selectedLocation);
-    }
-  }, [selectedLocation]);
-
-  const fetchCurrencySymbol = async (locationId) => {
-    if (!locationId) {
-      setCurrencySymbol("₦");
-      return;
-    }
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/fetch/currency/location`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user?.tenantToken}`,
-          },
-          body: JSON.stringify({ location_id: locationId }),
-        }
-      );
-      const result = await response.json();
-      if (Array.isArray(result.data) && result.data.length > 0) {
-        setCurrencySymbol(result.data[0].symbol || "₦");
-      } else {
-        setCurrencySymbol("₦");
+      if (isMounted.current) {
+        setLoading(prev => ({ ...prev, booking: false }));
       }
-    } catch (err) {
-      setCurrencySymbol("₦");
     }
-  };
+  }, [bookingFormData, selectedSpace, invoiceType, invoiceItems, createDynamicInvoice, createRegularBooking, handleBookingClose, selectedRoom, fetchRoomDetails, formatTimeForAPI]);
 
-  // Update currency symbol when location changes
-  useEffect(() => {
-    if (selectedLocation) {
-      fetchCurrencySymbol(selectedLocation);
-    }
-  }, [selectedLocation]);
-    
-  useEffect(() => {
-    if (formData.floor_id && user?.tenantToken) {
-      fetchRoom(selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize);
-    }
-  }, [user?.tenantToken, selectedLocation, formData.floor_id, pagination.currentPage, pagination.pageSize]);
+  // Paginate rooms data
+  const paginatedRooms = useMemo(() => {
+    const start = (pagination.currentPage - 1) * pagination.pageSize;
+    const end = start + pagination.pageSize;
+    return roomsData.slice(start, end);
+  }, [roomsData, pagination.currentPage, pagination.pageSize]);
 
-  const handleViewSpotsClick = async (room) => {
-    setSelectedRoom(room);
-    await fetchRoomDetails(room.id);
-    setTimeout(scrollToSpots, 300); // Give time for DOM to update
-  };
+  // Update total pages when roomsData changes
+  useEffect(() => {
+    setPagination(prev => ({
+      ...prev,
+      totalPages: Math.ceil(roomsData.length / prev.pageSize) || 1
+    }));
+  }, [roomsData, pagination.pageSize]);
 
   return (
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Book Spot", path: "/room/my-rooms", active: true },
+          { label: "Book Spot", path: "/booking/book-spot", active: true },
         ]}
-        title="Book Spot"
+        title="Book a Spot"
       />
 
       <Row>
@@ -720,34 +1937,29 @@ const SeatBookingSystem = () => {
           <Card>
             <Card.Body>
               <Card>
-                <Card.Body style={{ 
-                  background: secondary, 
-                  marginTop: "30px" 
-                }}>
+                <Card.Body style={{ background: secondary, marginTop: "30px" }}>
                   {/* Location Selection */}
-                  {loadingLocations ? (
-                    <div className="text-center">
+                  {loading.locations ? (
+                    <div className="text-center py-4">
                       <Spinner animation="border" role="status">
                         <span className="visually-hidden">Loading...</span>
-                      </Spinner>{" "}
-                      Loading your locations...
+                      </Spinner>
+                      <p className="mt-2">Loading locations...</p>
                     </div>
                   ) : (
                     <div>
                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
-                        Select a location to view the room.
+                        Select a location to view available rooms.
                       </p>
                       <Form.Select
                         style={{ marginBottom: "25px", fontSize: "1rem" }}
-                        value={selectedLocation || ""}
+                        value={selectedLocation}
                         onChange={handleLocationChange}
                       >
-                        <option value="" disabled>
-                          Select a location
-                        </option>
+                        <option value="">Select a location</option>
                         {locations.map((location) => (
                           <option key={location.id} value={location.id}>
-                            {location.name} at {location.state}
+                            {location.name} - {location.state}
                           </option>
                         ))}
                       </Form.Select>
@@ -756,147 +1968,200 @@ const SeatBookingSystem = () => {
 
                   {/* Floor Selection */}
                   {selectedLocation && (
-                    <Form.Group className="mb-3" controlId="location_id">
-                      {loadingFloor ? (
-                        <div className="text-center">
-                          <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Loading floors/sections...</span>
+                    <Form.Group className="mb-3" controlId="floor_id">
+                      {loading.floors ? (
+                        <div className="text-center py-3">
+                          <Spinner animation="border" size="sm" role="status">
+                            <span className="visually-hidden">Loading...</span>
                           </Spinner>
+                          <p className="mt-2">Loading floors...</p>
                         </div>
                       ) : (
                         <>
                           <Form.Label>
-                            Select the Floor of the room you want to view.
+                            Select the floor/section to view rooms.
                           </Form.Label>
                           <Form.Select
                             name="floor_id"
-                            value={formData.floor_id}
+                            value={selectedFloor}
                             onChange={handleFloorChange}
                             required
                           >
                             <option value="">Select a Floor/Section</option>
-                            {Array.isArray(floorData) &&
-                              floorData.map((floor) => (
-                                <option key={floor.id} value={floor.id}>
-                                  {floor.name}
-                                </option>
-                              ))}
+                            {floorData.map((floor) => (
+                              <option key={floor.id} value={floor.id}>
+                                {floor.name}
+                              </option>
+                            ))}
                           </Form.Select>
                         </>
                       )}
                     </Form.Group>
                   )}
 
-                  {/* Room Selection */}
-                  {formData.floor_id && (
+                  {/* Rooms Display */}
+                  {selectedFloor && (
                     <>
-                      {loading ? (
-                        <p>Loading rooms...</p>
-                      ) : isLoading ? (
-                        <div className="text-center">
+                      {loading.rooms ? (
+                        <div className="text-center py-4">
                           <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Booking...</span>
-                          </Spinner>{" "}
-                          Booking...
+                            <span className="visually-hidden">Loading...</span>
+                          </Spinner>
+                          <p className="mt-2">Loading rooms...</p>
                         </div>
                       ) : (
                         <>
-                          {/* Room Cards Section */}
-                          <h4 className="mb-3"> ROOMS</h4>
-                          {roomsData && roomsData.length > 0 ? (
-                            <Row>
-                              {roomsData.map((room) => (
-                                <Col key={room.id} md={4} className="mb-3">
-                                  <Card className="h-100">
-                                    <Card.Body className="d-flex flex-column">
-                                      <Card.Title className="d-flex justify-content-between align-items-center">
-                                        <span>{room.space_name} (No of Spots: {room.space_number})</span>
-                                      </Card.Title>
-                                      <Card.Text className="flex-grow-1">
-                                        <div>{room.category.category} </div>
-                                      </Card.Text>
-                                      <div className="mt-auto">
-                                        <Button
-                                          variant="primary"
-                                          size="sm"
-                                          className="w-100"
-                                          onClick={() => handleViewSpotsClick(room)}
-                                          style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-                                        >
-                                          View Spots
-                                        </Button>
-                                      </div>
-                                    </Card.Body>
-                                  </Card>
-                                </Col>
-                              ))}
-                            </Row>
+                          <h4 className="mb-3">Available Rooms</h4>
+                          {paginatedRooms.length > 0 ? (
+                            <>
+                              <Row>
+                                {paginatedRooms.map((room) => (
+                                  <Col key={room.id} md={4} className="mb-3">
+                                    <Card className="h-100">
+                                      <Card.Body className="d-flex flex-column">
+                                        <Card.Title className="d-flex justify-content-between align-items-center">
+                                          <span>{room.space_name}</span>
+                                          <Badge bg="info">Spots: {room.space_number}</Badge>
+                                        </Card.Title>
+                                        <Card.Text className="flex-grow-1">
+                                          <div>
+                                            <strong>Category:</strong> {room.category?.category || 'N/A'}
+                                          </div>
+                                          <div>
+                                            <strong>Fee/Spot:</strong> {currencySymbol}{room.space_fee}
+                                          </div>
+                                        </Card.Text>
+                                        <div className="mt-auto">
+                                          <Button
+                                            variant="primary"
+                                            size="sm"
+                                            className="w-100"
+                                            onClick={() => handleViewSpotsClick(room)}
+                                            style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+                                            disabled={loading.roomDetails && selectedRoom?.id === room.id}
+                                          >
+                                            {loading.roomDetails && selectedRoom?.id === room.id ? (
+                                              <>
+                                                <Spinner size="sm" animation="border" className="me-1" />
+                                                Loading...
+                                              </>
+                                            ) : "View Spots"}
+                                          </Button>
+                                        </div>
+                                      </Card.Body>
+                                    </Card>
+                                  </Col>
+                                ))}
+                              </Row>
+
+                              {/* Pagination Controls */}
+                              {roomsData.length > pagination.pageSize && (
+                                <div className="d-flex justify-content-between align-items-center mt-4">
+                                  <div>
+                                    Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} to{' '}
+                                    {Math.min(pagination.currentPage * pagination.pageSize, roomsData.length)} of{' '}
+                                    {roomsData.length} rooms
+                                  </div>
+                                  <div className="d-flex gap-2">
+                                    <Button
+                                      variant="outline-primary"
+                                      size="sm"
+                                      onClick={() => setPagination(prev => ({ 
+                                        ...prev, 
+                                        currentPage: Math.max(1, prev.currentPage - 1) 
+                                      }))}
+                                      disabled={pagination.currentPage === 1}
+                                      style={{ borderColor: primary, color: primary }}
+                                    >
+                                      <i className="mdi mdi-chevron-left"></i> Previous
+                                    </Button>
+                                    <span className="align-self-center">
+                                      Page {pagination.currentPage} of {pagination.totalPages}
+                                    </span>
+                                    <Button
+                                      variant="outline-primary"
+                                      size="sm"
+                                      onClick={() => setPagination(prev => ({ 
+                                        ...prev, 
+                                        currentPage: Math.min(prev.totalPages, prev.currentPage + 1) 
+                                      }))}
+                                      disabled={pagination.currentPage === pagination.totalPages}
+                                      style={{ borderColor: primary, color: primary }}
+                                    >
+                                      Next <i className="mdi mdi-chevron-right"></i>
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </>
                           ) : (
                             <Alert variant="info">No rooms found for this floor/section.</Alert>
                           )}
-                          {/* Room Details and Spaces Section */}
-                          {selectedRoom && (
-                            <div className="mt-4" id="spots-section">
-                              {/* Spaces Section */}
+                        </>
+                      )}
 
-                              <h4 className="mb-3">Available Spots</h4>
-                              {loadingRoomDetails ? (
-                                <div className="text-center">
-                                  <Spinner animation="border" role="status">
-                                    <span className="visually-hidden">Loading spots...</span>
-                                  </Spinner>
-                                </div>
-                              ) : spaceCards && spaceCards.length > 0 ? (
-                                <>
-                                  <p className="mb-3">Total spots: {spaceCards.length}</p>
-                                  <Row>
-                                    {spaceCards.map((space, spaceIdx) => (
-                                      <Col key={space.id} md={3} className="mb-3">
-                                        <Card className="h-100">
-                                          <Card.Body className="d-flex flex-column">
-                                            <Card.Title className="d-flex justify-content-between align-items-center">
-                                              <span>Spot {spaceIdx + 1}</span>
-                                              <Badge bg="success">Available</Badge>
-                                            </Card.Title>
-                                            <Card.Text className="flex-grow-1">
-                                              <div><strong>Number:</strong> {spaceIdx + 1}</div>
-                                              <div><strong>Fee:</strong> {currencySymbol}{space.space_fee}</div>
-                                            </Card.Text>
-                                            <div className="mt-auto">
-                                              <Button
-                                                variant="primary"
-                                                size="sm"
-                                                className="w-100"
-                                                onClick={() => handleBookNowClick(space)}
-                                                style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-                                              >
-                                                Book Now
-                                              </Button>
-                                            </div>
-                                          </Card.Body>
-                                        </Card>
-                                      </Col>
-                                    ))}
-                                  </Row>
-                                </>
-                              ) : (
-                                <Alert variant="info">
-                                  {roomDetails ? "No spaces configured for this room" : "Select a room to view spaces"}
-                                </Alert>
-                              )}
+                      {/* Room Details and Spaces Section */}
+                      {selectedRoom && (
+                        <div className="mt-4" id="spots-section">
+                          <h4 className="mb-3">Available Spots in {selectedRoom.space_name}</h4>
+                          
+                          {loading.roomDetails ? (
+                            <div className="text-center py-4">
+                              <Spinner animation="border" role="status">
+                                <span className="visually-hidden">Loading spots...</span>
+                              </Spinner>
+                              <p className="mt-2">Loading available spots...</p>
                             </div>
+                          ) : spaceCards.length > 0 ? (
+                            <>
+                              <p className="mb-3">
+                                <strong>Total spots:</strong> {spaceCards.length} | 
+                                <strong> Fee per spot:</strong> {currencySymbol}{spaceCards[0]?.space_fee}
+                              </p>
+                              <Row>
+                                {spaceCards.map((space, index) => (
+                                  <Col key={space.id} md={3} className="mb-3">
+                                    <Card className="h-100">
+                                      <Card.Body className="d-flex flex-column">
+                                        <Card.Title className="d-flex justify-content-between align-items-center">
+                                          <span>Spot {index + 1}</span>
+                                          <Badge bg="success">Available</Badge>
+                                        </Card.Title>
+                                        <Card.Text className="flex-grow-1">
+                                          <div><strong>Number:</strong> {index + 1}</div>
+                                          <div><strong>Fee:</strong> {currencySymbol}{space.space_fee}</div>
+                                        </Card.Text>
+                                        <div className="mt-auto">
+                                          <Button
+                                            variant="primary"
+                                            size="sm"
+                                            className="w-100"
+                                            onClick={() => handleBookNowClick(space)}
+                                            style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+                                          >
+                                            Book Now
+                                          </Button>
+                                        </div>
+                                      </Card.Body>
+                                    </Card>
+                                  </Col>
+                                ))}
+                              </Row>
+                            </>
+                          ) : (
+                            <Alert variant="info">No spots available in this room.</Alert>
                           )}
+                          
                           <Button
                             variant="outline-secondary"
                             size="sm"
-                            className="mb-3"
-                            onClick={() => {
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                            }}
+                            className="mt-3"
+                            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                           >
-                            &#8679; Back to Top / Select Another Room
+                            <i className="mdi mdi-arrow-up me-1"></i>
+                            Back to Top
                           </Button>
-                        </>
+                        </div>
                       )}
                     </>
                   )}
@@ -907,31 +2172,10 @@ const SeatBookingSystem = () => {
         </Col>
       </Row>
 
-      {/* Popups */}
-      {popup.isVisible && (
-        <Popup
-          message={popup.message}
-          type={popup.type}
-          onClose={() => setPopup({ ...popup, isVisible: false })}
-          buttonLabel={popup.buttonLabel}
-          buttonRoute={popup.buttonRoute}
-        />
-      )}
-
-      {deletePopup.isVisible && (
-        <Popup
-          message="Are you sure you want to delete this room?"
-          type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myRoomID: null })}
-          buttonLabel="Yes"
-          onAction={confirmDelete}
-        />
-      )}
-
       {/* User Registration Modal */}
       <UsersRegistrationModal
-        show={show}
-        onHide={handleClose}
+        show={showUserModal}
+        onHide={() => setShowUserModal(false)}
         myUser={selectedUser}
         onSubmit={fetchUsers}
       />
@@ -939,17 +2183,17 @@ const SeatBookingSystem = () => {
       {/* Booking Popup */}
       {showBookingPopup && selectedSpace && (
         <Popup
-          title={`Book Space ${selectedSpace.space_number}`}
+          title={`Book Spot #${selectedSpace.space_number}`}
           isVisible={showBookingPopup}
           onClose={handleBookingClose}
           size="lg"
         >
-          <div style={{ maxHeight: "70vh", maxWidth: "80vw", overflowY: "auto", overflowX: "hidden", paddingRight: "8px" }}>
+          <div style={{ maxHeight: "70vh", maxWidth: "80vw", overflowY: "auto", paddingRight: "8px" }}>
             <Form onSubmit={handleBookingSubmit}>
               <Row>
                 <Col md={12}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Booking Type</Form.Label>
+                    <Form.Label>Booking Type *</Form.Label>
                     <Form.Select
                       name="type"
                       value={bookingFormData.type}
@@ -966,9 +2210,9 @@ const SeatBookingSystem = () => {
               <Row>
                 <Col md={12}>
                   <Form.Group className="mb-3">
-                    <Form.Label>Select User</Form.Label>
-                    <div className="d-flex align-items-center mb-2">
-                      {loadingUsers ? (
+                    <Form.Label>Select User *</Form.Label>
+                    <div className="d-flex align-items-center">
+                      {loading.users ? (
                         <Spinner animation="border" size="sm" />
                       ) : (
                         <Form.Select
@@ -976,7 +2220,7 @@ const SeatBookingSystem = () => {
                           value={bookingFormData.user_id}
                           onChange={handleBookingInputChange}
                           required
-                          className="me-2"
+                          className="flex-grow-1 me-2"
                         >
                           <option value="">Select a user</option>
                           {users.map((user) => (
@@ -991,18 +2235,18 @@ const SeatBookingSystem = () => {
                         size="sm" 
                         onClick={() => {
                           setSelectedUser(null);
-                          setShow(true);
+                          setShowUserModal(true);
                         }}
                         style={{ borderColor: primary, color: primary }}
                       >
-                        <i className="mdi mdi-plus"></i> Add User
+                        <i className="mdi mdi-plus"></i> New User
                       </Button>
                     </div>
                   </Form.Group>
                 </Col>
               </Row>
 
-              {/* Invoice Selection Section */}
+              {/* Invoice Type Selection */}
               <Row>
                 <Col md={12}>
                   <Form.Group className="mb-3">
@@ -1012,14 +2256,9 @@ const SeatBookingSystem = () => {
                       onChange={handleInvoiceTypeChange}
                       required
                     >
-                      <option value="default">Default Invoice</option>
-                      <option value="dynamic">Dynamic Invoice</option>
+                      <option value="default">Standard Invoice (Space Fee Only)</option>
+                      <option value="dynamic">Custom Invoice (Add Items)</option>
                     </Form.Select>
-                    <Form.Text className="text-muted">
-                      {invoiceType === "default" 
-                        ? "Uses default pricing for the space" 
-                        : "Create a custom invoice with multiple items"}
-                    </Form.Text>
                   </Form.Group>
                 </Col>
               </Row>
@@ -1027,24 +2266,24 @@ const SeatBookingSystem = () => {
               {/* Dynamic Invoice Items */}
               {invoiceType === "dynamic" && (
                 <>
-                  <h6 className="mt-3 mb-2">Invoice Items</h6>
+                  <h6 className="mt-3 mb-2">Additional Items</h6>
                   {invoiceItems.map((item, index) => (
-                    <div key={index} className="border p-3 mb-3">
+                    <div key={index} className="border p-3 mb-3 rounded">
                       <Row>
-                        <Col md={6}>
-                          <Form.Group className="mb-3">
+                        <Col md={5}>
+                          <Form.Group className="mb-2">
                             <Form.Label>Item Name *</Form.Label>
                             <Form.Control
                               type="text"
                               value={item.name}
                               onChange={(e) => handleInvoiceItemChange(index, 'name', e.target.value)}
-                              placeholder="Enter item name"
+                              placeholder="e.g., Setup fee, Extras"
                               required={invoiceType === "dynamic"}
                             />
                           </Form.Group>
                         </Col>
                         <Col md={3}>
-                          <Form.Group className="mb-3">
+                          <Form.Group className="mb-2">
                             <Form.Label>Charge ({currencySymbol}) *</Form.Label>
                             <Form.Control
                               type="number"
@@ -1057,9 +2296,9 @@ const SeatBookingSystem = () => {
                             />
                           </Form.Group>
                         </Col>
-                        <Col md={3}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Number *</Form.Label>
+                        <Col md={2}>
+                          <Form.Group className="mb-2">
+                            <Form.Label>Qty *</Form.Label>
                             <Form.Control
                               type="number"
                               value={item.number}
@@ -1075,18 +2314,13 @@ const SeatBookingSystem = () => {
                               variant="danger" 
                               size="sm" 
                               onClick={() => removeInvoiceItem(index)}
-                              className="w-100"
+                              className="mb-2 w-100"
                             >
                               Remove
                             </Button>
                           )}
                         </Col>
                       </Row>
-                      <div className="text-end">
-                        <small className="text-muted">
-                          Item Total: {currencySymbol}{((parseFloat(item.charge) || 0) * (parseInt(item.number) || 1)).toFixed(2)}
-                        </small>
-                      </div>
                     </div>
                   ))}
                   
@@ -1102,12 +2336,12 @@ const SeatBookingSystem = () => {
                   
                   <div className="border-top pt-2 mb-3">
                     <div className="d-flex justify-content-between">
-                      <strong>Invoice Total:</strong>
-                      <strong>{currencySymbol}{calculateInvoiceTotal().toFixed(2)}</strong>
+                      <strong>Space Fee:</strong>
+                      <span>{currencySymbol}{selectedSpace.space_fee}</span>
                     </div>
                     <div className="d-flex justify-content-between">
-                      <small>Space Fee:</small>
-                      <small>{currencySymbol}{selectedSpace.space_fee}</small>
+                      <strong>Additional Items Total:</strong>
+                      <span>{currencySymbol}{calculateInvoiceTotal().toFixed(2)}</span>
                     </div>
                     <div className="d-flex justify-content-between">
                       <strong>Grand Total:</strong>
@@ -1117,6 +2351,7 @@ const SeatBookingSystem = () => {
                 </>
               )}
 
+              {/* Recurring Booking Options */}
               {bookingFormData.type === "recurrent" && (
                 <Row>
                   <Col md={6}>
@@ -1128,7 +2363,6 @@ const SeatBookingSystem = () => {
                         value={bookingFormData.number_weeks}
                         onChange={handleBookingInputChange}
                         min="1"
-                        disabled={bookingFormData.type === "one-off"}
                         required={bookingFormData.type === "recurrent"}
                       />
                     </Form.Group>
@@ -1142,7 +2376,6 @@ const SeatBookingSystem = () => {
                         value={bookingFormData.number_months}
                         onChange={handleBookingInputChange}
                         min="0"
-                        disabled={bookingFormData.type === "one-off"}
                         required={bookingFormData.type === "recurrent"}
                       />
                     </Form.Group>
@@ -1152,10 +2385,10 @@ const SeatBookingSystem = () => {
 
               <h5 className="mt-3">Booking Schedule</h5>
               {bookingFormData.chosen_days.map((day, index) => (
-                <div key={index} className="border p-3 mb-3">
+                <div key={index} className="border p-3 mb-3 rounded">
                   <Row>
                     <Col md={6}>
-                      <Form.Group className="mb-3">
+                      <Form.Group className="mb-2">
                         <Form.Label>Start Time *</Form.Label>
                         <DatePicker
                           selected={day.start_time}
@@ -1163,7 +2396,7 @@ const SeatBookingSystem = () => {
                           showTimeSelect
                           timeFormat="HH:mm"
                           timeIntervals={15}
-                          dateFormat="MMMM d, yyyy h:mm aa"
+                          dateFormat="MMM d, yyyy h:mm aa"
                           className="form-control"
                           placeholderText="Select start date & time"
                           minDate={new Date()}
@@ -1172,7 +2405,7 @@ const SeatBookingSystem = () => {
                       </Form.Group>
                     </Col>
                     <Col md={6}>
-                      <Form.Group className="mb-3">
+                      <Form.Group className="mb-2">
                         <Form.Label>End Time *</Form.Label>
                         <DatePicker
                           selected={day.end_time}
@@ -1180,7 +2413,7 @@ const SeatBookingSystem = () => {
                           showTimeSelect
                           timeFormat="HH:mm"
                           timeIntervals={15}
-                          dateFormat="MMMM d, yyyy h:mm aa"
+                          dateFormat="MMM d, yyyy h:mm aa"
                           className="form-control"
                           placeholderText="Select end date & time"
                           minDate={day.start_time || new Date()}
@@ -1213,28 +2446,38 @@ const SeatBookingSystem = () => {
                 Add Another Time Slot
               </Button>
 
-              <div className="d-flex justify-content-end">
-                <Button variant="secondary" onClick={handleBookingClose} className="me-2">
+              <div className="d-flex justify-content-end gap-2">
+                <Button variant="secondary" onClick={handleBookingClose}>
                   Cancel
                 </Button>
                 <Button 
                   variant="primary" 
                   type="submit" 
-                  disabled={isLoading}
+                  disabled={loading.booking}
                   style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
                 >
-                  {isLoading ? (
+                  {loading.booking ? (
                     <>
-                      <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                      {' '}
-                      {invoiceType === "dynamic" ? 'Booking...' : 'Booking...'}
+                      <Spinner as="span" animation="border" size="sm" className="me-1" />
+                      Processing...
                     </>
-                  ) : invoiceType === "dynamic" ? 'Confirm Booking' : 'Confirm Booking'}
+                  ) : 'Confirm Booking'}
                 </Button>
               </div>
             </Form>
           </div>
         </Popup>
+      )}
+
+      {/* Popups */}
+      {popup.isVisible && (
+        <Popup
+          message={popup.message}
+          type={popup.type}
+          onClose={() => setPopup({ ...popup, isVisible: false })}
+          buttonLabel={popup.buttonLabel}
+          buttonRoute={popup.buttonRoute}
+        />
       )}
     </>
   );

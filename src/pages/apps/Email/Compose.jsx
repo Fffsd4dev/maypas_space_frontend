@@ -38,43 +38,6 @@ const Compose = () => {
       align: []
     }], ['link', 'image', 'video'], ['clean']]
   };
-  // const [editorState, setEditorState] = useState<any>();
-
-  // useEffect(() => {
-  //   const html =
-  //     '<h3><span className="ql-size-large">Hello World!</span></h3><h3>This is an simple editable area.</h3><ul><li>Select a text to reveal the toolbar.</li><li>Edit rich document on-the-fly, so elastic!</li></ul><p>End of simple area</p>';
-  //   const contentBlock = htmlToDraft(html);
-  //   if (contentBlock) {
-  //     const contentState = ContentState.createFromBlockArray(
-  //       contentBlock.contentBlocks
-  //     );
-  //     setEditorState(EditorState.createWithContent(contentState));
-  //   }
-  // }, []);
-
-  // const schemaResolver = yupResolver(
-  //   yup.object().shape({
-  //     to: yup.string().required("Please specify to email"),
-  //     subject: yup.string().required("Please specify subject"),
-  //   })
-  // );
-
-  // /**
-  //  * Handles the save
-  //  * @param {*} event
-  //  * @param {*} values
-  //  */
-  // const handleEmailSave = (event: any, values: any) => {
-  //   const body = draftToHtml(convertToRaw(editorState.getCurrentContent()));
-  //   console.log({ ...values, body });
-  // };
-
-  // /**
-  //  * On editor body change
-  //  */
-  // const onEditorStateChange = (editorStates: any) => {
-  //   setEditorState(editorStates);
-  // };
 
   return <>
       <PageTitle breadCrumbItems={[{

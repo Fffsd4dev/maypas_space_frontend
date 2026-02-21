@@ -65,7 +65,6 @@ const SpotRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       );
       const result = await response.json();
       if (response.ok) {
-        console.log("Locations:", result.data.data);
         setLocations(result.data.data || []);
       } else {
         throw new Error(result.message || "Failed to fetch locations.");
@@ -87,7 +86,6 @@ const SpotRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   const fetchFloor = async (locationId) => {
     setLoadingFloor(true);
     setError(null);
-    console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
         `${
@@ -163,7 +161,6 @@ const SpotRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       }
 
       const result = await response.json();
-      console.log(result);
       if (result && Array.isArray(result.data)) {
         setCategoryData(result.data); // Store categories in state
       } else {
@@ -195,8 +192,6 @@ const SpotRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
-    console.log(formData);
-    console.log(user?.tenantToken);
 
     try {
       if (!user?.tenantToken)
@@ -219,7 +214,6 @@ const SpotRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       });
 
       const result = await response.json();
-      console.log(result);
 
       if (response.ok) {
         setErrorMessage(
@@ -258,13 +252,10 @@ const SpotRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
         }
 
         setErrorMessage(errorMsg);
-
-        console.log(result);
         setIsError(true);
       }
     } catch (error) {
       setErrorMessage("An error occurred. Contact Admin");
-      console.log(error);
       setIsError(true);
     } finally {
       setIsLoading(false);

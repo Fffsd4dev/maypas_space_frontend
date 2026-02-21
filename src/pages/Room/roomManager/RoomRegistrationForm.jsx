@@ -1,22 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import { useLogoColor } from "../../../context/LogoColorContext";
 
-const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
+const RoomRegistrationModal = ({ show, onHide, room, locations = [], onSubmit }) => {
   const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
 
   const { colour: primary } = useLogoColor();
 
-  const [locations, setLocations] = useState([]);
-  const [loadingLocations, setLoadingLocations] = useState(true);
-  const [loadingCategory, setLoadingCategory] = useState(true);
-  const [loadingFloor, setLoadingFloor] = useState(true);
+  const isMounted = useRef(true);
+
   const [floorData, setFloorData] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
   const [categoryData, setCategoryData] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [loadingFloor, setLoadingFloor] = useState(false);
+  const [loadingCategory, setLoadingCategory] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -30,21 +31,29 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isLocationName, setIsLocationName] = useState("");
-  const [isFloorName, setIsFloorName] = useState("");
 
+  // Cleanup on unmount
   useEffect(() => {
-    if (myRoom) {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Reset form when room changes
+  useEffect(() => {
+    if (room) {
       setFormData({
-        name: myRoom.space_name || "",
-        space_number: myRoom.space_number || "",
-        floor_id: myRoom.space || "",
-        location_id: myRoom.location_id || "",
-        space_fee: myRoom.space_fee || "",
-        space_category_id: myRoom.space_category_id || "",
-        space_discount: myRoom.space_discount || "",
-        min_space_discount_time: myRoom.min_space_discount_time || "",
+        name: room.space_name || "",
+        space_number: room.space_number || "",
+        floor_id: room.floor_id || "",
+        location_id: room.location_id || "",
+        space_fee: room.space_fee || "",
+        space_category_id: room.space_category_id || "",
+        space_discount: room.space_discount || "",
+        min_space_discount_time: room.min_space_discount_time || "",
       });
+      setSelectedLocation(room.location_id || "");
     } else {
       setFormData({
         name: "",
@@ -56,39 +65,13 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
         space_discount: "",
         min_space_discount_time: "",
       });
+      setSelectedLocation("");
     }
-  }, [myRoom]);
+  }, [room]);
 
-  const fetchLocations = async () => {
-    setLoadingLocations(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
-        {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
-        }
-      );
-      const result = await response.json();
-      console.log('locations in fetch location: ', result.data.data)
-      if (response.ok) {
-        setLocations(result.data.data || []);
-      } else {
-        throw new Error(result.message || "Failed to fetch locations.");
-      }
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoadingLocations(false);
-    }
-  };
-
-  useEffect(() => {
-    if (show && user?.tenantToken) {
-      fetchLocations();
-    }
-  }, [show, user?.tenantToken]);
-
-  const fetchFloor = async (locationId) => {
+  const fetchFloors = useCallback(async (locationId) => {
+    if (!tenantToken || !tenantSlug || !locationId) return;
+    
     setLoadingFloor(true);
     try {
       const response = await fetch(
@@ -96,7 +79,7 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
@@ -106,403 +89,380 @@ const RoomRegistrationModal = ({ show, onHide, myRoom, onSubmit }) => {
       }
 
       const result = await response.json();
-      if (result && Array.isArray(result.data.data)) {
+      
+      if (isMounted.current && result?.data?.data) {
         setFloorData(result.data.data);
-      } else {
-        throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingFloor(false);
+      if (isMounted.current) {
+        setLoadingFloor(false);
+      }
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  useEffect(() => {
-    if (selectedLocation) {
-      fetchFloor(selectedLocation);
-    }
-  }, [selectedLocation]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleLocationChange = (e) => {
-    const locationId = e.target.value;
-    setSelectedLocation(locationId);
-    setFormData((prev) => ({
-      ...prev,
-      location_id: locationId, // Update formData with the selected location ID
-      floor_id: "", // Reset floor when location changes
-      space_category_id: "", // Reset category when location changes
-    }));
-  };
-
-  const fetchCategory = async () => {
+  const fetchCategories = useCallback(async () => {
+    if (!tenantToken || !tenantSlug) return;
+    
     setLoadingCategory(true);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/category/list-categories`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/category/list-categories`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log(result);
-      if (result && Array.isArray(result.data)) {
-        setCategoryData(result.data); // Store categories in state
-      } else {
-        throw new Error("Invalid response format");
+      
+      if (isMounted.current && Array.isArray(result.data)) {
+        setCategoryData(result.data);
       }
     } catch (error) {
-      setError(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingCategory(false);
+      if (isMounted.current) {
+        setLoadingCategory(false);
+      }
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
+  // Fetch categories when modal opens
   useEffect(() => {
-    if (user?.tenantToken) {
-      fetchCategory(); // Fetch categories after a floor is selected
+    if (show && tenantToken && tenantSlug) {
+      fetchCategories();
     }
-  }, [user?.tenantToken]);
+  }, [show, tenantToken, tenantSlug, fetchCategories]);
 
-  const handleFloorChange = (e) => {
+  // Fetch floors when location changes
+  useEffect(() => {
+    if (selectedLocation) {
+      fetchFloors(selectedLocation);
+      // Reset floor selection when location changes
+      setFormData(prev => ({ ...prev, floor_id: "", space_category_id: "" }));
+    }
+  }, [selectedLocation, fetchFloors]);
+
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }, []);
+
+  const handleLocationChange = useCallback((e) => {
+    const locationId = e.target.value;
+    setSelectedLocation(locationId);
+    setFormData((prev) => ({
+      ...prev,
+      location_id: locationId,
+      floor_id: "",
+      space_category_id: "",
+    }));
+  }, []);
+
+  const handleFloorChange = useCallback((e) => {
     const floorId = e.target.value;
     setFormData((prev) => ({
       ...prev,
-      floor_id: floorId, // Update formData with the selected floor ID
-      space_category_id: "", // Reset category when floor changes
+      floor_id: floorId,
+      space_category_id: "",
     }));
-  };
+  }, []);
 
- useEffect(() => {
-  if (show && myRoom && Array.isArray(locations) && locations.length > 0) {
-    const found = locations.find(location => String(location.id) === String(myRoom.location_id));
-    if (found) {
-      setSelectedLocation(found.id);
-      setIsLocationName(found.name);
-    } else {
-      setIsLocationName(""); // fallback if not found
+  const validateForm = useCallback(() => {
+    if (!formData.name.trim()) {
+      toast.error("Room name is required");
+      return false;
     }
-  }
-}, [show, myRoom, locations]);
-          console.log('isLocationName: ', isLocationName);
-
-
- useEffect(() => {
-  if (show && myRoom && Array.isArray(floorData) && floorData.length > 0) {
-    const found = floorData.find(floor => String(floor.id) === String(myRoom.floor_id));
-    if (found) {
-      setFormData(prev => ({
-        ...prev,
-        floor_id: found.id,
-      }));
-      setIsFloorName(found.name);
-    } else {
-      setIsFloorName(""); // fallback if not found
+    if (!formData.space_number || formData.space_number < 1) {
+      toast.error("Number of spots must be at least 1");
+      return false;
     }
-  }
-}, [show, myRoom, floorData]);
+    if (!formData.location_id) {
+      toast.error("Please select a location");
+      return false;
+    }
+    if (!formData.floor_id) {
+      toast.error("Please select a floor");
+      return false;
+    }
+    if (!formData.space_category_id) {
+      toast.error("Please select a category");
+      return false;
+    }
+    if (!formData.space_fee || formData.space_fee < 0) {
+      toast.error("Please enter a valid fee");
+      return false;
+    }
+    return true;
+  }, [formData]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsLoading(true);
 
     try {
-      if (!user?.tenantToken) throw new Error("Authorization token is missing.");
+      if (!tenantToken) throw new Error("Authorization token is missing.");
 
-      const url = myRoom
-        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/update/${myRoom.id}`
+      const url = room
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/update/${room.id}`
         : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/space/create`;
 
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.tenantToken}`,
+          Authorization: `Bearer ${tenantToken}`,
         },
         body: JSON.stringify(formData),
       });
 
       const result = await response.json();
-      console.log("result", result)
 
       if (response.ok) {
-        toast.success(myRoom ? "Room updated successfully!" : "Room registered successfully!");
+        toast.success(room ? "Room updated successfully!" : "Room created successfully!");
+        
+        // Call onSubmit to refresh the list
+        if (onSubmit) {
+          await onSubmit();
+        }
+        
+        // Close modal after success
         setTimeout(() => {
-          onSubmit(); // Trigger fetchRoom after success
-          onHide();
-        }, 1000);
+          if (isMounted.current) {
+            onHide();
+          }
+        }, 1500);
       } else {
         toast.error(result?.message || "An error occurred.");
       }
     } catch (error) {
+      console.error("Submission error:", error);
       toast.error(error.message || "An error occurred.");
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [tenantToken, tenantSlug, room, formData, onSubmit, onHide, validateForm]);
+
+  const totalFee = (formData.space_fee || 0) * (formData.space_number || 0);
 
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide} centered size="lg" backdrop="static">
       <Modal.Header className="bg-light" closeButton>
-        <Modal.Title>{myRoom ? "Room" : "Add a New Room"}</Modal.Title>
+        <Modal.Title>
+          {room ? "Edit Room/Space" : "Add a New Room/Space"}
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
-        {/* {errorMessage && (
-          <Alert variant={isError ? "danger" : "success"}>{errorMessage}</Alert>
-        )} */}
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="name">
-            <Form.Label>Room/Space Name</Form.Label>
+            <Form.Label>Room/Space Name *</Form.Label>
             <Form.Control
               type="text"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="eg. Lavendier Room "
+              placeholder="e.g., Lavendier Room, Conference Hall"
+              required
+              disabled={isLoading}
             />
           </Form.Group>
-         {
-          myRoom ? (
-             <Form.Group className="mb-3" controlId="space_number">
-            <Form.Label>Number of Spots in this Room/Space</Form.Label>
+
+          <Form.Group className="mb-3" controlId="space_number">
+            <Form.Label>Number of Spots in this Room/Space *</Form.Label>
             <Form.Control
               type="number"
               name="space_number"
               value={formData.space_number}
               onChange={handleInputChange}
-              placeholder="eg. 3"
-              disabled
+              placeholder="e.g., 3"
+              min="1"
+              step="1"
+              required
+              disabled={isLoading || room} // Disable when editing
             />
           </Form.Group>
-          ) : (
-             <Form.Group className="mb-3" controlId="space_number">
-            <Form.Label>Number of Spots in this Room/Space</Form.Label>
-            <Form.Control
-              type="number"
-              name="space_number"
-              value={formData.space_number}
-              onChange={handleInputChange}
-              placeholder="eg. 3"
-            />
-          </Form.Group>
-          )
-         }
-          <Form.Group className="mb-3" controlId="space_discount">
-            <Form.Label>Space Discount(%) (optional)</Form.Label>
-            <Form.Control
-              type="number"
-              name="space_discount"
-              value={formData.space_discount}
-              onChange={handleInputChange}
-              placeholder="eg. 10"
-            />
-          </Form.Group>
-          <Form.Group className="mb-3" controlId="min_space_discount_time">
-            <Form.Label>Minimum Time For a Space Discount (optional)</Form.Label>
-            <Form.Control
-              type="number"
-              name="min_space_discount_time"
-              value={formData.min_space_discount_time}
-              onChange={handleInputChange}
-              placeholder="eg. 1"
-            />
-          </Form.Group>
+
           <Form.Group className="mb-3" controlId="space_fee">
-            <Form.Label>Fee per Spot</Form.Label>
+            <Form.Label>Fee per Spot (₦) *</Form.Label>
             <Form.Control
               type="number"
               name="space_fee"
               value={formData.space_fee}
               onChange={handleInputChange}
-              placeholder="eg. 30000"
+              placeholder="e.g., 30000"
+              min="0"
+              step="100"
               required
+              disabled={isLoading}
             />
           </Form.Group>
 
-          <Form.Group className="mb-3" controlId="space_fee">
-            <Form.Label>Total Fee</Form.Label>
+          <Form.Group className="mb-3" controlId="total_fee">
+            <Form.Label>Total Fee (₦)</Form.Label>
             <Form.Control
               type="number"
-              name="space_fee"
-              value={formData.space_fee * formData.space_number || 0} // Multiply space_fee by space_number
-              placeholder="eg. 30000"
-              disabled // Disable the input
+              value={totalFee}
+              placeholder="Calculated total"
+              disabled
+              readOnly
+            />
+            <Form.Text className="text-muted">
+              Total = Fee per spot × Number of spots
+            </Form.Text>
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="space_discount">
+            <Form.Label>Space Discount (%) (optional)</Form.Label>
+            <Form.Control
+              type="number"
+              name="space_discount"
+              value={formData.space_discount}
+              onChange={handleInputChange}
+              placeholder="e.g., 10"
+              min="0"
+              max="100"
+              step="1"
+              disabled={isLoading}
             />
           </Form.Group>
 
-          <div>
-            {myRoom ? (
-              <>
-                <Form.Label>
-                  Select the location you want to add the room/space.
-                </Form.Label>
-                <Form.Select
-                  style={{ marginBottom: "25px", fontSize: "1rem" }}
-                  value={selectedLocation || ""}
-                  onChange={handleLocationChange} // Use the updated handler
-                  required
-                >
-                  {/* <option value="" disabled>
-                Select a location
-              </option> */}
+          <Form.Group className="mb-3" controlId="min_space_discount_time">
+            <Form.Label>Minimum Time for Space Discount (optional)</Form.Label>
+            <Form.Control
+              type="number"
+              name="min_space_discount_time"
+              value={formData.min_space_discount_time}
+              onChange={handleInputChange}
+              placeholder="e.g., 1"
+              min="1"
+              step="1"
+              disabled={isLoading}
+            />
+            <Form.Text className="text-muted">
+              Minimum hours/days to qualify for discount
+            </Form.Text>
+          </Form.Group>
 
-                  <option disabled value={formData.location_id}>
-                    {isLocationName}
-                  </option>
-                </Form.Select>
-              </>
-            ) : (
-              <>
-                <Form.Label>
-                  Select the location you want to add the room/space.
-                </Form.Label>
+          {/* Location Selection */}
+          <Form.Group className="mb-3" controlId="location_id">
+            <Form.Label>Location *</Form.Label>
+            <Form.Select
+              name="location_id"
+              value={formData.location_id}
+              onChange={handleLocationChange}
+              required
+              disabled={isLoading || room} // Disable when editing
+            >
+              <option value="">Select a location</option>
+              {locations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.name} - {location.state}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+
+          {/* Floor Selection */}
+          {selectedLocation && (
+            <Form.Group className="mb-3" controlId="floor_id">
+              <Form.Label>Floor/Section *</Form.Label>
+              {loadingFloor ? (
+                <div className="text-center py-2">
+                  <Spinner animation="border" size="sm" />
+                  <span className="ms-2">Loading floors...</span>
+                </div>
+              ) : (
                 <Form.Select
-                  style={{ marginBottom: "25px", fontSize: "1rem" }}
-                  value={selectedLocation || ""}
-                  onChange={handleLocationChange} // Use the updated handler
+                  name="floor_id"
+                  value={formData.floor_id}
+                  onChange={handleFloorChange}
                   required
+                  disabled={isLoading}
                 >
-                  <option value="" disabled>
-                    Select a location
-                  </option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.name} at {location.state}
+                  <option value="">Select a Floor/Section</option>
+                  {floorData.map((floor) => (
+                    <option key={floor.id} value={floor.id}>
+                      {floor.name}
                     </option>
                   ))}
                 </Form.Select>
-              </>
-            )}
-          </div>
-
-          {selectedLocation && (
-            <Form.Group className="mb-3" controlId="location_id">
-              {myRoom ? (
-                <>
-                <Form.Label>
-                    Select the Floor you want to add the room/space.
-                  </Form.Label>
-                  <Form.Select
-                    name="floor_id"
-                    value={formData.floor_id}
-                    onChange={handleFloorChange}
-                    required
-                  >
-                    {/* <option value="">Select a Floor/Section</option> */}
-                    <option disabled value={formData.floor_id}>
-                    {isFloorName}
-                  </option>
-                  </Form.Select>
-                </>    
-                ): (
-                  <>
-
-              {loadingFloor ? (
-                <div className="text-center">
-                  <Spinner animation="border" role="status">
-                    <span className="visually-hidden">
-                      Loading floors/sections...
-                    </span>
-                  </Spinner>
-                </div>
-              ) : (
-                <>
-                  <Form.Label>
-                    Select the Floor you want to add the room/space.
-                  </Form.Label>
-                  <Form.Select
-                    name="floor_id"
-                    value={formData.floor_id}
-                    onChange={handleFloorChange}
-                    required
-                  >
-                    <option value="">Select a Floor/Section</option>
-                    {Array.isArray(floorData) &&
-                      floorData.map((floor) => (
-                        <option key={floor.id} value={floor.id}>
-                          {floor.name}
-                        </option>
-                      ))}
-                  </Form.Select>
-                </>
               )}
-              </>
-            )
-          }
             </Form.Group>
           )}
 
+          {/* Category Selection */}
           {formData.floor_id && (
             <Form.Group className="mb-3" controlId="space_category_id">
-              <Form.Label>Select a Category</Form.Label>
-              <Form.Select
-                name="space_category_id"
-                value={formData.space_category_id}
-                onChange={handleInputChange} // Update formData with the selected category ID
-                required
-              >
-                <option value="">Select a Category</option>
-                {Array.isArray(categoryData) &&
-                  categoryData.map((category) => (
+              <Form.Label>Category *</Form.Label>
+              {loadingCategory ? (
+                <div className="text-center py-2">
+                  <Spinner animation="border" size="sm" />
+                  <span className="ms-2">Loading categories...</span>
+                </div>
+              ) : (
+                <Form.Select
+                  name="space_category_id"
+                  value={formData.space_category_id}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                >
+                  <option value="">Select a Category</option>
+                  {categoryData.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.category}
                     </option>
                   ))}
-              </Form.Select>
+                </Form.Select>
+              )}
             </Form.Group>
           )}
 
           <Button
             style={{
-              backgroundColor:
-                isLoading || loadingLocations || loadingFloor || loadingCategory
-                  ? "#d3d3d3"
-                  : primary, // Use primary color or disabled color
-              borderColor:
-                isLoading || loadingLocations || loadingFloor || loadingCategory
-                  ? "#d3d3d3"
-                  : primary, // Match border color
+              backgroundColor: primary,
+              borderColor: primary,
+              color: "#fff",
             }}
             type="submit"
             className="w-100"
-            disabled={
-              isLoading || loadingLocations || loadingFloor || loadingCategory
-            } // Disable button if any loading state is true
+            disabled={isLoading || loadingFloor || loadingCategory}
           >
             {isLoading ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : myRoom ? (
-              "Update"
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                {room ? "Updating..." : "Creating..."}
+              </>
             ) : (
-              "Create"
-            )}{" "}
-            Room
+              <>{room ? "Update" : "Create"} Room</>
+            )}
           </Button>
         </Form>
       </Modal.Body>

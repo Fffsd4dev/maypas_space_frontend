@@ -1,219 +1,265 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useLogoColor } from "../../../../context/LogoColorContext";
 
-const MemberRegistrationModal = ({ show, onHide, myTeam, onSubmit }) => {
-    const { user } = useAuthContext();
-    const tenantSlug = user?.tenant;
+const MemberRegistrationModal = ({ show, onHide, member, teams = [], onSubmit }) => {
+  const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken;
+  const tenantSlug = user?.tenant;
 
   const { colour: primary } = useLogoColor();
 
-      const [loadingUsers, setLoadingUsers] = useState(true);
-    
+  const isMounted = useRef(true);
 
-    const [teams, setTeams] = useState([]);
-      const [users, setUsers] = useState([]);
-    
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
-    const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({
+    user_id: "",
+    team_id: "",
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Reset form when member changes
+  useEffect(() => {
+    if (member) {
+      setFormData({
+        user_id: member.user_id || "",
+        team_id: member.team_id || "",
+      });
+    } else {
+      setFormData({
         user_id: "",
         team_id: "",
-    });
+      });
+    }
+  }, [member]);
 
-    const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {
-        if (myTeam) {
-            setFormData({
-                user_id: myTeam.user_id || "",
-                team_id: myTeam.team_id || "",
-            });
-        } else {
-            setFormData({
-                user_id: "",
-                team_id: "",
-            });
-        }
-    }, [myTeam]);
-
-    // Fetch teams when modal opens
-    const fetchTeams = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/teams`, {
-                headers: { Authorization: `Bearer ${user.tenantToken}` },
-            });
-            const result = await response.json();
-            if (response.ok) {
-                if (result && Array.isArray(result[1])) {
-                    console.log("Teams:", result);
-                    setTeams(result[1] || []);
-                    }  else {
-                      throw new Error("Invalid response format");
-                    }
-                console.log("Teams:", result);
-            } else {
-                throw new Error(result.message || "Failed to fetch teams.");
-            }
-        } catch (error) {
-            toast.error(error.message);
-        }
-    };
-
-  
-    useEffect(() => {
-        if (show && user?.tenantToken) {
-            fetchTeams();
-        }
-    }, [show, user?.tenantToken]);
-
-      // fetch users when modal opens
-     const fetchUsers = async () => {
-        setLoadingUsers(true);
-        try {
-          const response = await fetch(
-            `${
-              import.meta.env.VITE_BACKEND_URL
-            }/api/${tenantSlug}/view-users`,
-            {
-              headers: { Authorization: `Bearer ${user.tenantToken}` },
-            }
-          );
-          const result = await response.json();
-          if (response.ok) {
-            console.log("Users:", result.data.data);
-            setUsers(result.data.data || []);
-          } else {
-            throw new Error(result.message || "Failed to fetch users.");
-          }
-        } catch (error) {
-          toast.error(error.message);
-        } finally {
-          setLoadingUsers(false);
-        }
-      };
+  // Fetch users when modal opens
+  const fetchUsers = useCallback(async () => {
+    if (!tenantToken || !tenantSlug) return;
     
-      useEffect(() => {
-        if (show && user?.tenantToken) {
-          fetchUsers();
+    setLoadingUsers(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-users?per_page=100`,
+        {
+          headers: { Authorization: `Bearer ${tenantToken}` },
         }
-      }, [show, user?.tenantToken]);
+      );
+      const result = await response.json();
+      
+      if (isMounted.current && response.ok) {
+        setUsers(result.data?.data || []);
+      } else if (isMounted.current) {
+        throw new Error(result.message || "Failed to fetch users.");
+      }
+    } catch (error) {
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
+    } finally {
+      if (isMounted.current) {
+        setLoadingUsers(false);
+      }
+    }
+  }, [tenantToken, tenantSlug]);
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
+  useEffect(() => {
+    if (show && tenantToken && tenantSlug) {
+      fetchUsers();
+    }
+  }, [show, tenantToken, tenantSlug, fetchUsers]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        console.log(formData);
-        console.log(user?.tenantToken);
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }, []);
 
-        try {
-            if (!user?.tenantToken) throw new Error("Authorization token is missing.");
+  const validateForm = useCallback(() => {
+    if (!formData.team_id) {
+      toast.error("Please select a team");
+      return false;
+    }
+    if (!formData.user_id) {
+      toast.error("Please select a user");
+      return false;
+    }
+    return true;
+  }, [formData]);
 
-            const url = myTeam
-                ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/team/update/${myTeam.id}`
-                : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/team/add-member`;
+  const handleSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
 
-            const method = myTeam ? "POST" : "POST";
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${user?.tenantToken}`,
-                },
-                body: JSON.stringify(formData),
-            });
+    try {
+      if (!tenantToken) throw new Error("Authorization token is missing.");
 
-            const result = await response.json();
-            console.log(result);
+      const url = member
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/team/update/${member.id}`
+        : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/team/add-member`;
 
-            if (response.ok) {
-                toast.success(myTeam ? "Member updated successfully!" : "Member added successfully!");
-                setFormData({
-                    user_id: "",
-                    team_id: "",
-                });
-                setTimeout(() => {
-                    onSubmit();
-                    onHide();
-                }, 1000);
-            } else {
-                let errorMsg = "An error occurred.";
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${tenantToken}`,
+        },
+        body: JSON.stringify(formData),
+      });
 
-                if (result?.errors) {
-                    errorMsg = Object.values(result.errors)
-                        .flat()
-                        .join("\n");
-                } else if (result?.message) {
-                    errorMsg = result.message;
-                }
+      const result = await response.json();
 
-                toast.error(errorMsg);
-                console.log(result);
-            }
-        } catch (error) {
-            toast.error("An error occurred. Contact Admin");
-            console.log(error);
-        } finally {
-            setIsLoading(false);
+      if (response.ok) {
+        toast.success(
+          member
+            ? "Member updated successfully!"
+            : "Member added successfully!"
+        );
+        
+        // Reset form
+        setFormData({
+          user_id: "",
+          team_id: "",
+        });
+        
+        // Call onSubmit to refresh the list
+        if (onSubmit) {
+          await onSubmit();
         }
-    };
+        
+        // Close modal after success
+        setTimeout(() => {
+          if (isMounted.current) {
+            onHide();
+          }
+        }, 1500);
+      } else {
+        let errorMsg = "An error occurred.";
 
-    return (
-        <Modal show={show} onHide={onHide} centered>
-            <Modal.Header className="bg-light" closeButton>
-                <Modal.Title>{myTeam ? "Member" : "Add a New Member to a Team"}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body className="p-4">
-                <Form onSubmit={handleSubmit}>
-                    {/* <Form.Group className="mb-3" controlId="name">
-                        <Form.Label>Member Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            placeholder="Member"
-                        />
-                    </Form.Group> */}
+        if (result?.errors) {
+          errorMsg = Object.values(result.errors).flat().join("\n");
+        } else if (result?.message) {
+          errorMsg = result.message;
+        }
 
-                    <Form.Group className="mb-3" controlId="team_id">
-                        <Form.Label>Team</Form.Label>
-                        <Form.Select name="team_id" value={formData.team_id} onChange={handleInputChange} required>
-                            <option value="">Select a Team</option>
-                            {Array.isArray(teams) && teams.map((team) => (
-                                <option key={team.id} value={team.id}>{team.company} {team.last_name}</option>
-                            ))}
-                        </Form.Select>
-                    </Form.Group>
+        toast.error(errorMsg);
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error("An error occurred. Contact Admin");
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    }
+  }, [tenantToken, tenantSlug, member, formData, onSubmit, onHide, validateForm]);
 
-                    <Form.Group className="mb-3" controlId="user_id">
-                        <Form.Label>Users</Form.Label>
-                        <Form.Select name="user_id" value={formData.user_id} onChange={handleInputChange} required>
-                            <option value="">Select User</option>
-                            {Array.isArray(users) && users.map((user) => (
-                                <option key={user.id} value={user.id}>{user.first_name} {user.last_name}</option>
-                            ))}
-                        </Form.Select>
-                    </Form.Group>
-                    
+  return (
+    <Modal show={show} onHide={onHide} centered size="lg" backdrop="static">
+      <Modal.Header className="bg-light" closeButton>
+        <Modal.Title>
+          {member ? "Edit Team Member" : "Add Member to Team"}
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body className="p-4">
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3" controlId="team_id">
+            <Form.Label>Team *</Form.Label>
+            <Form.Select
+              name="team_id"
+              value={formData.team_id}
+              onChange={handleInputChange}
+              required
+              disabled={isLoading || member} // Disable when editing
+            >
+              <option value="">Select a Team</option>
+              {teams.length > 0 ? (
+                teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.company} - {team.department}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>No teams available</option>
+              )}
+            </Form.Select>
+          </Form.Group>
 
-                    <Button variant="primary" type="submit" className="w-100" disabled={isLoading}                                         style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
->
-                        {isLoading ? <Spinner as="span" animation="border" size="sm" teams="status" aria-hidden="true" /> : myTeam ? "Update" : "Add"} Member
-                    </Button>
-                </Form>
-            </Modal.Body>
-        </Modal>
-    );
+          <Form.Group className="mb-3" controlId="user_id">
+            <Form.Label>User *</Form.Label>
+            {loadingUsers ? (
+              <div className="text-center py-2">
+                <Spinner animation="border" size="sm" />
+                <span className="ms-2">Loading users...</span>
+              </div>
+            ) : (
+              <Form.Select
+                name="user_id"
+                value={formData.user_id}
+                onChange={handleInputChange}
+                required
+                disabled={isLoading}
+              >
+                <option value="">Select a User</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.first_name} {user.last_name} - {user.email}
+                  </option>
+                ))}
+              </Form.Select>
+            )}
+          </Form.Group>
+
+          <Button
+            variant="primary"
+            type="submit"
+            className="w-100"
+            disabled={isLoading || loadingUsers}
+            style={{
+              backgroundColor: primary,
+              borderColor: primary,
+              color: "#fff",
+            }}
+          >
+            {isLoading ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                {member ? "Updating..." : "Adding..."}
+              </>
+            ) : (
+              <>{member ? "Update" : "Add"} Member</>
+            )}
+          </Button>
+        </Form>
+      </Modal.Body>
+    </Modal>
+  );
 };
 
 export default MemberRegistrationModal;

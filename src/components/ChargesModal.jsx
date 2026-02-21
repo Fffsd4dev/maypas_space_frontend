@@ -68,8 +68,6 @@ const ChargesModal = ({ show, onHide, spaceId, tenantSlug, tenantToken, onSaved 
 
     formData.append("space_id", spaceId);
 
-    console.log("Submitting payload:", [...formData.entries()]);
-
     const res = await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/charges/create`,
       {

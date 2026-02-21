@@ -31,7 +31,6 @@ const UserBox = () => {
       label: "Settings",
       icon: FiSettings,
       onClick: () => {
-        console.log("Settings clicked");
         themeCustomizer.toggle();
       },
     },

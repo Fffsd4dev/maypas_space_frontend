@@ -49,8 +49,6 @@ import PageTitle from "../../components/PageTitle";
 
 
 const primary = logoData[0]?.colour || "#fe0002";
-console.log(primary);
-
 
 const buttonVariants = [{
   name: "Primary",

@@ -54,6 +54,10 @@ const columns = [{
   Header: "Owner Name",
   accessor: "name",
   sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
   Cell: NameColumn
 }, {
   Header: "Store Name",
@@ -63,6 +67,10 @@ const columns = [{
   Header: "Ratings",
   accessor: "ratings",
   sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
   Cell: RatingsColumn
 }, {
   Header: "Products",

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
-import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Link } from "react-router-dom";
+import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import PageTitle from "../../../../components/PageTitle";
 import TeamsRegistrationModal from "./TeamRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
@@ -15,12 +15,15 @@ const TeamManagement = () => {
   const tenantSlug = user?.tenant;
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
+  // Refs to prevent duplicate calls
+  const isMounted = useRef(true);
+  const isFetching = useRef(false);
+
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingLocations, setLoadingLocations] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState({
     message: "",
@@ -29,19 +32,10 @@ const TeamManagement = () => {
     buttonLabel: "",
     buttonRoute: "",
   });
-  const [formData, setFormData] = useState({
-    company: "",
-    department: "",
-    description: "",
-    manager: "",
-  });
-
-  const [isError, setIsError] = useState(false);
-  const [locations, setLocations] = useState([]);
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myTeamsID: null,
+    teamId: null,
   });
 
   const [pagination, setPagination] = useState({
@@ -52,124 +46,106 @@ const TeamManagement = () => {
     pageSize: 10,
   });
 
-  const formatDateTime = (isoString) => {
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const formatDateTime = useCallback((isoString) => {
+    if (!isoString) return "";
     const options = {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
-  };
+  }, []);
 
-  const fetchLocations = async () => {
-    setLoadingLocations(true);
-    try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/location/list-locations`,
-        {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
-        }
-      );
-      const result = await response.json();
-      if (response.ok) {
-        console.log("Location:", result.data.data);
-        setLocations(result.data.data || []);
-      } else {
-        throw new Error(result.message || "Failed to fetch locations.");
-      }
-    } catch (error) {
-      toast.error(error.message);
-      setIsError(true);
-    } finally {
-      setLoadingLocations(false);
-    }
-  };
-
-  const fetchData = async (page = 1, pageSize = 10) => {
+  const fetchData = useCallback(async (page = 1, pageSize = 10) => {
+    if (isFetching.current || !tenantToken || !tenantSlug) return;
+    
+    isFetching.current = true;
     setLoading(true);
     setError(null);
-    console.log("User Token:", user?.tenantToken);
+    
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/teams`,
-        // ?page=${page}&per_page=${pageSize}
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/teams?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log(result);
 
-      if (result && Array.isArray(result[1])) {
-        const data = result[1];
-        data.sort(
+      if (isMounted.current) {
+        // Handle the response format - assuming result[1] contains the data array
+        const teamsData = Array.isArray(result[1]) ? result[1] : [];
+        
+        const sortedData = [...teamsData].sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
-        setData(data);
-        // setPagination({
-        //   currentPage: result.data.current_page,
-        //   totalPages: result.data.last_page,
-        //   nextPageUrl: result.data.next_page_url,
-        //   prevPageUrl: result.data.prev_page_url,
-        //   pageSize: pageSize,
-        // });
-      } else {
-        throw new Error("Invalid response format");
+        
+        setData(sortedData);
+        
+        // If pagination info is available in result[0] or elsewhere
+        if (result[0] && result[0].pagination) {
+          setPagination({
+            currentPage: result[0].pagination.current_page || 1,
+            totalPages: result[0].pagination.last_page || 1,
+            nextPageUrl: result[0].pagination.next_page_url || null,
+            prevPageUrl: result[0].pagination.prev_page_url || null,
+            pageSize: pageSize,
+          });
+        }
       }
     } catch (error) {
-      toast.error(error.message);
-      setError(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+        setError(error.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
+      isFetching.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
+  // Fetch data on mount and when pagination changes
   useEffect(() => {
-    if (user?.tenantToken) {
-      fetchLocations();
-    }
-  }, [user?.tenantToken]);
-
-  useEffect(() => {
-    if (user?.tenantToken) {
+    if (tenantToken && tenantSlug) {
       fetchData(pagination.currentPage, pagination.pageSize);
     }
-  }, [user?.tenantToken, pagination.currentPage, pagination.pageSize]);
+  }, [tenantToken, tenantSlug, pagination.currentPage, pagination.pageSize, fetchData]);
 
-  const handleEditClick = (myTeams) => {
-    setSelectedUser(myTeams);
+  const handleEditClick = useCallback((team) => {
+    setSelectedTeam(team);
     setShow(true);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setShow(false);
-    setSelectedUser(null);
-    if (user?.tenantToken) {
-      fetchData(pagination.currentPage, pagination.pageSize);
-      // Reload users after closing the modal
-    }
-    setFormData({}); // Reset inputs after success
-  };
+    setSelectedTeam(null);
+    // Don't fetch here - let useEffect handle it
+  }, []);
 
-  const handleDelete = async (myTeamsID) => {
-    if (!user?.tenantToken) return;
+  const handleDelete = useCallback(async (teamId) => {
+    if (!tenantToken) return;
 
     setIsLoading(true);
     try {
@@ -178,65 +154,72 @@ const TeamManagement = () => {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ team_id: myTeamsID }),
+          body: JSON.stringify({ team_id: teamId }),
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       setData((prevData) =>
-        prevData.filter((myTeams) => myTeams.id !== myTeamsID)
+        prevData.filter((team) => team.id !== teamId)
       );
+      
       setPopup({
         message: "Team deleted successfully!",
         type: "success",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
-      if (user?.tenantToken) {
-        fetchData(pagination.currentPage, pagination.pageSize);
-        // Reload users after deleting a user
-      }
+      
+      // Refresh data
+      fetchData(pagination.currentPage, pagination.pageSize);
     } catch (error) {
-      toast.error("Failed to delete plan!");
+      toast.error("Failed to delete team!");
       setPopup({
-        message: "Failed to delete plan!",
+        message: "Failed to delete team!",
         type: "error",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tenantToken, tenantSlug, fetchData, pagination.currentPage, pagination.pageSize]);
 
-  const handleDeleteButton = (myTeamsID) => {
+  const handleDeleteButton = useCallback((teamId) => {
     setDeletePopup({
       isVisible: true,
-      myTeamsID,
+      teamId,
     });
-  };
+  }, []);
 
-  const confirmDelete = () => {
-    const { myTeamsID } = deletePopup;
-    handleDelete(myTeamsID);
-    setDeletePopup({ isVisible: false, myTeamsID: null });
-  };
+  const confirmDelete = useCallback(() => {
+    const { teamId } = deletePopup;
+    handleDelete(teamId);
+    setDeletePopup({ isVisible: false, teamId: null });
+  }, [deletePopup, handleDelete]);
 
-  // const handleLocationChange = (e) => {
-  //   const locationId = e.target.value;
-  //   setSelectedLocation(locationId);
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     location_id: locationId, // Update formData with the selected location ID
-  //   }));
-  // };
-  const columns = [
+  const handlePageChange = useCallback((page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  }, []);
+
+  const handlePageSizeChange = useCallback((pageSize) => {
+    setPagination((prev) => ({ ...prev, pageSize, currentPage: 1 }));
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    fetchData(pagination.currentPage, pagination.pageSize);
+  }, [fetchData, pagination.currentPage, pagination.pageSize]);
+
+  // Memoized columns
+  const columns = useMemo(() => [
     {
       Header: "S/N",
       accessor: (row, i) => i + 1,
@@ -247,18 +230,31 @@ const TeamManagement = () => {
       Header: "Company",
       accessor: "company",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "Department",
       accessor: "department",
       sort: true,
-      // Cell: ({ row }) => formatDateTime(row.original.created_at),
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "Description",
       accessor: "description",
       sort: true,
-      // Cell: ({ row }) => formatDateTime(row.original.updated_at),
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
+    },
+    {
+      Header: "Manager",
+      accessor: "manager_name",
+      sort: true,
+      Cell: ({ row }) => {
+        const manager = row.original.manager;
+        return manager ? `${manager.first_name || ''} ${manager.last_name || ''}`.trim() || 'N/A' : 'N/A';
+      },
     },
     {
       Header: "Updated On",
@@ -271,25 +267,34 @@ const TeamManagement = () => {
       accessor: "action",
       sort: false,
       Cell: ({ row }) => (
-        <>
+        <div style={{ whiteSpace: "nowrap" }}>
           <Link
             to="#"
             className="action-icon"
-            onClick={() => handleEditClick(row.original)}
+            onClick={(e) => {
+              e.preventDefault();
+              handleEditClick(row.original);
+            }}
+            style={{ marginRight: "10px" }}
+            title="Edit Team"
           >
             <i className="mdi mdi-square-edit-outline"></i>
           </Link>
           <Link
             to="#"
-            className="action-icon"
-            onClick={() => handleDeleteButton(row.original.id)}
+            className="action-icon text-danger"
+            onClick={(e) => {
+              e.preventDefault();
+              handleDeleteButton(row.original.id);
+            }}
+            title="Delete Team"
           >
             <i className="mdi mdi-delete"></i>
           </Link>
-        </>
+        </div>
       ),
     },
-  ];
+  ], [handleEditClick, handleDeleteButton, formatDateTime]);
 
   return (
     <>
@@ -311,7 +316,7 @@ const TeamManagement = () => {
                     className="waves-effect waves-light"
                     onClick={() => {
                       setShow(true);
-                      setSelectedUser(null);
+                      setSelectedTeam(null);
                     }}
                     style={{
                       backgroundColor: primary,
@@ -320,6 +325,17 @@ const TeamManagement = () => {
                     }}
                   >
                     <i className="mdi mdi-plus-circle me-1"></i> Add a Team
+                  </Button>
+                </Col>
+                <Col sm={8} className="text-end">
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={loading}
+                  >
+                    <i className="mdi mdi-refresh me-1"></i>
+                    Refresh
                   </Button>
                 </Col>
               </Row>
@@ -331,69 +347,43 @@ const TeamManagement = () => {
                     marginTop: "30px",
                   }}
                 >
-                  {/* {loadingLocations ? (
-                                      <div className="text-center">
-                                        <Spinner animation="border" role="status">
-                                          <span className="visually-hidden">Loading...</span>
-                                        </Spinner>{" "}
-                                        Loading your locations...
-                                      </div>
-                                    ) : (
-                                      <div>
-                                        <p style={{marginBottom: "10px", fontSize: "1rem" }}>Select a location to view or update the floor.</p>
-                                        <Form.Select
-                                          style={{ marginBottom: "25px", fontSize: "1rem" }}
-                                          value={selectedLocation || ""}
-                                          onChange={handleLocationChange} // Use the new handler
-                                          required
-                                        >
-                                          <option value="" disabled>
-                                            Select a location
-                                          </option>
-                                          {locations.map((location) => (
-                                            <option key={location.id} value={location.id}>
-                                              {location.name} at {location.state}
-                                            </option>
-                                          ))}
-                                        </Form.Select>
-                                      </div>
-                                    )} */}
-
-                  <>
-                    {error ? (
-                      <p className="text-danger">Error: {error}</p>
-                    ) : loading ? (
-                      <p>Loading Teams...</p>
-                    ) : isLoading ? (
-                      <div className="text-center">
-                        <Spinner animation="border" role="status">
-                          <span className="visually-hidden">Deleting...</span>
-                        </Spinner>{" "}
-                        Deleting...
-                      </div>
-                    ) : (
-                      <Table2
-                        columns={columns}
-                        data={data}
-                        pageSize={pagination.pageSize}
-                        isSortable
-                        isSearchable
-                        tableClass="table-striped dt-responsive nowrap w-100"
-                        searchBoxClass="my-2"
-                        // paginationProps={{
-                        //   currentPage: pagination.currentPage,
-                        //   totalPages: pagination.totalPages,
-                        //   onPageChange: (page) =>
-                        //     setPagination((prev) => ({
-                        //       ...prev,
-                        //       currentPage: page,
-                        //     })),
-                        //   onPageSizeChange: (pageSize) =>
-                        //     setPagination((prev) => ({ ...prev, pageSize })),
-                        // }}
-                      />
-                    )}
-                  </>
+                  {error ? (
+                    <div className="alert alert-danger" role="alert">
+                      <i className="mdi mdi-alert-circle-outline me-2"></i>
+                      Error: {error}
+                    </div>
+                  ) : loading ? (
+                    <div className="text-center py-4">
+                      <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </Spinner>
+                      <p className="mt-2">Loading Teams...</p>
+                    </div>
+                  ) : isLoading ? (
+                    <div className="text-center py-4">
+                      <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Deleting...</span>
+                      </Spinner>
+                      <p className="mt-2">Deleting...</p>
+                    </div>
+                  ) : (
+                    <Table2
+                      columns={columns}
+                      data={data}
+                      pageSize={pagination.pageSize}
+                      isSortable
+                      pagination
+                      isSearchable
+                      tableClass="table-striped dt-responsive nowrap w-100"
+                      searchBoxClass="my-2"
+                      paginationProps={{
+                        currentPage: pagination.currentPage,
+                        totalPages: pagination.totalPages,
+                        onPageChange: handlePageChange,
+                        onPageSizeChange: handlePageSizeChange,
+                      }}
+                    />
+                  )}
                 </Card.Body>
               </Card>
             </Card.Body>
@@ -404,8 +394,8 @@ const TeamManagement = () => {
       <TeamsRegistrationModal
         show={show}
         onHide={handleClose}
-        myTeams={selectedUser}
-        onSubmit={() => fetchData(pagination.currentPage, pagination.pageSize)} // Reload users after adding or editing a user
+        team={selectedTeam}
+        onSubmit={() => fetchData(pagination.currentPage, pagination.pageSize)}
       />
 
       {popup.isVisible && (
@@ -422,7 +412,7 @@ const TeamManagement = () => {
         <Popup
           message="Are you sure you want to delete this team?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myTeamsID: null })}
+          onClose={() => setDeletePopup({ isVisible: false, teamId: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />

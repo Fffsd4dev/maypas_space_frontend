@@ -226,7 +226,7 @@ const Table2 = props => {
                                 {(row.cells || []).map((cell, idx) => {
                 const { key, ...restProps } = cell.props || {}; // Extract `key` from props
                 return (
-                  <td key={key || idx} {...restProps}>
+                  <td className="text-capitalize" key={key || idx} {...restProps}>
                     {cell.render("Cell")}
                   </td>
                 );

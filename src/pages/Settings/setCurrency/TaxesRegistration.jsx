@@ -1,21 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useLogoColor } from "../../../context/LogoColorContext";
 
-const TaxesRegistrationModal = ({ showTaxes, onHide, myTaxes, onSubmit }) => {
+const TaxesRegistrationModal = ({ show, onHide, tax, onSubmit }) => {
   const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
-    const { colour: primary } = useLogoColor();
+  const { colour: primary } = useLogoColor();
 
-
-//   const [locations, setLocations] = useState([]);
-//   const [loadingLocations, setLoadingLocations] = useState(true);
-//   const [selectedLocation, setSelectedLocation] = useState(null);
-
- 
+  const isMounted = useRef(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,104 +21,74 @@ const TaxesRegistrationModal = ({ showTaxes, onHide, myTaxes, onSubmit }) => {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  // Cleanup on unmount
   useEffect(() => {
-    if (myTaxes) {
-      
-      setFormData({
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
-        name: myTaxes.name || "",
-        description: myTaxes.description || "",
-        percentage: myTaxes.percentage || "",
+  // Reset form when tax changes
+  useEffect(() => {
+    if (tax) {
+      setFormData({
+        name: tax.name || "",
+        description: tax.description || "",
+        percentage: tax.percentage || "",
       });
     } else {
       setFormData({
-        // location_id: "",
-        // bank_name: "",
-        // account_number: "",
-        // account_name: ""
-        key: "",
-        });
-    }
-  }, [myTaxes]);
-  
-
-  const fetchLocations = async () => {
-    setLoadingLocations(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
-        {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
-        }
-      );
-      const result = await response.json();
-      if (response.ok) {
-        // setLocations(result.data.data || []);
-      } else {
-        throw new Error(result.message || "Failed to fetch locations.");
-      }
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoadingLocations(false);
-    }
-  };
-
-  useEffect(() => {
-    if (showTaxes && user?.tenantToken) {
-      fetchLocations();
-    }
-  }, [showTaxes, user?.tenantToken]);
-
-
-  useEffect(() => {
-    if (!showTaxes) {
-      setFormData({
-
         name: "",
-        symbol: "",
-        tenant_id: user?.tenant_id || "",
-        location_id: user?.location_id || "",
+        description: "",
+        percentage: "",
       });
     }
-  }, [showTaxes]);
-  
+  }, [tax]);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-  };
+  }, []);
 
-  const handleHoursChange = (index, field, value) => {
-    const updatedHours = [...formData.hours];
-    updatedHours[index][field] = value;
-    setFormData((prev) => ({
-      ...prev,
-      hours: updatedHours,
-    }));
-  };
+  const validateForm = useCallback(() => {
+    if (!formData.name.trim()) {
+      toast.error("Tax name is required");
+      return false;
+    }
+    if (!formData.percentage || formData.percentage <= 0) {
+      toast.error("Please enter a valid percentage (greater than 0)");
+      return false;
+    }
+    if (formData.percentage > 100) {
+      toast.error("Percentage cannot exceed 100%");
+      return false;
+    }
+    return true;
+  }, [formData]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsLoading(true);
 
     try {
-      if (!user?.tenantToken) throw new Error("Authorization token is missing.");
+      if (!tenantToken) throw new Error("Authorization token is missing.");
 
-      const url = myTaxes
-        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/taxes/update/${myTaxes.id}`
+      const url = tax
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/taxes/update/${tax.id}`
         : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/taxes/create`;
 
-      const method = myTaxes ? "POST" : "POST";
-
       const response = await fetch(url, {
-        method,
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.tenantToken}`,
+          Authorization: `Bearer ${tenantToken}`,
         },
         body: JSON.stringify(formData),
       });
@@ -131,23 +97,22 @@ const TaxesRegistrationModal = ({ showTaxes, onHide, myTaxes, onSubmit }) => {
 
       if (response.ok) {
         toast.success(
-          myTaxes
-            ? "Taxes updated successfully!"
-            : "Taxes created successfully!"
+          tax
+            ? "Tax updated successfully!"
+            : "Tax created successfully!"
         );
-        if (!myTaxes) {
-          // Only reset form if creating new
-          setFormData({
-            name: "",
-            description: "",
-            percentage: "",
-          });
+        
+        // Call onSubmit to refresh the list
+        if (onSubmit) {
+          await onSubmit();
         }
         
+        // Close modal after success
         setTimeout(() => {
-          onSubmit();
-          onHide();
-        }, 1000);
+          if (isMounted.current) {
+            onHide();
+          }
+        }, 1500);
       } else {
         let errorMsg = "An error occurred.";
         if (result?.errors) {
@@ -158,78 +123,88 @@ const TaxesRegistrationModal = ({ showTaxes, onHide, myTaxes, onSubmit }) => {
         toast.error(errorMsg);
       }
     } catch (error) {
+      console.error("Submission error:", error);
       toast.error("An error occurred. Contact Admin");
-      console.error(error);
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [tenantToken, tenantSlug, tax, formData, onSubmit, onHide, validateForm]);
 
   return (
-    <Modal show={showTaxes} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Header className="bg-light" closeButton>
         <Modal.Title>
-          {myTaxes ? "Taxes" : "Add Your Taxes"}
+          {tax ? "Edit Tax" : "Add Tax"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
         <Form onSubmit={handleSubmit}>
-       
-
           <Form.Group className="mb-3" controlId="name">
-                                  <Form.Label>Name of Tax</Form.Label>
-                                  <Form.Control
-                                      type="text"
-                                      name="name"
-                                      value={formData.name}
-                                      onChange={handleInputChange}
-                                      placeholder="eg. VAT"
-                                  />
-                              </Form.Group>
-                              <Form.Group className="mb-3" controlId="name">
-                                  <Form.Label>Tax Description</Form.Label>
-                                  <Form.Control
-                                      type="text"
-                                      name="description"
-                                      value={formData.description}
-                                      onChange={handleInputChange}
-                                      placeholder="eg. Value Added Tax"
-                                  />
-                              </Form.Group>
-          
-                              <Form.Group className="mb-3" controlId="description">
-                                  <Form.Label>Whats the Percentage Charged</Form.Label>
-                                  <Form.Control
-                                      type="number"
-                                      name="percentage"
-                                      value={formData.percentage}
-                                      onChange={handleInputChange}
-                                      placeholder="eg. 15"
-                                  />
-                              </Form.Group>
+            <Form.Label>Tax Name *</Form.Label>
+            <Form.Control
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="e.g., VAT, Sales Tax"
+              required
+              disabled={isLoading}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="description">
+            <Form.Label>Description</Form.Label>
+            <Form.Control
+              type="text"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="e.g., Value Added Tax"
+              disabled={isLoading}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="percentage">
+            <Form.Label>Percentage (%) *</Form.Label>
+            <Form.Control
+              type="number"
+              name="percentage"
+              value={formData.percentage}
+              onChange={handleInputChange}
+              placeholder="e.g., 15"
+              min="0.01"
+              max="100"
+              step="0.01"
+              required
+              disabled={isLoading}
+            />
+          </Form.Group>
 
           <Button
             variant="primary"
             type="submit"
             className="w-100"
             disabled={isLoading}
-                                                                          style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
+            style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
           >
             {isLoading ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : myTaxes ? (
-              "Update"
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                {tax ? "Updating..." : "Creating..."}
+              </>
             ) : (
-              "Create"
-            )}{" "}
-            Tax          </Button>
+              <>{tax ? "Update" : "Create"} Tax</>
+            )}
+          </Button>
         </Form>
       </Modal.Body>
     </Modal>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
-import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Link } from "react-router-dom";
+import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
 import AccountRegistrationModal from "./AccountRegistrationForm";
 import PaystackRegistrationModal from "./PaystackRegistrationModal";
@@ -8,7 +8,6 @@ import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
-import { m } from "framer-motion";
 import { useLogoColor } from "../../../context/LogoColorContext";
 
 const BankAccount = () => {
@@ -17,13 +16,17 @@ const BankAccount = () => {
   const tenantSlug = user?.tenant;
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
-  const [show, setShow] = useState(false);
-  const [showPaystack, setShowPaystack] = useState(false);
+  // Refs to prevent duplicate calls
+  const isMounted = useRef(true);
+  const isFetching = useRef(false);
+
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [showPaystackModal, setShowPaystackModal] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingLocations, setLoadingLocations] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedBank, setSelectedBank] = useState(null);
+  const [selectedPaystack, setSelectedPaystack] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState({
     message: "",
@@ -32,23 +35,10 @@ const BankAccount = () => {
     buttonLabel: "",
     buttonRoute: "",
   });
-  const [isError, setIsError] = useState(false);
-  const [locations, setLocations] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
-
-  const [formData, setFormData] = useState({
-
-    
-    location_id: "",
-    bank_name: "",
-    account_number: "",
-    account_name: "" 
-});
-
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myBankAccountID: null,
+    bankAccountId: null,
   });
 
   const [pagination, setPagination] = useState({
@@ -59,139 +49,125 @@ const BankAccount = () => {
     pageSize: 10,
   });
 
-  const formatDateTime = (isoString) => {
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const formatDateTime = useCallback((isoString) => {
+    if (!isoString) return "N/A";
     const options = {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
-  };
+  }, []);
 
-  const fetchLocations = async () => {
-    setLoadingLocations(true);
-    try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/location/list-locations`,
-        {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
-        }
-      );
-      const result = await response.json();
-      if (response.ok) {
-        console.log("Location:", result.data.data);
-        setLocations(result.data.data || []);
-      } else {
-        throw new Error(result.message || "Failed to fetch locations.");
-      }
-    } catch (error) {
-      toast.error(error.message);
-      setIsError(true);
-    } finally {
-      setLoadingLocations(false);
-    }
-  };
-
-  const fetchData = async ( page = 1, pageSize = 10) => {
+  const fetchData = useCallback(async (page = 1, pageSize = 10) => {
+    if (isFetching.current || !tenantToken || !tenantSlug) return;
+    
+    isFetching.current = true;
     setLoading(true);
     setError(null);
-    console.log("User Token:", user?.tenantToken);
+    
     try {
       const response = await fetch(
-        // `${
-        //   import.meta.env.VITE_BACKEND_URL
-        // }/api/${tenantSlug}/settings/workspace/time/all?location_id=${locationId}&page=${page}&per_page=${pageSize}`
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/banks`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/banks?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
-  
+
       if (!response.ok) {
         throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
-  
+
       const result = await response.json();
-      console.log(result);
-  
-      if (Array.isArray(result.data)) {
-        // Sort the data by updated_at or created_at
-        const sortedData = result.data.sort(
+
+      if (isMounted.current && Array.isArray(result.data)) {
+        const sortedData = [...result.data].sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
+        
         setData(sortedData);
-        console.log("Sorted Data:", sortedData);
-  
-        // Update pagination state (if needed)
-        setPagination((prev) => ({
-          ...prev,
-          currentPage: page,
-          totalPages: Math.ceil(result.length / pageSize),
-        }));
-      } else {
+        
+        // Update pagination if available
+        if (result.pagination) {
+          setPagination({
+            currentPage: result.pagination.current_page || page,
+            totalPages: result.pagination.last_page || 1,
+            nextPageUrl: result.pagination.next_page_url || null,
+            prevPageUrl: result.pagination.prev_page_url || null,
+            pageSize: pageSize,
+          });
+        } else {
+          // Client-side pagination
+          const totalPages = Math.ceil(sortedData.length / pageSize);
+          setPagination({
+            currentPage: page,
+            totalPages: totalPages,
+            nextPageUrl: page < totalPages ? `?page=${page + 1}` : null,
+            prevPageUrl: page > 1 ? `?page=${page - 1}` : null,
+            pageSize: pageSize,
+          });
+        }
+      } else if (isMounted.current) {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message);
-      setError(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+        setError(error.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
+      isFetching.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
+  // Fetch data on mount and when pagination changes
   useEffect(() => {
-    if (user?.tenantToken) {
-      fetchLocations();
+    if (tenantToken && tenantSlug) {
+      fetchData(pagination.currentPage, pagination.pageSize);
     }
-  }, [user?.tenantToken]);
+  }, [tenantToken, tenantSlug, pagination.currentPage, pagination.pageSize, fetchData]);
 
-  useEffect(() => {
-    if (user?.tenantToken) {
-        //fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
-        fetchData();
-    }
-  }, [user?.tenantToken]);
+  const handleEditClick = useCallback((bankAccount) => {
+    setSelectedBank(bankAccount);
+    setShowBankModal(true);
+  }, []);
 
-  const handleEditClick = (myBankAccount) => {  
-    setSelectedUser(myBankAccount);
-  
-    setShow(true);
-  };
+  const handlePaystackClick = useCallback(() => {
+    setSelectedPaystack(null);
+    setShowPaystackModal(true);
+  }, []);
 
-  const handlePaystackClick = (myPaystack) => {
-    
-    setSelectedUser(myPaystack);
-    setShow(true);
-  };
+  const handleCloseBankModal = useCallback(() => {
+    setShowBankModal(false);
+    setSelectedBank(null);
+  }, []);
 
-  const handleClose = () => {
-    setShow(false);
-    setShowPaystack(false);
-    setSelectedUser(null);
-    if (user?.tenantToken && selectedLocation) {
-      fetchData(selectedLocation);
-      // Reload users after closing the modal
-    }
-    setFormData({}); // Reset inputs after success
+  const handleClosePaystackModal = useCallback(() => {
+    setShowPaystackModal(false);
+    setSelectedPaystack(null);
+  }, []);
 
-  };
+  const handleDelete = useCallback(async (bankAccountId) => {
+    if (!tenantToken) return;
 
-
-  const handleDelete = async (myBankAccountID) => {
-    if (!user?.tenantToken) return;
-  
     setIsLoading(true);
     try {
       const response = await fetch(
@@ -199,72 +175,70 @@ const BankAccount = () => {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myBankAccountID  }),
+          body: JSON.stringify({ id: bankAccountId }),
         }
       );
       const result = await response.json();
-      console.log(result);
+      
       if (!response.ok) throw new Error(result.message || "Failed to delete.");
-  
+
       setPopup({
-        message: "Bank detail deleted successfully!",
+        message: "Bank details deleted successfully!",
         type: "success",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
-  
-      fetchData();
+
+      // Refresh data
+      fetchData(pagination.currentPage, pagination.pageSize);
     } catch (error) {
-      toast.error("Failed to delete this bank details!");
       console.error("Error deleting bank details:", error);
+      toast.error("Failed to delete bank details!");
       setPopup({
-        message: "Failed to this bank details!",
+        message: "Failed to delete bank details!",
         type: "error",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
     } finally {
       setIsLoading(false);
     }
-  };
-  
+  }, [tenantToken, tenantSlug, fetchData, pagination.currentPage, pagination.pageSize]);
 
-
-
-  const handleDeleteButton = (myBankAccountID) => {
+  const handleDeleteButton = useCallback((bankAccountId) => {
     setDeletePopup({
       isVisible: true,
-      myBankAccountID
+      bankAccountId,
     });
-  };
-  
-  const confirmDelete = () => {
-    handleDelete(deletePopup.myBankAccountID);
-    setDeletePopup({ isVisible: false, myBankAccountID: null });
-  };
-  
-  const formatTime = (time) => {
-    if (!time) return ""; // Handle empty or undefined time
-    const [hour, minute] = time.split(":").map(Number);
-    const period = hour >= 12 ? "PM" : "AM";
-    const formattedHour = hour % 12 || 12; // Convert 24-hour to 12-hour format
-    return `${formattedHour}:${minute.toString().padStart(2, "0")} ${period}`;
-  };
- 
+  }, []);
 
-  const handleLocationChange = (e) => {
-    const locationId = e.target.value;
-    setSelectedLocation(locationId);
-    setFormData((prev) => ({
-      ...prev,
-      location_id: locationId, // Update formData with the selected location ID
-    }));
-  };
-  const columns = [
+  const confirmDelete = useCallback(() => {
+    handleDelete(deletePopup.bankAccountId);
+    setDeletePopup({ isVisible: false, bankAccountId: null });
+  }, [deletePopup, handleDelete]);
+
+  const handlePageChange = useCallback((page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  }, []);
+
+  const handlePageSizeChange = useCallback((pageSize) => {
+    setPagination((prev) => ({ ...prev, pageSize, currentPage: 1 }));
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    fetchData(pagination.currentPage, pagination.pageSize);
+  }, [fetchData, pagination.currentPage, pagination.pageSize]);
+
+  // Memoized columns
+  const columns = useMemo(() => [
     {
       Header: "S/N",
-      accessor: (row, i) => i + 1,
+      accessor: (row, i) => i + 1 + (pagination.currentPage - 1) * pagination.pageSize,
       id: "serialNo",
       sort: false,
     },
@@ -272,6 +246,8 @@ const BankAccount = () => {
       Header: "Bank Name",
       accessor: "bank_name",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "Account Number",
@@ -282,6 +258,14 @@ const BankAccount = () => {
       Header: "Account Name",
       accessor: "account_name",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
+    },
+    {
+      Header: "Location",
+      accessor: "location.name",
+      sort: true,
+      Cell: ({ row }) => row.original.location?.name || "N/A",
     },
     {
       Header: "Updated On",
@@ -289,38 +273,54 @@ const BankAccount = () => {
       sort: true,
       Cell: ({ row }) => formatDateTime(row.original.updated_at),
     },
-
     {
       Header: "Action",
       accessor: "action",
       sort: false,
       Cell: ({ row }) => (
-        <>
+        <div style={{ whiteSpace: "nowrap" }}>
           <Link
             to="#"
             className="action-icon"
-            onClick={() => handleEditClick(row.original)}
+            onClick={(e) => {
+              e.preventDefault();
+              handleEditClick(row.original);
+            }}
+            style={{ marginRight: "10px" }}
+            title="Edit Bank Details"
           >
             <i className="mdi mdi-square-edit-outline"></i>
           </Link>
           <Link
             to="#"
-            className="action-icon"
-            onClick={() => handleDeleteButton(row.original.id)}
+            className="action-icon text-danger"
+            onClick={(e) => {
+              e.preventDefault();
+              handleDeleteButton(row.original.id);
+            }}
+            title="Delete Bank Details"
           >
             <i className="mdi mdi-delete"></i>
           </Link>
-        </>
+        </div>
       ),
     },
-  ];
+  ], [pagination.currentPage, pagination.pageSize, handleEditClick, handleDeleteButton, formatDateTime]);
+
+  // Paginate data for client-side pagination
+  const paginatedData = useMemo(() => {
+    const start = (pagination.currentPage - 1) * pagination.pageSize;
+    const end = start + pagination.pageSize;
+    return data.slice(start, end);
+  }, [data, pagination.currentPage, pagination.pageSize]);
+
   return (
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Bank Account", path: "/Settings/set-account", active: true },
+          { label: "Bank Accounts", path: "/settings/bank-accounts", active: true },
         ]}
-        title="Bank Account"
+        title="Bank Accounts"
       />
 
       <Row>
@@ -328,34 +328,39 @@ const BankAccount = () => {
           <Card>
             <Card.Body>
               <Row className="mb-2">
-                <Col sm={4}  className="mt-2">
+                <Col sm={6}>
                   <Button
                     variant="danger"
-                    className="waves-effect waves-light"
+                    className="waves-effect waves-light me-2"
                     onClick={() => {
-                      setShow(true);
-                      setSelectedUser(null);
+                      setSelectedBank(null);
+                      setShowBankModal(true);
                     }}
-                                                                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
+                    style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add Your Bank Account
+                    <i className="mdi mdi-plus-circle me-1"></i> Add Bank Account
                   </Button>
                   
-                </Col>
-                <Col className="mt-2">
                   <Button
-                    variant="danger"
+                    variant="outline-primary"
                     className="waves-effect waves-light"
-                    onClick={() => {
-                      setShowPaystack(true);
-                      setSelectedUser(null);
-                    }}
-                                                                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
+                    onClick={handlePaystackClick}
+                    style={{ borderColor: primary, color: primary }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Set Paystack Key                  </Button>
-                  </Col>
+                    <i className="mdi mdi-key me-1"></i> Set Paystack Key
+                  </Button>
+                </Col>
+                <Col sm={6} className="text-end">
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={loading}
+                  >
+                    <i className="mdi mdi-refresh me-1"></i>
+                    Refresh
+                  </Button>
+                </Col>
               </Row>
 
               <Card>
@@ -365,66 +370,43 @@ const BankAccount = () => {
                     marginTop: "30px",
                   }}
                 >
-                  
-
-                <>
-
                   {error ? (
-                    <p className="text-danger">Error: {error}</p>
+                    <div className="alert alert-danger" role="alert">
+                      <i className="mdi mdi-alert-circle-outline me-2"></i>
+                      Error: {error}
+                    </div>
                   ) : loading ? (
-                    <p>Loading your bank details...</p>
-                  ) : isLoading ? (
-                    <div className="text-center">
+                    <div className="text-center py-4">
                       <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Deleting...</span>
-                      </Spinner>{" "}
-                      Deleting...
+                        <span className="visually-hidden">Loading...</span>
+                      </Spinner>
+                      <p className="mt-2">Loading bank details...</p>
+                    </div>
+                  ) : isLoading ? (
+                    <div className="text-center py-4">
+                      <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Processing...</span>
+                      </Spinner>
+                      <p className="mt-2">Processing...</p>
                     </div>
                   ) : (
                     <Table2
                       columns={columns}
-                      data={data}
+                      data={paginatedData}
                       pageSize={pagination.pageSize}
                       isSortable
                       isSearchable
+                      pagination
                       tableClass="table-striped dt-responsive nowrap w-100"
                       searchBoxClass="my-2"
-                    //   paginationProps={{
-                    //     currentPage: pagination.currentPage,
-                    //     totalPages: pagination.totalPages,
-                    //     onPageChange: (page) =>
-                    //       setPagination((prev) => ({
-                    //         ...prev,
-                    //         currentPage: page,
-                    //       })),
-                    //     onPageSizeChange: (pageSize) =>
-                    //       setPagination((prev) => ({ ...prev, pageSize })),
-                    //   }}
+                      paginationProps={{
+                        currentPage: pagination.currentPage,
+                        totalPages: pagination.totalPages,
+                        onPageChange: handlePageChange,
+                        onPageSizeChange: handlePageSizeChange,
+                      }}
                     />
                   )}
-
-{/* <Row className="mt-3">
-  <Col>
-  <Button
-  variant="primary"
-  disabled={!selectedLocation}
-  onClick={() => handleEditClick(selectedLocation)}
->
-  Edit Working Hours
-</Button>{" "}
-    <Button
-      variant="danger"
-      disabled={!selectedLocation}
-      onClick={() => handleDeleteButton(selectedLocation)}
-    >
-      Delete Working Hours
-    </Button>
-  </Col>
-</Row> */}
-
-                  </>
-              
-
                 </Card.Body>
               </Card>
             </Card.Body>
@@ -433,20 +415,21 @@ const BankAccount = () => {
       </Row>
 
       <AccountRegistrationModal
-  show={show}
-  onHide={handleClose}
-  myBankAccount={selectedUser} // Pass the selected user data
-  onSubmit={() =>
-    fetchData(selectedLocation)
-  }
-/>
+        show={showBankModal}
+        onHide={handleCloseBankModal}
+        bankAccount={selectedBank}
+        onSubmit={() => fetchData(pagination.currentPage, pagination.pageSize)}
+      />
 
-<PaystackRegistrationModal
-  showPaystack={showPaystack}
-  onHide={handleClose}
-  myPaystack={selectedUser} // Pass the selected user data
-  onSubmit={() => fetchData(selectedLocation)}
-/>
+      <PaystackRegistrationModal
+        show={showPaystackModal}
+        onHide={handleClosePaystackModal}
+        paystackKey={selectedPaystack}
+        onSubmit={() => {
+          // Show success message or handle paystack key saved
+          toast.success("Paystack key saved successfully!");
+        }}
+      />
 
       {popup.isVisible && (
         <Popup
@@ -460,12 +443,10 @@ const BankAccount = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this bank details?"
+          message="Are you sure you want to delete these bank details?"
           type="confirm"
-          onClose={() =>
-            setDeletePopup({ isVisible: false, myBankAccountID: null })
-          }
-          buttonLabel="Yes"
+          onClose={() => setDeletePopup({ isVisible: false, bankAccountId: null })}
+          buttonLabel="Yes, Delete"
           onAction={confirmDelete}
         />
       )}

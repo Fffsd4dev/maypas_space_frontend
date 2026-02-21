@@ -38,7 +38,7 @@ const Personal = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+      // second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
@@ -46,7 +46,6 @@ const Personal = () => {
   const fetchData = async () => {
     setLoading(true);
     setError(null);
-    console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/view-users`,

@@ -10,7 +10,7 @@ const StackedAreaChart = () => {
       stacked: true,
       events: {
         selection: (chart, e) => {
-          console.log(new Date(e.xaxis.min));
+          
         }
       }
     },

@@ -16,8 +16,6 @@ const DefaultLayout = props => {
 
   const { tenantSlug } = useParams();
 
-  console.log(primary);
-
   useEffect(() => {
     toggleDocumentAttribute("data-bs-theme", theme);
   }, [theme]);

@@ -19,7 +19,7 @@ const useRequestOtp2 = () => {
   const { control, handleSubmit } = useForm({
     resolver: yupResolver(otpFormSchema),
     defaultValues: {
-      email: 'user@demo11.com',
+      email: '',
     }
   });
   const redirectUser = () => {
@@ -34,9 +34,6 @@ const useRequestOtp2 = () => {
 
   const requestOtp = handleSubmit(async (data) => {
     setLoading(true);
-    console.log('submitting');
-   
-    console.log(data);
     try {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/system-admin/confirm-user`, {
         method: 'POST',
@@ -45,16 +42,10 @@ const useRequestOtp2 = () => {
         },
         body: JSON.stringify(data)
       });
-      console.log(res);
 
       const result = await res.json();
 
-      console.log(result);
       if (res.ok) {
-        console.log(res.ok);
-        // console.log(result.user.tenant_id);
-        // saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id, tenantFirstName: result?.user?.first_name, tenantLastName: result?.user?.last_name, tenantEmail: result?.user?.email, tenantPhone: result?.user?.phone });
-        console.log(result)
         setPopup({
           message: "An OTP has been sent to your email!",
           type: "success",

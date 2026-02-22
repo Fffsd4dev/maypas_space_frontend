@@ -41,8 +41,6 @@ const useLogin2 = () => {
 
   const login = handleSubmit( async (data) => {
     setLoading(true);
-    console.log(data);
-    console.log('submitting');
   
     try {
       // WILL EDIT HERE
@@ -53,21 +51,12 @@ const useLogin2 = () => {
         },
         body: JSON.stringify(data)
       });
-      console.log(data);
-      console.log(res);
 
       const result = await res.json();
       
-      console.log(result);
       if (result.token && res.ok ) {
-        console.log(res.ok);
 
         saveSession({ ...(result ?? {}), token: result.token, ownerFirstName: result?.admin?.first_name, ownerLastName:result?.admin?.last_name ,  ownerUserTypeId: result?.admin?.user_type_id, });
-
-        // saveSession({
-        //   ...(res.data ?? {}),
-        //   token: res.data.token
-        // });
 
         setPopup({
           message: "Login successful!",

@@ -90,7 +90,6 @@ const SeatBookingSystem = () => {
     popup.resumeTransaction(access_code, {
       onSuccess: (response) => {
         handleConfirmBooking(response.reference, userId);
-        console.log("Transaction successful:", response);
       },
 
       onCancel: () => {
@@ -133,7 +132,6 @@ const SeatBookingSystem = () => {
           );
 
           if (res.status === 200) {
-            console.log(res.data.message);
             removeSession();
           } else {
             console.error("Logout Failed:", res);
@@ -237,22 +235,19 @@ const SeatBookingSystem = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+      // second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
 
   // Fetch locations
   const fetchLocations = async () => {
-    console.log(visitorSlug);
     setLoadingLocations(true);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/get/locations`
       );
-      console.log(response);
       const result = await response.json();
-      console.log(result);
 
       if (response.ok) {
         if (result && Array.isArray(result.data)) {
@@ -299,7 +294,6 @@ const SeatBookingSystem = () => {
           }
         );
         const result = await response.json();
-        console.log("Currency fetch result:", result);
         if (Array.isArray(result.data) && result.data.length > 0) {
           setCurrencySymbol(result.data[0].symbol || "₦");
         } else {
@@ -357,7 +351,6 @@ const SeatBookingSystem = () => {
       }
       const result = await response.json();
       setRoomsData(result.data);
-      console.log("Rooms data:", result.data);
       setData(result.data);
       setPagination({
         currentPage: result.current_page,
@@ -420,7 +413,6 @@ const SeatBookingSystem = () => {
       }
 
       const result = await response.json();
-      console.log("Room details result:", result);
 
       if (result && result.data) {
         setRoomDetails(result.data);
@@ -539,8 +531,6 @@ const SeatBookingSystem = () => {
 
   // Handle book now click
   const handleBookNowClick = (room) => {
-    console.log("Booking spot with ID:", room.spot_id);
-    console.log("Spot details:", room);
     setSelectedSpace(room);
     setBookingFormData({
       type: "one-off",
@@ -670,8 +660,6 @@ const SeatBookingSystem = () => {
             import.meta.env.VITE_BACKEND_URL
           }/api/${visitorSlug}/initiate/pay/spot`;
 
-      console.log("Booking with visitor token:", bookingData);
-
       // Make API call
       let response;
       if (visitorToken) {
@@ -699,13 +687,11 @@ const SeatBookingSystem = () => {
       }
 
       const result = await response.json();
-      console.log(result);
       toast.success(result.message || "Space booked successfully!");
       handleBookingClose();
 
       setUserId(result.user.id);
-      userIDRef.current = result.user.id; // Store user ID in ref for later use
-      console.log(userId);
+      userIDRef.current = result.user.id;
 
       // If your backend returns access_code for Paystack
       if (result.access_code) {
@@ -798,8 +784,6 @@ const SeatBookingSystem = () => {
             import.meta.env.VITE_BACKEND_URL
           }/api/${visitorSlug}/confirm/pay/spot`;
 
-      console.log("Confirm Booking with visitor token:", bookingData);
-
       // Make API call
       let response;
       if (visitorToken) {
@@ -828,7 +812,6 @@ const SeatBookingSystem = () => {
 
       const result = await response.json();
       if (response.ok) {
-        console.log("confirmbooking result", result);
         toast.success(
           result.message || " Payment made and Space booked successfully!"
         );
@@ -859,7 +842,6 @@ const SeatBookingSystem = () => {
   // Use effects
   useEffect(() => {
     fetchLocations();
-    console.log("visitorToken:", visitorToken);
   }, []);
 
   useEffect(() => {
@@ -882,7 +864,6 @@ const SeatBookingSystem = () => {
   const fetchLogoData = async (page = 1, pageSize = 10) => {
     setLoadingLogo;
     setError(null);
-    console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/view-details`,
@@ -898,7 +879,6 @@ const SeatBookingSystem = () => {
       }
 
       const result = await response.json();
-      console.log(result);
 
       if (Array.isArray(result.data)) {
         // Sort the data by updated_at or created_at
@@ -908,7 +888,6 @@ const SeatBookingSystem = () => {
             new Date(a.updated_at || a.created_at)
         );
         setLogoData(sortedLogoData);
-        console.log("Sorted Logo Data:", sortedLogoData);
       } else {
         throw new Error("Invalid response format");
       }
@@ -937,8 +916,6 @@ const SeatBookingSystem = () => {
   }
 
   const secondary = hexToRgba(logoData[0]?.colour || "#fe0002", 0.08);
-
-  console.log(primary);
 
   return notFound ? (
     <Error404Alt />

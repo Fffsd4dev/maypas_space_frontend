@@ -341,7 +341,7 @@ const WizardWithFormValidation = () => {
         wizardRef.current.nextStep();
         setActiveStep(prev => prev + 1);
       } else {
-        console.log('Step 1 validation failed');
+
       }
     }
 
@@ -352,7 +352,7 @@ const WizardWithFormValidation = () => {
         wizardRef.current.nextStep();
         setActiveStep(prev => prev + 1);
       } else {
-        console.log('Step 2 validation failed');
+        
       }
     }
   };
@@ -363,7 +363,7 @@ const WizardWithFormValidation = () => {
     }
   };
   const onSubmit = data => {
-    console.log('Form Data:', data);
+    
   };
   return <Card>
       <Card.Body className="overflow-hidden">

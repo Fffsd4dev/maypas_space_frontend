@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
 import PageTitle from "../../../../components/PageTitle";
 import MemberRegistrationModal from "./MemberRegistrationForm";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../../components/Popup/Popup";
 import Table2 from "../../../../components/Table2";
-import { color } from "framer-motion";
 import { useLogoColor } from "../../../../context/LogoColorContext";
+import { toast } from "react-toastify";
 
 const Members = () => {
   const { user } = useAuthContext();
@@ -15,12 +15,17 @@ const Members = () => {
   const tenantSlug = user?.tenant;
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
+  // Refs to prevent duplicate calls
+  const isMounted = useRef(true);
+  const isFetching = useRef(false);
+  const isFetchingTeams = useRef(false);
+
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingTeams, setLoadingTeams] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedMember, setSelectedMember] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState({
     message: "",
@@ -29,19 +34,19 @@ const Members = () => {
     buttonLabel: "",
     buttonRoute: "",
   });
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isError, setIsError] = useState(false);
   const [teams, setTeams] = useState([]);
-  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState("");
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myMemberID: null,
+    memberId: null,
+    teamId: null,
   });
 
   const [promotePopup, setPromotePopup] = useState({
     isVisible: false,
-    myMemberID: null,
+    memberId: null,
+    teamId: null,
   });
 
   const [pagination, setPagination] = useState({
@@ -52,131 +57,145 @@ const Members = () => {
     pageSize: 10,
   });
 
-  const formatDateTime = (isoString) => {
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const formatDateTime = useCallback((isoString) => {
+    if (!isoString) return "";
     const options = {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
-  };
+  }, []);
 
-  const fetchTeams = async () => {
+  const fetchTeams = useCallback(async () => {
+    if (isFetchingTeams.current || !tenantToken || !tenantSlug) return;
+    
+    isFetchingTeams.current = true;
     setLoadingTeams(true);
+    
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/teams`,
         {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
+          headers: { Authorization: `Bearer ${tenantToken}` },
         }
       );
       const result = await response.json();
-      if (response.ok) {
-        if (result && Array.isArray(result[1])) {
-          console.log("Teams:", result);
-          setTeams(result[1] || []);
-        } else {
-          throw new Error("Invalid response format");
-        }
-      } else {
+      
+      if (isMounted.current && response.ok) {
+        // Handle the response format - assuming result[1] contains the data array
+        const teamsData = Array.isArray(result[1]) ? result[1] : [];
+        setTeams(teamsData);
+      } else if (isMounted.current) {
         throw new Error(result.message || "Failed to fetch teams.");
       }
     } catch (error) {
-      setErrorMessage(error.message);
-      setIsError(true);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingTeams(false);
+      if (isMounted.current) {
+        setLoadingTeams(false);
+      }
+      isFetchingTeams.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  const fetchData = async (teamId, page = 1, pageSize = 10) => {
+  const fetchData = useCallback(async (teamId, page = 1, pageSize = 10) => {
+    if (isFetching.current || !tenantToken || !tenantSlug || !teamId) return;
+    
+    isFetching.current = true;
     setLoading(true);
     setError(null);
-    console.log("User Token:", user?.tenantToken);
+    
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/team/members/${teamId}?page=${page}&per_page=${pageSize}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/team/members/${teamId}?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log("Members:", result);
 
-      if (result && Array.isArray(result.data)) {
-        const data = result.data;
-        data.sort(
+      if (isMounted.current && result && Array.isArray(result.data)) {
+        const sortedData = [...result.data].sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
-        setData(data);
-        // setPagination({
-        //   currentPage: result.data.current_page,
-        //   totalPages: result.data.last_page,
-        //   nextPageUrl: result.data.next_page_url,
-        //   prevPageUrl: result.data.prev_page_url,
-        //   pageSize: pageSize,
-        // });
-      } else {
+        setData(sortedData);
+        
+        // Update pagination if available
+        if (result.pagination) {
+          setPagination({
+            currentPage: result.pagination.current_page || 1,
+            totalPages: result.pagination.last_page || 1,
+            nextPageUrl: result.pagination.next_page_url || null,
+            prevPageUrl: result.pagination.prev_page_url || null,
+            pageSize: pageSize,
+          });
+        }
+      } else if (isMounted.current) {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      setError(error.message);
+      if (isMounted.current) {
+        setError(error.message);
+        toast.error(error.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
+      isFetching.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
+  // Fetch teams on mount
   useEffect(() => {
-    if (user?.tenantToken) {
+    if (tenantToken && tenantSlug) {
       fetchTeams();
     }
-  }, [user?.tenantToken]);
+  }, [tenantToken, tenantSlug, fetchTeams]);
 
+  // Fetch members when team or pagination changes
   useEffect(() => {
-    if (user?.tenantToken && selectedTeam) {
+    if (tenantToken && tenantSlug && selectedTeam) {
       fetchData(selectedTeam, pagination.currentPage, pagination.pageSize);
     }
-  }, [
-    user?.tenantToken,
-    selectedTeam,
-    pagination.currentPage,
-    pagination.pageSize,
-  ]);
+  }, [tenantToken, tenantSlug, selectedTeam, pagination.currentPage, pagination.pageSize, fetchData]);
 
-  const handleEditClick = (myMember) => {
-    setSelectedUser(myMember);
+  const handleEditClick = useCallback((member) => {
+    setSelectedMember(member);
     setShow(true);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setShow(false);
-    setSelectedUser(null);
-    if (user?.tenantToken && selectedTeam) {
-      fetchData(selectedTeam, pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
-    }
-    setFormData({}); // Reset inputs after success
-  };
+    setSelectedMember(null);
+    // Don't fetch here - let useEffect handle it
+  }, []);
 
-  const handlePromoteMember = async (teamId, myMemberID) => {
-    if (!user?.tenantToken) return;
-    console.log(myMemberID);
+  const handlePromoteMember = useCallback(async (teamId, memberId) => {
+    if (!tenantToken) return;
 
     setIsLoading(true);
     try {
@@ -185,32 +204,28 @@ const Members = () => {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myMemberID, team_id: teamId }),
+          body: JSON.stringify({ id: memberId, team_id: teamId }),
         }
       );
-      console.log("body", { id: myMemberID, team_id: teamId });
-
-      console.log("Promote Response:", response);
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
-      setData((prevData) =>
-        prevData.filter((myMember) => myMember.id !== myMemberID)
-      );
       setPopup({
         message: "This team member is now the team manager!",
         type: "success",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
-      if (user?.tenantToken && selectedTeam) {
-        fetchData(selectedTeam, pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
+      
+      // Refresh data
+      if (selectedTeam) {
+        fetchData(selectedTeam, pagination.currentPage, pagination.pageSize);
       }
     } catch (error) {
       console.error("Error promoting member:", error);
@@ -218,50 +233,50 @@ const Members = () => {
         message: "Failed to make this member the team manager!",
         type: "error",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tenantToken, tenantSlug, selectedTeam, fetchData, pagination.currentPage, pagination.pageSize]);
 
-  const handleDeleteMember = async (teamId, myMemberID) => {
-    if (!user?.tenantToken) return;
-    console.log(myMemberID);
+  const handleDeleteMember = useCallback(async (teamId, memberId) => {
+    if (!tenantToken) return;
 
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/team/member/delete/${teamId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/team/member/delete/${teamId}`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myMemberID }),
+          body: JSON.stringify({ id: memberId }),
         }
       );
 
-      console.log("Delete Response:", response);
-
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       setData((prevData) =>
-        prevData.filter((myMember) => myMember.id !== myMemberID)
+        prevData.filter((member) => member.user_id !== memberId)
       );
+      
       setPopup({
         message: "Member deleted successfully!",
         type: "success",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
-      if (user?.tenantToken && selectedTeam) {
-        fetchData(selectedTeam, pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
+      
+      // Refresh data
+      if (selectedTeam) {
+        fetchData(selectedTeam, pagination.currentPage, pagination.pageSize);
       }
     } catch (error) {
       console.error("Error deleting member:", error);
@@ -269,50 +284,65 @@ const Members = () => {
         message: "Failed to delete member!",
         type: "error",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tenantToken, tenantSlug, selectedTeam, fetchData, pagination.currentPage, pagination.pageSize]);
 
-  const handleDeleteMemberButton = (selectedTeam, myMemberID) => {
+  const handleDeleteButton = useCallback((teamId, memberId) => {
     setDeletePopup({
       isVisible: true,
-      selectedTeam,
-      myMemberID,
+      memberId,
+      teamId,
     });
-  };
+  }, []);
 
-  const handlePromoteMemberButton = (selectedTeam, myMemberID) => {
+  const handlePromoteButton = useCallback((teamId, memberId) => {
     setPromotePopup({
       isVisible: true,
-      selectedTeam,
-      myMemberID,
+      memberId,
+      teamId,
     });
-  };
+  }, []);
 
-  const confirmPromoteMember = () => {
-    const { myMemberID } = promotePopup;
-    handlePromoteMember(selectedTeam, myMemberID);
-    setPromotePopup({ isVisible: false, myMemberID: null });
-  };
+  const confirmPromote = useCallback(() => {
+    const { memberId, teamId } = promotePopup;
+    handlePromoteMember(teamId, memberId);
+    setPromotePopup({ isVisible: false, memberId: null, teamId: null });
+  }, [promotePopup, handlePromoteMember]);
 
-  const confirmDeleteMember = () => {
-    const { myMemberID } = deletePopup;
-    handleDeleteMember(selectedTeam, myMemberID);
-    setDeletePopup({ isVisible: false, myMemberID: null });
-  };
+  const confirmDelete = useCallback(() => {
+    const { memberId, teamId } = deletePopup;
+    handleDeleteMember(teamId, memberId);
+    setDeletePopup({ isVisible: false, memberId: null, teamId: null });
+  }, [deletePopup, handleDeleteMember]);
 
-  const handleTeamChange = (e) => {
+  const handleTeamChange = useCallback((e) => {
     const teamId = e.target.value;
     setSelectedTeam(teamId);
-    setFormData((prev) => ({
-      ...prev,
-      team_id: teamId, // Update formData with the selected location ID
-    }));
-  };
+    // Reset to first page when team changes
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  }, []);
 
-  const columns = [
+  const handlePageChange = useCallback((page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  }, []);
+
+  const handlePageSizeChange = useCallback((pageSize) => {
+    setPagination((prev) => ({ ...prev, pageSize, currentPage: 1 }));
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    if (selectedTeam) {
+      fetchData(selectedTeam, pagination.currentPage, pagination.pageSize);
+    }
+  }, [selectedTeam, fetchData, pagination.currentPage, pagination.pageSize]);
+
+  // Memoized columns
+  const columns = useMemo(() => [
     {
       Header: "S/N",
       accessor: (row, i) => i + 1,
@@ -323,16 +353,34 @@ const Members = () => {
       Header: "First Name",
       accessor: "user.first_name",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "Last Name",
       accessor: "user.last_name",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
-      Header: "Is the Manager?",
+      Header: "Email",
+      accessor: "user.email",
+      sort: true,
+      Cell: ({ value }) => value || "",
+    },
+    {
+      Header: "Is Manager?",
       accessor: "manager",
       sort: true,
+      Cell: ({ value }) => (
+        <span style={{ 
+          color: value === "yes" ? "#28a745" : "#6c757d",
+          fontWeight: value === "yes" ? "bold" : "normal"
+        }}>
+          {value === "yes" ? "Yes" : "No"}
+        </span>
+      ),
     },
     {
       Header: "Updated On",
@@ -345,45 +393,50 @@ const Members = () => {
       accessor: "action",
       sort: false,
       Cell: ({ row }) => (
-        <>
-          {row.original.manager === "no" && ( // Only show the button if Manager is "no"
+        <div style={{ whiteSpace: "nowrap" }}>
+          {row.original.manager === "no" && (
             <Button
-              variant="danger"
-              className="waves-effect waves-light"
-              onClick={() =>
-                handlePromoteMemberButton(selectedTeam, row.original.user_id)
-              }
+              size="sm"
+              variant="success"
+              className="me-2"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePromoteButton(selectedTeam, row.original.user_id);
+              }}
               style={{
                 backgroundColor: primary,
                 borderColor: primary,
                 color: "#fff",
               }}
+              title="Make Team Manager"
             >
-              Make Team Manager
+              <i className="mdi mdi-arrow-up-bold-circle me-1"></i>
+              Promote
             </Button>
           )}
-
           <Link
             to="#"
-            className="action-icon"
-            onClick={() =>
-              handleDeleteMemberButton(selectedTeam, row.original.user_id)
-            }
+            className="action-icon text-danger"
+            onClick={(e) => {
+              e.preventDefault();
+              handleDeleteButton(selectedTeam, row.original.user_id);
+            }}
+            title="Delete Member"
           >
             <i className="mdi mdi-delete"></i>
           </Link>
-        </>
+        </div>
       ),
     },
-  ];
+  ], [selectedTeam, handlePromoteButton, handleDeleteButton, formatDateTime, primary]);
 
   return (
     <>
       <PageTitle
         breadCrumbItems={[
           {
-            label: "Team Members/Sections",
-            path: "/location/floor",
+            label: "Team Members",
+            path: "/settings/team-members",
             active: true,
           },
         ]}
@@ -401,16 +454,32 @@ const Members = () => {
                     className="waves-effect waves-light"
                     onClick={() => {
                       setShow(true);
-                      setSelectedUser(null);
+                      setSelectedMember(null);
                     }}
                     style={{
                       backgroundColor: primary,
                       borderColor: primary,
                       color: "#fff",
                     }}
+                    disabled={!selectedTeam}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a Member to
-                    a Team
+                    <i className="mdi mdi-plus-circle me-1"></i> Add Member to Team
+                  </Button>
+                  {!selectedTeam && (
+                    <small className="text-muted d-block mt-1">
+                      Please select a team first
+                    </small>
+                  )}
+                </Col>
+                <Col sm={8} className="text-end">
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={loading || !selectedTeam}
+                  >
+                    <i className="mdi mdi-refresh me-1"></i>
+                    Refresh
                   </Button>
                 </Col>
               </Row>
@@ -423,29 +492,27 @@ const Members = () => {
                   }}
                 >
                   {loadingTeams ? (
-                    <div className="text-center">
+                    <div className="text-center py-4">
                       <Spinner animation="border" role="status">
                         <span className="visually-hidden">Loading...</span>
-                      </Spinner>{" "}
-                      Loading the members in the team...
+                      </Spinner>
+                      <p className="mt-2">Loading teams...</p>
                     </div>
                   ) : (
                     <div>
                       <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
-                        Select the team to view or update the members.
+                        Select a team to view or manage members.
                       </p>
                       <Form.Select
                         style={{ marginBottom: "25px", fontSize: "1rem" }}
-                        value={selectedTeam || ""}
-                        onChange={handleTeamChange} // Use the new handler
+                        value={selectedTeam}
+                        onChange={handleTeamChange}
                         required
                       >
-                        <option value="" disabled>
-                          Select team
-                        </option>
+                        <option value="">Select a team</option>
                         {teams.map((team) => (
                           <option key={team.id} value={team.id}>
-                            {team.company}
+                            {team.company} - {team.department}
                           </option>
                         ))}
                       </Form.Select>
@@ -455,15 +522,23 @@ const Members = () => {
                   {selectedTeam && (
                     <>
                       {error ? (
-                        <p className="text-danger">Error: {error}</p>
+                        <div className="alert alert-danger" role="alert">
+                          <i className="mdi mdi-alert-circle-outline me-2"></i>
+                          Error: {error}
+                        </div>
                       ) : loading ? (
-                        <p>Loading members...</p>
-                      ) : isLoading ? (
-                        <div className="text-center">
+                        <div className="text-center py-4">
                           <Spinner animation="border" role="status">
-                            <span className="visually-hidden">loading...</span>
-                          </Spinner>{" "}
-                          please wait...
+                            <span className="visually-hidden">Loading...</span>
+                          </Spinner>
+                          <p className="mt-2">Loading members...</p>
+                        </div>
+                      ) : isLoading ? (
+                        <div className="text-center py-4">
+                          <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Processing...</span>
+                          </Spinner>
+                          <p className="mt-2">Please wait...</p>
                         </div>
                       ) : (
                         <Table2
@@ -478,24 +553,18 @@ const Members = () => {
                           getRowProps={(row) => ({
                             style: {
                               backgroundColor:
-                                row.original.manager
-                                  ?.toString()
-                                  .toLowerCase() === "yes"
-                                  ? secondary
+                                row.original.manager === "yes"
+                                  ? `${secondary}40` // Add transparency
                                   : "inherit",
+                              fontWeight: row.original.manager === "yes" ? "bold" : "normal",
                             },
                           })}
-                          // paginationProps={{
-                          //   currentPage: pagination.currentPage,
-                          //   totalPages: pagination.totalPages,
-                          //   onPageChange: (page) =>
-                          //     setPagination((prev) => ({
-                          //       ...prev,
-                          //       currentPage: page,
-                          //     })),
-                          //   onPageSizeChange: (pageSize) =>
-                          //     setPagination((prev) => ({ ...prev, pageSize })),
-                          // }}
+                          paginationProps={{
+                            currentPage: pagination.currentPage,
+                            totalPages: pagination.totalPages,
+                            onPageChange: handlePageChange,
+                            onPageSizeChange: handlePageSizeChange,
+                          }}
                         />
                       )}
                     </>
@@ -510,10 +579,13 @@ const Members = () => {
       <MemberRegistrationModal
         show={show}
         onHide={handleClose}
-        myTeam={selectedUser}
-        onSubmit={() =>
-          fetchData(selectedTeam, pagination.currentPage, pagination.pageSize)
-        } // Reload users after adding or editing a user
+        member={selectedMember}
+        teams={teams} // Pass teams to avoid duplicate fetch
+        onSubmit={() => {
+          if (selectedTeam) {
+            fetchData(selectedTeam, pagination.currentPage, pagination.pageSize);
+          }
+        }}
       />
 
       {popup.isVisible && (
@@ -528,11 +600,11 @@ const Members = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this member?"
+          message="Are you sure you want to delete this member from the team?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myMemberID: null })}
-          buttonLabel="Yes"
-          onAction={confirmDeleteMember}
+          onClose={() => setDeletePopup({ isVisible: false, memberId: null, teamId: null })}
+          buttonLabel="Yes, Delete"
+          onAction={confirmDelete}
         />
       )}
 
@@ -540,11 +612,9 @@ const Members = () => {
         <Popup
           message="Are you sure you want to make this member the team manager?"
           type="confirm"
-          onClose={() =>
-            setPromotePopup({ isVisible: false, myMemberID: null })
-          }
-          buttonLabel="Yes"
-          onAction={confirmPromoteMember}
+          onClose={() => setPromotePopup({ isVisible: false, memberId: null, teamId: null })}
+          buttonLabel="Yes, Promote"
+          onAction={confirmPromote}
         />
       )}
     </>

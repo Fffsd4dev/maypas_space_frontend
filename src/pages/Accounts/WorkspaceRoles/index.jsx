@@ -144,7 +144,7 @@ const WorkspaceRoles = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+      // second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
@@ -160,17 +160,29 @@ const WorkspaceRoles = () => {
       Header: "Role Name",
       accessor: "user_type",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
     },
     {
       Header: "Created On",
       accessor: "created_at",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
       Cell: ({ row }) => formatDateTime(row.original.created_at),
     },
     {
       Header: "Updated On",
       accessor: "updated_at",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
       Cell: ({ row }) => formatDateTime(row.original.updated_at),
     },
     {

@@ -23,10 +23,10 @@ const useConfirmNewPassword = () => {
   const { control, handleSubmit } = useForm({
     resolver: yupResolver(loginFormSchema),
     defaultValues: {
-      email: 'user@demo11.com',
-      otp: '1234',
-      password: '123456',
-      password_confirmation: '9876543210'
+      email: '',
+      otp: '',
+      password: '',
+      password_confirmation: ''
     }
   });
   const redirectUser = () => {
@@ -38,9 +38,6 @@ const useConfirmNewPassword = () => {
 
   const confirmNewPassword = handleSubmit(async (data) => {
     setLoading(true);
-    console.log('submitting');
-    console.log({ tenantSlug });
-    console.log(data);
     try {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/change-password`, {
         method: 'POST',
@@ -49,16 +46,10 @@ const useConfirmNewPassword = () => {
         },
         body: JSON.stringify(data)
       });
-      console.log(res);
 
       const result = await res.json();
 
-      console.log(result);
       if (res.ok) {
-        console.log(res.ok);
-        // console.log(result.user.tenant_id);
-        // saveSession({ ...(result ?? {}), tenantToken: result.token, tenant: tenantSlug, tenant_id: result.user.tenant_id, user_type_id: result.user.user_type_id, tenantFirstName: result?.user?.first_name, tenantLastName: result?.user?.last_name, tenantEmail: result?.user?.email, tenantPhone: result?.user?.phone });
-        console.log(result)
         setPopup({
           message: "Password has successfully been changed!",
           type: "success",

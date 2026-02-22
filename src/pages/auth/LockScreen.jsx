@@ -40,7 +40,6 @@ const LockScreen = () => {
    * handle form submission
    */
   const onSubmit = formData => {
-    console.log(formData["password"]);
   };
   return <>
       <AuthLayout bottomLinks={<BottomLink />}>

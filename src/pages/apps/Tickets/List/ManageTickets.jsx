@@ -103,11 +103,19 @@ const columns = [{
   Header: "ID",
   accessor: "id",
   sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
   Cell: IdColumn
 }, {
   Header: "Requested By",
   accessor: "requested_by",
   sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
   Cell: RequestedBy
 }, {
   Header: "Subject",
@@ -121,11 +129,19 @@ const columns = [{
   Header: "Priority",
   accessor: "priority",
   sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
   Cell: PriorityColumn
 }, {
   Header: "Status",
   accessor: "status",
   sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
   Cell: StatusColumn
 }, {
   Header: "Created Date",

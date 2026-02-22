@@ -9,7 +9,6 @@ import Table2 from "../../../components/Table2";
 
 const Admin = () => {
   const { user } = useAuthContext();
-  console.log("Auth Token:", user?.token);
   const [show, setShow] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [data, setData] = useState([]);
@@ -25,7 +24,7 @@ const Admin = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+      // second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
   };
@@ -41,32 +40,56 @@ const Admin = () => {
       Header: "First Name",
       accessor: "first_name",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
     },
     {
       Header: "Last Name",
       accessor: "last_name",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
     },
     {
       Header: "Email",
       accessor: "email",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
     },
     {
       Header: "Role",
       accessor: "role.role",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
     },
     {
       Header: "Created On",
       accessor: "created_at",
       sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
       Cell: ({ row }) => formatDateTime(row.original.created_at),
     },
     {
       Header: "Updated On",
       accessor: "updated_at",
       sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
       Cell: ({ row }) => formatDateTime(row.original.updated_at),
     },
     {
@@ -112,7 +135,6 @@ const Admin = () => {
       }
 
       const result = await response.json();
-      console.log("Parsed response data:", result.data);
 
       if (result && Array.isArray(result.data.data)) {
         const data = result?.data?.data;

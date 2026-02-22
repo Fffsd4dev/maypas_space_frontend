@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { Dropdown } from "react-bootstrap";
+
 const MaximizeScreen = () => {
   useEffect(() => {
     let elem = document.querySelector(".maximize-icon");
@@ -8,7 +9,6 @@ const MaximizeScreen = () => {
       if (elem) elem.removeAttribute("data-toggle");
     };
   }, []);
-
   /*
    * toggle full screen mode
    */
@@ -44,7 +44,10 @@ const MaximizeScreen = () => {
   };
   return <Dropdown>
       <Dropdown.Toggle id="dropdown-languages" as="a" onClick={toggleFullscreen} className="nav-link waves-effect waves-light maximize-icon">
-        <i className="fe-maximize noti-icon font-22"></i>
+        <i className="fe-maximize noti-icon font-22"
+        style={{
+        color: '#ffffff'
+      }}></i>
       </Dropdown.Toggle>
     </Dropdown>;
 };

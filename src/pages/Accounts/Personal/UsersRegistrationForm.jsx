@@ -49,7 +49,6 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             });
             const result = await response.json();
             if (response.ok) {
-                console.log("Roles:", result.data.data);
                 setRoles(result.data.data || []);
             } else {
                 throw new Error(result.message || "Failed to fetch roles.");
@@ -76,8 +75,6 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        console.log(formData);
-        console.log(user?.tenantToken);
 
         try {
             if (!user?.tenantToken) throw new Error("Authorization token is missing.");
@@ -97,7 +94,6 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
             });
 
             const result = await response.json();
-            console.log(result);
 
             if (response.ok) {
                 toast.success(myUser ? "User updated successfully!" : "User registered successfully!");
@@ -117,11 +113,9 @@ const UsersRegistrationModal = ({ show, onHide, myUser, onSubmit }) => {
                 }
 
                 toast.error(errorMsg);
-                console.log(result);
             }
         } catch (error) {
             toast.error("An error occurred. Contact Admin");
-            console.log(error);
         } finally {
             setIsLoading(false);
         }

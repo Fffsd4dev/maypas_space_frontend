@@ -29,7 +29,6 @@ const fetchData = async (token, setData, setLoading, setError, page, setPaginati
     }
 
     const result = await response.json();
-    console.log('Parsed response data:', result);
 
     if (result?.data?.data && Array.isArray(result.data.data)) {
       // Sort by updated_at and created_at (latest first)
@@ -105,7 +104,7 @@ const formatDateTime = (isoString) => {
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
+    // second: "2-digit",
   };
   return new Date(isoString).toLocaleDateString("en-US", options);
 };
@@ -114,7 +113,6 @@ const formatDateTime = (isoString) => {
 const TenantSub = () => {
   const { user } = useAuthContext(); // Get the auth token from context
   const navigate = useNavigate();
-  console.log("Auth Token:", user?.token);
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -228,7 +226,6 @@ const TenantSub = () => {
       }
 
       const result = await response.json();
-      console.log('Fetched subscription details:', result);
       
       const newWindow = window.open(`/subscription-details/${id}`, '_blank');
       if (newWindow) {
@@ -257,12 +254,31 @@ const TenantSub = () => {
       Header: "Workspace",
       accessor: "tenant.company_name",
       sort: true,
+      Cell: ({ value }) =>
+    value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : "",
     },
     { Header: "Subscribed Plan", accessor: "plan.name", sort: true },
     { Header: "Price", accessor: "plan.price", sort: true },
-    { Header: "Status", accessor: "status", sort: true, Cell: StatusColumn },
-    { Header: "Updated At", accessor: "updated_at", sort: true, Cell: ({ row }) => formatDateTime(row.original.updated_at) },
-    { Header: "Subscription Ends At", accessor: "ends_at", sort: true, Cell: ({ row }) => formatDateTime(row.original.ends_at) },
+    { Header: "Status", accessor: "status", sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "", 
+      Cell: StatusColumn },
+    { Header: "Updated At", accessor: "updated_at", sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "", 
+      Cell: ({ row }) => formatDateTime(row.original.updated_at) },
+    { Header: "Subscription Ends At", accessor: "ends_at", sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "", 
+      Cell: ({ row }) => formatDateTime(row.original.ends_at) },
     {
       Header: "Action",
       accessor: "action",

@@ -36,7 +36,6 @@ const TenantLoginGuard = () => {
           setStatus("notfound");
         } else if (res.ok) {
           const result = await res.json();
-          console.log(result);
           saveSession({
             ...(result ?? {}),
             CName: result.company_name,

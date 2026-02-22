@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
 import LocationRegistrationModal from "./LocationRegistrationForm";
@@ -12,16 +12,19 @@ import { useLogoColor } from "../../../context/LogoColorContext";
 const MyLocations = () => {
   const { user } = useAuthContext();
   const tenantToken = user?.tenantToken;
-  const { tenantSlug } = useParams();
   const tenantSlugg = user?.tenant;
 
   const { colour: primary } = useLogoColor();
+
+  // Refs to prevent duplicate calls
+  const isMounted = useRef(true);
+  const isFetching = useRef(false);
 
   const [show, setShow] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState({
     message: "",
@@ -33,7 +36,7 @@ const MyLocations = () => {
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myUserID: null,
+    locationId: null,
   });
 
   const [pagination, setPagination] = useState({
@@ -44,50 +47,59 @@ const MyLocations = () => {
     pageSize: 10,
   });
 
-  const formatDateTime = (isoString) => {
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const formatDateTime = useCallback((isoString) => {
+    if (!isoString) return "";
     const options = {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
-  };
+  }, []);
 
-  const fetchData = async (page = 1, pageSize = 10) => {
+  const fetchData = useCallback(async (page = 1, pageSize = 10) => {
+    // Prevent duplicate fetches
+    if (isFetching.current || !tenantToken || !tenantSlugg) return;
+    
+    isFetching.current = true;
     setLoading(true);
     setError(null);
-    console.log("User Token:", user?.tenantToken);
+    
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlugg}/location/list-locations?page=${page}&per_page=${pageSize}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/list-locations?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       const result = await response.json();
-      if (result && Array.isArray(result.data.data)) {
-        const data = result.data.data;
-        data.sort(
+      
+      if (isMounted.current && result?.data?.data) {
+        const sortedData = [...result.data.data].sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
-        setData(data);
+        
+        setData(sortedData);
         setPagination({
           currentPage: result.data.current_page,
           totalPages: result.data.last_page,
@@ -95,87 +107,111 @@ const MyLocations = () => {
           prevPageUrl: result.data.prev_page_url,
           pageSize: pageSize,
         });
-      } else {
+      } else if (isMounted.current) {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (isMounted.current) {
+        setError(error.message);
+        toast.error(error.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
+      isFetching.current = false;
     }
-  };
+  }, [tenantToken, tenantSlugg]);
 
+  // Initial fetch and pagination changes
   useEffect(() => {
-    if (!tenantToken) return;
-    fetchData(pagination.currentPage, pagination.pageSize);
-  }, [user, pagination.currentPage, pagination.pageSize]);
+    if (tenantToken && tenantSlugg) {
+      fetchData(pagination.currentPage, pagination.pageSize);
+    }
+  }, [tenantToken, tenantSlugg, pagination.currentPage, pagination.pageSize, fetchData]);
 
-  const handleEditClick = (myUser) => {
-    setSelectedUser(myUser);
+  const handleEditClick = useCallback((location) => {
+    setSelectedLocation(location);
     setShow(true);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setShow(false);
-    setSelectedUser(null);
-    fetchData(pagination.currentPage, pagination.pageSize); // Reload users after closing the modal
-  };
+    setSelectedLocation(null);
+    fetchData(pagination.currentPage, pagination.pageSize);
+  }, [fetchData, pagination.currentPage, pagination.pageSize]);
 
-  const handleDelete = async (myUserID) => {
-    if (!user?.tenantToken) return;
+  const handleDelete = useCallback(async (locationId) => {
+    if (!tenantToken) return;
 
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlugg}/location/delete`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlugg}/location/delete`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myUserID }),
+          body: JSON.stringify({ id: locationId }),
         }
       );
 
       if (!response.ok) {
-        throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
-        );
+        throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
 
       setData((prevData) =>
-        prevData.filter((myUser) => myUser.id !== myUserID)
+        prevData.filter((location) => location.id !== locationId)
       );
+      
       setPopup({
         message: "Location deleted successfully!",
         type: "success",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
-      fetchData(pagination.currentPage, pagination.pageSize); // Reload users after deleting a user
+      
+      fetchData(pagination.currentPage, pagination.pageSize);
     } catch (error) {
-      toast.error("Failed to delete plan!");
+      toast.error("Failed to delete location!");
+      setPopup({
+        message: "Failed to delete location!",
+        type: "error",
+        isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
+      });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tenantToken, tenantSlugg, fetchData, pagination.currentPage, pagination.pageSize]);
 
-  const handleDeleteButton = (myUserID) => {
+  const handleDeleteButton = useCallback((locationId) => {
     setDeletePopup({
       isVisible: true,
-      myUserID,
+      locationId,
     });
-  };
+  }, []);
 
-  const confirmDelete = () => {
-    const { myUserID } = deletePopup;
-    handleDelete(myUserID);
-    setDeletePopup({ isVisible: false, myUserID: null });
-  };
+  const confirmDelete = useCallback(() => {
+    const { locationId } = deletePopup;
+    handleDelete(locationId);
+    setDeletePopup({ isVisible: false, locationId: null });
+  }, [deletePopup, handleDelete]);
 
-  const columns = [
+  const handlePageChange = useCallback((page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  }, []);
+
+  const handlePageSizeChange = useCallback((pageSize) => {
+    setPagination((prev) => ({ ...prev, pageSize, currentPage: 1 }));
+  }, []);
+
+  // Memoized columns
+  const columns = useMemo(() => [
     {
       Header: "S/N",
       accessor: (row, i) => i + 1,
@@ -186,16 +222,22 @@ const MyLocations = () => {
       Header: "Name",
       accessor: "name",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "State",
       accessor: "state",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "Address",
       accessor: "address",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "Created On",
@@ -214,31 +256,40 @@ const MyLocations = () => {
       accessor: "action",
       sort: false,
       Cell: ({ row }) => (
-        <>
+        <div style={{ whiteSpace: "nowrap" }}>
           <Link
             to="#"
             className="action-icon"
-            onClick={() => handleEditClick(row.original)}
+            onClick={(e) => {
+              e.preventDefault();
+              handleEditClick(row.original);
+            }}
+            style={{ marginRight: "10px" }}
+            title="Edit Location"
           >
             <i className="mdi mdi-square-edit-outline"></i>
           </Link>
           <Link
             to="#"
-            className="action-icon"
-            onClick={() => handleDeleteButton(row.original.id)}
+            className="action-icon text-danger"
+            onClick={(e) => {
+              e.preventDefault();
+              handleDeleteButton(row.original.id);
+            }}
+            title="Delete Location"
           >
             <i className="mdi mdi-delete"></i>
           </Link>
-        </>
+        </div>
       ),
     },
-  ];
+  ], [handleEditClick, handleDeleteButton, formatDateTime]);
 
   return (
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "My Locations", path: "/account/admin", active: true },
+          { label: "My Locations", path: "/account/locations", active: true },
         ]}
         title="My Locations"
       />
@@ -254,7 +305,7 @@ const MyLocations = () => {
                     className="waves-effect waves-light"
                     onClick={() => {
                       setShow(true);
-                      setSelectedUser(null);
+                      setSelectedLocation(null);
                     }}
                     style={{
                       backgroundColor: primary,
@@ -268,15 +319,23 @@ const MyLocations = () => {
               </Row>
 
               {error ? (
-                <p className="text-danger">Error: {error}</p>
+                <div className="alert alert-danger" role="alert">
+                  <i className="mdi mdi-alert-circle-outline me-2"></i>
+                  Error: {error}
+                </div>
               ) : loading ? (
-                <p>Loading locations...</p>
+                <div className="text-center py-4">
+                  <Spinner animation="border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </Spinner>
+                  <p className="mt-2">Loading locations...</p>
+                </div>
               ) : isLoading ? (
-                <div className="text-center">
+                <div className="text-center py-4">
                   <Spinner animation="border" role="status">
                     <span className="visually-hidden">Deleting...</span>
-                  </Spinner>{" "}
-                  Deleting...
+                  </Spinner>
+                  <p className="mt-2">Deleting...</p>
                 </div>
               ) : (
                 <Table2
@@ -291,10 +350,8 @@ const MyLocations = () => {
                   paginationProps={{
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
-                    onPageChange: (page) =>
-                      setPagination((prev) => ({ ...prev, currentPage: page })),
-                    onPageSizeChange: (pageSize) =>
-                      setPagination((prev) => ({ ...prev, pageSize })),
+                    onPageChange: handlePageChange,
+                    onPageSizeChange: handlePageSizeChange,
                   }}
                 />
               )}
@@ -306,8 +363,8 @@ const MyLocations = () => {
       <LocationRegistrationModal
         show={show}
         onHide={handleClose}
-        myUser={selectedUser}
-        onSubmit={fetchData} // Reload users after adding or editing a user
+        location={selectedLocation}
+        onSubmit={fetchData}
       />
 
       {popup.isVisible && (
@@ -324,7 +381,7 @@ const MyLocations = () => {
         <Popup
           message="Are you sure you want to delete this location?"
           type="confirm"
-          onClose={() => setDeletePopup({ isVisible: false, myUserID: null })}
+          onClose={() => setDeletePopup({ isVisible: false, locationId: null })}
           buttonLabel="Yes"
           onAction={confirmDelete}
         />

@@ -170,24 +170,13 @@ const Topbar2 = ({ hideLogo, navCssClasses }) => {
   const containerCssClasses = !hideLogo ? "container-fluid" : "";
 
   const ProfileMenus = [
-    //   {
-    //   label: "My Account",
-    //   icon: "fe-user",
-    //   redirectTo: "#"
-    // },
     {
       label: "Settings",
       icon: "fe-settings",
       onClick: () => {
-        console.log("Settings clicked");
         themeCustomizer.toggle();
       },
     },
-    // {
-    //   label: "Lock Screen",
-    //   icon: "fe-lock",
-    //   redirectTo: `auth/lock-screen`
-    // },
     {
       label: "Logout",
       icon: "fe-log-out",

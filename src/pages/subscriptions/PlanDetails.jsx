@@ -21,7 +21,6 @@ const PlanDetails = () => {
             `${import.meta.env.VITE_BACKEND_URL}/api/system-admin/view-plan/${id}`,
             { headers: { Authorization: `Bearer ${user?.token}` } }
           );
-          console.log(response.data);
           if (Array.isArray(response.data.data) && response.data.data.length > 0) {
             setPlan(response.data.data[0]);
           } else {
@@ -62,7 +61,7 @@ const PlanDetails = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+      // second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
   };

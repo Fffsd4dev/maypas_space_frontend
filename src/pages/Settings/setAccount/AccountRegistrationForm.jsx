@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useLogoColor } from "../../../context/LogoColorContext";
 
-const AccountRegistrationModal = ({ show, onHide, myBankAccount, onSubmit }) => {
+const AccountRegistrationModal = ({ show, onHide, bankAccount, onSubmit }) => {
   const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
-    const { colour: primary } = useLogoColor();
+  const { colour: primary } = useLogoColor();
 
+  const isMounted = useRef(true);
 
   const [locations, setLocations] = useState([]);
-  const [loadingLocations, setLoadingLocations] = useState(true);
-  const [selectedLocation, setSelectedLocation] = useState(null);
-
- 
+  const [loadingLocations, setLoadingLocations] = useState(false);
 
   const [formData, setFormData] = useState({
     location_id: "",
@@ -26,15 +25,22 @@ const AccountRegistrationModal = ({ show, onHide, myBankAccount, onSubmit }) => 
 
   const [isLoading, setIsLoading] = useState(false);
 
+  // Cleanup on unmount
   useEffect(() => {
-    if (myBankAccount) {
-      
-      setFormData({
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
-        location_id: myBankAccount.location_id || "",
-        bank_name: myBankAccount.bank_name||"",
-        account_number: myBankAccount.account_number || "",
-        account_name: myBankAccount.account_name || "", 
+  // Reset form when bankAccount changes
+  useEffect(() => {
+    if (bankAccount) {
+      setFormData({
+        location_id: bankAccount.location_id || "",
+        bank_name: bankAccount.bank_name || "",
+        account_number: bankAccount.account_number || "",
+        account_name: bankAccount.account_name || "",
       });
     } else {
       setFormData({
@@ -42,87 +48,92 @@ const AccountRegistrationModal = ({ show, onHide, myBankAccount, onSubmit }) => 
         bank_name: "",
         account_number: "",
         account_name: ""
-        });
+      });
     }
-  }, [myBankAccount]);
-  
+  }, [bankAccount]);
 
-  const fetchLocations = async () => {
+  const fetchLocations = useCallback(async () => {
+    if (!tenantToken || !tenantSlug) return;
+    
     setLoadingLocations(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations?per_page=100`,
         {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
+          headers: { Authorization: `Bearer ${tenantToken}` },
         }
       );
       const result = await response.json();
-      if (response.ok) {
-        setLocations(result.data.data || []);
-      } else {
+      
+      if (isMounted.current && response.ok) {
+        setLocations(result.data?.data || []);
+      } else if (isMounted.current) {
         throw new Error(result.message || "Failed to fetch locations.");
       }
     } catch (error) {
-      toast.error(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingLocations(false);
+      if (isMounted.current) {
+        setLoadingLocations(false);
+      }
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
   useEffect(() => {
-    if (show && user?.tenantToken) {
+    if (show && tenantToken && tenantSlug) {
       fetchLocations();
     }
-  }, [show, user?.tenantToken]);
+  }, [show, tenantToken, tenantSlug, fetchLocations]);
 
-
-  useEffect(() => {
-    if (!show) {
-      setFormData({
-        location_id: "",
-        bank_name: "",
-        account_number: "",
-        account_name: ""  
-      });
-    }
-  }, [show]);
-  
-
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-  };
+  }, []);
 
-  const handleHoursChange = (index, field, value) => {
-    const updatedHours = [...formData.hours];
-    updatedHours[index][field] = value;
-    setFormData((prev) => ({
-      ...prev,
-      hours: updatedHours,
-    }));
-  };
+  const validateForm = useCallback(() => {
+    if (!formData.location_id) {
+      toast.error("Please select a location");
+      return false;
+    }
+    if (!formData.bank_name.trim()) {
+      toast.error("Bank name is required");
+      return false;
+    }
+    if (!formData.account_number.trim()) {
+      toast.error("Account number is required");
+      return false;
+    }
+    if (!formData.account_name.trim()) {
+      toast.error("Account name is required");
+      return false;
+    }
+    return true;
+  }, [formData]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsLoading(true);
 
     try {
-      if (!user?.tenantToken) throw new Error("Authorization token is missing.");
+      if (!tenantToken) throw new Error("Authorization token is missing.");
 
-      const url = myBankAccount
-        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/bank/update/${myBankAccount.id}`
+      const url = bankAccount
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/bank/update/${bankAccount.id}`
         : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/bank/create`;
 
-      const method = myBankAccount ? "POST" : "POST";
-
       const response = await fetch(url, {
-        method,
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.tenantToken}`,
+          Authorization: `Bearer ${tenantToken}`,
         },
         body: JSON.stringify(formData),
       });
@@ -131,24 +142,22 @@ const AccountRegistrationModal = ({ show, onHide, myBankAccount, onSubmit }) => 
 
       if (response.ok) {
         toast.success(
-          myBankAccount
-            ? "Bank Details updated successfully!"
-            : "Bank Details added successfully!"
+          bankAccount
+            ? "Bank details updated successfully!"
+            : "Bank details added successfully!"
         );
-        if (!myBankAccount) {
-          // Only reset form if creating new
-          setFormData({
-            location_id: "",
-            bank_name: "",
-            account_number: "",
-            account_name: "" 
-          });
+        
+        // Call onSubmit to refresh the list
+        if (onSubmit) {
+          await onSubmit();
         }
         
+        // Close modal after success
         setTimeout(() => {
-          onSubmit();
-          onHide();
-        }, 1000);
+          if (isMounted.current) {
+            onHide();
+          }
+        }, 1500);
       } else {
         let errorMsg = "An error occurred.";
         if (result?.errors) {
@@ -159,91 +168,114 @@ const AccountRegistrationModal = ({ show, onHide, myBankAccount, onSubmit }) => 
         toast.error(errorMsg);
       }
     } catch (error) {
+      console.error("Submission error:", error);
       toast.error("An error occurred. Contact Admin");
-      console.error(error);
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [tenantToken, tenantSlug, bankAccount, formData, onSubmit, onHide, validateForm]);
 
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Header className="bg-light" closeButton>
         <Modal.Title>
-          {myBankAccount ? "Bank Details" : "Add Your Bank Details"}
+          {bankAccount ? "Edit Bank Details" : "Add Bank Details"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="location_id">
-            <Form.Label>Location</Form.Label>
-            <Form.Select
-              name="location_id"
-              value={formData.location_id}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Select a location</option>
-              {Array.isArray(locations) &&
-                locations.map((location) => (
-                  <option key={location.id} value={location.id}>
-                    {location.name} at {location.state} state
-                  </option>
-                ))}
-            </Form.Select>
+            <Form.Label>Location *</Form.Label>
+            {loadingLocations ? (
+              <div className="text-center py-2">
+                <Spinner animation="border" size="sm" />
+                <span className="ms-2">Loading locations...</span>
+              </div>
+            ) : (
+              <Form.Select
+                name="location_id"
+                value={formData.location_id}
+                onChange={handleInputChange}
+                required
+                disabled={isLoading || bankAccount} // Disable when editing
+              >
+                <option value="">Select a location</option>
+                {locations.length > 0 ? (
+                  locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name} - {location.state}
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>No locations available</option>
+                )}
+              </Form.Select>
+            )}
           </Form.Group>
 
-          <Form.Group className="mb-3" controlId="name">
-                                  <Form.Label>Bank Name</Form.Label>
-                                  <Form.Control
-                                      type="text"
-                                      name="bank_name"
-                                      value={formData.bank_name}
-                                      onChange={handleInputChange}
-                                  />
-                              </Form.Group>
-                              <Form.Group className="mb-3" controlId="name">
-                                  <Form.Label>Account Number</Form.Label>
-                                  <Form.Control
-                                      type="text"
-                                      name="account_number"
-                                      value={formData.account_number}
-                                      onChange={handleInputChange}
-                                  />
-                              </Form.Group>
-          
-                              <Form.Group className="mb-3" controlId="description">
-                                  <Form.Label>Account Name</Form.Label>
-                                  <Form.Control
-                                      type="text"
-                                      name="account_name"
-                                      value={formData.account_name}
-                                      onChange={handleInputChange}
-                                  />
-                              </Form.Group>
+          <Form.Group className="mb-3" controlId="bank_name">
+            <Form.Label>Bank Name *</Form.Label>
+            <Form.Control
+              type="text"
+              name="bank_name"
+              value={formData.bank_name}
+              onChange={handleInputChange}
+              placeholder="Enter bank name"
+              required
+              disabled={isLoading}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="account_number">
+            <Form.Label>Account Number *</Form.Label>
+            <Form.Control
+              type="text"
+              name="account_number"
+              value={formData.account_number}
+              onChange={handleInputChange}
+              placeholder="Enter account number"
+              required
+              disabled={isLoading}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="account_name">
+            <Form.Label>Account Name *</Form.Label>
+            <Form.Control
+              type="text"
+              name="account_name"
+              value={formData.account_name}
+              onChange={handleInputChange}
+              placeholder="Enter account name"
+              required
+              disabled={isLoading}
+            />
+          </Form.Group>
 
           <Button
             variant="primary"
             type="submit"
             className="w-100"
-            disabled={isLoading}
-                                                                          style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
+            disabled={isLoading || loadingLocations}
+            style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
           >
             {isLoading ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : myBankAccount ? (
-              "Update"
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                {bankAccount ? "Updating..." : "Adding..."}
+              </>
             ) : (
-              "Add"
-            )}{" "}
-            Bank Details
+              <>{bankAccount ? "Update" : "Add"} Bank Details</>
+            )}
           </Button>
         </Form>
       </Modal.Body>

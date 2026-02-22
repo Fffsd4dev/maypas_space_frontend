@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
 import { useAuthContext } from "@/context/useAuthContext";
 import axios from "axios";
+import { useLogoColor } from "../../context/LogoColorContext";
 
 // components
 import AuthLayout from "./AuthLayout";
@@ -16,14 +17,19 @@ const BottomLink = () => {
   const { tenantSlug } = useParams();
   const { user } = useAuthContext();
   const tenantSlugg = user?.tenant;
+  const { colour: primary } = useLogoColor();
 
   const { t } = useTranslation();
   return (
     <Row className="mt-3">
       <Col className="text-center">
-        <p className="text-white-50">
+        <p className="text-red-50">
           {t("Back to")}{" "}
-          <Link to={`/${tenantSlug}/auth/login`} className="text-white ms-1">
+          <Link to={`/${tenantSlug}/auth/login`} className="ms-1"
+          style={{
+        color: primary
+      }}
+      >
             <b>{t("Sign In")}</b>
           </Link>
         </p>
@@ -42,7 +48,6 @@ const Logout = () => {
 
   useEffect(() => {
     const logout = async () => {
-      console.log(token);
       try {
         const res = await axios.post(
           `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/logout`,
@@ -56,7 +61,6 @@ const Logout = () => {
         );
 
         if (res.status === 200) {
-          console.log(res.data.message);
           removeSession();
 
         } else {

@@ -13,7 +13,6 @@ const useVisitorLogin = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuthContext();
   const { visitorSlug } = useParams();
-  console.log(visitorSlug);
   const loginFormSchema = yup.object({
     email: yup.string().email('Please enter a valid email').required('Please enter your email'),
     password: yup.string().required('Please enter your password')
@@ -21,8 +20,8 @@ const useVisitorLogin = () => {
   const { control, handleSubmit } = useForm({
     resolver: yupResolver(loginFormSchema),
     defaultValues: {
-      email: 'user@demo11.com',
-      password: '123456'
+      email: '',
+      password: ''
     }
   });
   const redirectUser = () => {
@@ -34,9 +33,6 @@ const useVisitorLogin = () => {
 
   const login = handleSubmit(async (data) => {
     setLoading(true);
-    console.log('submitting');
-    console.log({ visitorSlug });
-    console.log(data);
     try {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/login`, {
         method: 'POST',
@@ -45,16 +41,11 @@ const useVisitorLogin = () => {
         },
         body: JSON.stringify(data)
       });
-      console.log(res);
 
       const result = await res.json();
 
-      console.log(result);
       if (result.token && res.ok) {
-        console.log(res.ok);
-        console.log(result.user.visitor_id);
         saveSession({ ...(result ?? {}), visitorToken: result.token, visitor: visitorSlug, visitor_id: result.user.visitor_id, user_type_id: result.user.user_type_id, visitorFirstName: result?.user?.first_name, visitorLastName: result?.user?.last_name, visitorEmail: result?.user?.email, visitorPhone: result?.user?.phone });
-        console.log(result)
         setPopup({
           message: "Login successful!",
           type: "success",

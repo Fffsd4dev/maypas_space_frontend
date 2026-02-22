@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
@@ -8,14 +8,15 @@ import { useLogoColor } from "../../../context/LogoColorContext";
 const CreateNotificationModal = ({
   show,
   onHide,
-  myNotification,
+  notification,
   onSubmit,
 }) => {
   const { user } = useAuthContext();
+  const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
   const { colour: primary } = useLogoColor();
 
-  // const [roles, setRoles] = useState([]);
+  const isMounted = useRef(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,11 +25,20 @@ const CreateNotificationModal = ({
 
   const [isLoading, setIsLoading] = useState(false);
 
+  // Cleanup on unmount
   useEffect(() => {
-    if (myNotification) {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Reset form when notification changes
+  useEffect(() => {
+    if (notification) {
       setFormData({
-        name: myNotification.name || "",
-        description: myNotification.description || "",
+        name: notification.name || "",
+        description: notification.description || "",
       });
     } else {
       setFormData({
@@ -36,84 +46,77 @@ const CreateNotificationModal = ({
         description: "",
       });
     }
-  }, [myNotification]);
+  }, [notification]);
 
-  // Fetch roles when modal opens
-  // const fetchRoles = async () => {
-  //     try {
-  //         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/usertype/list-user-types`, {
-  //             headers: { Authorization: `Bearer ${user.tenantToken}` },
-  //         });
-  //         const result = await response.json();
-  //         if (response.ok) {
-  //             console.log("Roles:", result.data.data);
-  //             setRoles(result.data.data || []);
-  //         } else {
-  //             throw new Error(result.message || "Failed to fetch roles.");
-  //         }
-  //     } catch (error) {
-  //         toast.error(error.message);
-  //     }
-  // };
-
-  // useEffect(() => {
-  //     if (show && user?.tenantToken) {
-  //         fetchRoles();
-  //     }
-  // }, [show, user?.tenantToken]);
-
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "company_countries"
-          ? value.split(",").map((c) => c.trim())
-          : value,
+      [name]: value,
     }));
-  };
+  }, []);
 
-  const handleSubmit = async (e) => {
+  const validateForm = useCallback(() => {
+    if (!formData.name.trim()) {
+      toast.error("Notification name is required");
+      return false;
+    }
+    if (!formData.description.trim()) {
+      toast.error("Description is required");
+      return false;
+    }
+    return true;
+  }, [formData]);
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsLoading(true);
-    console.log(formData);
-    console.log(user?.tenantToken);
 
     try {
-      if (!user?.tenantToken)
-        throw new Error("Authorization token is missing.");
+      if (!tenantToken) throw new Error("Authorization token is missing.");
 
-      const url = myNotification
-        ? `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/${tenantSlug}/notification/update/${myNotification.id}`
-        : `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/${tenantSlug}/notification/create`;
+      const url = notification
+        ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/notification/update/${notification.id}`
+        : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/notification/create`;
 
-      const method = myNotification ? "POST" : "POST";
       const response = await fetch(url, {
-        method,
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.tenantToken}`,
+          Authorization: `Bearer ${tenantToken}`,
         },
         body: JSON.stringify(formData),
       });
 
       const result = await response.json();
-      console.log(result);
 
       if (response.ok) {
         toast.success(
-          myNotification
+          notification
             ? "Notification updated successfully!"
-            : "Added Notification successfully!"
+            : "Notification created successfully!"
         );
+        
+        // Reset form
+        setFormData({
+          name: "",
+          description: "",
+        });
+        
+        // Call onSubmit to refresh the list
+        if (onSubmit) {
+          await onSubmit();
+        }
+        
+        // Close modal after success
         setTimeout(() => {
-          onSubmit();
-          onHide();
-        }, 2000);
+          if (isMounted.current) {
+            onHide();
+          }
+        }, 1500);
       } else {
         let errorMsg = "An error occurred.";
 
@@ -124,43 +127,54 @@ const CreateNotificationModal = ({
         }
 
         toast.error(errorMsg);
-        console.log(result);
       }
     } catch (error) {
+      console.error("Submission error:", error);
       toast.error("An error occurred. Contact Admin");
-      console.log(error);
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [tenantToken, tenantSlug, notification, formData, onSubmit, onHide, validateForm]);
 
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide} centered size="lg" backdrop="static">
       <Modal.Header className="bg-light" closeButton>
         <Modal.Title>
-          {myNotification ? "Edit Notification" : "Add a New Notification"}
+          {notification ? "Edit Notification" : "Create New Notification"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="name">
-            <Form.Label>Name</Form.Label>
+            <Form.Label>Notification Name *</Form.Label>
             <Form.Control
               type="text"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
+              placeholder="Enter notification title"
+              required
+              disabled={isLoading}
             />
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="description">
-            <Form.Label>Description</Form.Label>
+            <Form.Label>Description *</Form.Label>
             <Form.Control
-              type="text"
+              as="textarea"
+              rows={5}
               name="description"
               value={formData.description}
               onChange={handleInputChange}
+              placeholder="Enter notification content"
+              required
+              disabled={isLoading}
             />
+            <Form.Text className="text-muted">
+              This message will be sent to all users when published.
+            </Form.Text>
           </Form.Group>
 
           <Button
@@ -175,19 +189,20 @@ const CreateNotificationModal = ({
             }}
           >
             {isLoading ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : myNotification ? (
-              "Update"
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                {notification ? "Updating..." : "Creating..."}
+              </>
             ) : (
-              "Add"
-            )}{" "}
-            Notification
+              <>{notification ? "Update" : "Create"} Notification</>
+            )}
           </Button>
         </Form>
       </Modal.Body>

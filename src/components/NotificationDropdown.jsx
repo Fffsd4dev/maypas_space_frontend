@@ -71,7 +71,11 @@ const NotificationDropdown = ({ notifications, fetchNotification }) => {
       <Dropdown.Toggle id="dropdown-notification" role="button" as="a" onClick={toggleDropdown} className={classNames("nav-link waves-effect light arrow-none notification-list", {
       show: dropdownOpen
     })}>
-        <i className="fe-bell noti-icon font-22"></i>
+        <i className="fe-bell noti-icon font-22"
+        style={{
+        color: '#ffffff'
+      }}
+      ></i>
         <span className="badge bg-danger rounded-circle noti-icon-badge">
             {notifications?.length || 0}
 

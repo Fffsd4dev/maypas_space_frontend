@@ -86,7 +86,6 @@ const VisitorCategory = () => {
           );
 
           if (res.status === 200) {
-            console.log(res.data.message);
             removeSession();
           } else {
             console.error("Logout Failed:", res);
@@ -156,7 +155,6 @@ const VisitorCategory = () => {
     popup.resumeTransaction(access_code, {
       onSuccess: (response) => {
         handleConfirmBooking(response.reference, userId);
-        console.log("Transaction successful:", response);
       },
 
       onCancel: () => {
@@ -266,8 +264,6 @@ const VisitorCategory = () => {
             import.meta.env.VITE_BACKEND_URL
           }/api/${visitorSlug}/confirm/pay/spot`;
 
-      console.log("Confirm Booking with visitor token:", bookingData);
-
       // Make API call
       let response;
       if (visitorToken) {
@@ -296,7 +292,6 @@ const VisitorCategory = () => {
 
       const result = await response.json();
       if (response.ok) {
-        console.log("confirmbooking result", result);
         toast.success(
           result.message || " Payment made and Space booked successfully!"
         );
@@ -503,8 +498,6 @@ const VisitorCategory = () => {
             import.meta.env.VITE_BACKEND_URL
           }/api/${visitorSlug}/initiate/pay/spot`;
 
-      console.log("Booking with visitor token:", bookingData);
-
       // Make API call
       let response;
       if (visitorToken) {
@@ -532,13 +525,11 @@ const VisitorCategory = () => {
       }
 
       const result = await response.json();
-      console.log(result);
       toast.success(result.message || "Space booked successfully!");
       handleBookingClose();
 
       setUserId(result.user.id);
-      userIDRef.current = result.user.id; // Store user ID in ref for later use
-      console.log(userId);
+      userIDRef.current = result.user.id;
 
       // If your backend returns access_code for Paystack
       if (result.access_code) {
@@ -610,12 +601,9 @@ const VisitorCategory = () => {
           }
         }
         );
-        console.log("categoryspaces", categorySpacesRes)
         const categorySpacesData = await categorySpacesRes.json();
-                    console.log("Category fetch failed", categorySpacesRes.status, categorySpacesData);
 
         if (!categorySpacesRes.ok || !Array.isArray(categorySpacesData.data) || categorySpacesData.data.length === 0) {
-            console.log("Category fetch failed", categorySpacesRes.status, categorySpacesData);
             setNotFound(true);
           setLoading(false);
           return;
@@ -640,7 +628,6 @@ const VisitorCategory = () => {
   const fetchLogoData = async (page = 1, pageSize = 10) => {
     setLoadingLogo;
     setError(null);
-    console.log("User Token:", user?.tenantToken);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/view-details`,
@@ -656,7 +643,6 @@ const VisitorCategory = () => {
       }
 
       const result = await response.json();
-      console.log(result);
 
       if (Array.isArray(result.data)) {
         // Sort the data by updated_at or created_at
@@ -666,7 +652,6 @@ const VisitorCategory = () => {
             new Date(a.updated_at || a.created_at)
         );
         setLogoData(sortedLogoData);
-        console.log("Sorted Logo Data:", sortedLogoData);
       } else {
         throw new Error("Invalid response format");
       }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 
 // components
@@ -21,134 +21,50 @@ import { useViewport } from "@/hooks/useViewPort";
 import { useLayoutContext } from "@/context/useLayoutContext.jsx";
 import { toggleDocumentAttribute } from "@/utils";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
+import { useLogoColor } from "@/context/LogoColorContext";
+import { toast } from "react-toastify";
 
-// dummy search results
-const SearchResults = [
-  {
-    id: 1,
-    title: "Analytics Report",
-    icon: "uil-notes",
-    redirectTo: "#",
-  },
-  {
-    id: 2,
-    title: "How can I help you?",
-    icon: "uil-life-ring",
-    redirectTo: "#",
-  },
-  {
-    id: 3,
-    icon: "uil-cog",
-    title: "User profile settings",
-    redirectTo: "#",
-  },
-];
-const otherOptions = [
-  {
-    id: 1,
-    label: "New Projects",
-    icon: "fe-briefcase",
-  },
-  {
-    id: 2,
-    label: "Create Users",
-    icon: "fe-user",
-  },
-  {
-    id: 3,
-    label: "Revenue Report",
-    icon: "fe-bar-chart-line-",
-  },
-  {
-    id: 4,
-    label: "Settings",
-    icon: "fe-settings",
-  },
-  {
-    id: 4,
-    label: "Help & Support",
-    icon: "fe-headphones",
-  },
-];
-
-// get mega-menu options
-const MegaMenuOptions = [
-  {
-    id: 1,
-    title: "UI Components",
-    menuItems: [
-      "Widgets",
-      "Nestable List",
-      "Range Sliders",
-      "Masonry Items",
-      "Sweet Alerts",
-      "Treeview Page",
-      "Tour Page",
-    ],
-  },
-  {
-    id: 2,
-    title: "Applications",
-    menuItems: [
-      "eCommerce Pages",
-      "CRM Pages",
-      "Email",
-      "Calendar",
-      "Team Contacts",
-      "Task Board",
-      "Email Templates",
-    ],
-  },
-  {
-    id: 3,
-    title: "Extra Pages",
-    menuItems: [
-      "Left Sidebar with User",
-      "Menu Collapsed",
-      "Small Left Sidebar",
-      "New Header Style",
-      "Search Result",
-      "Gallery Pages",
-      "Maintenance & Coming Soon",
-    ],
-  },
-];
 const Topbar = ({ hideLogo, navCssClasses }) => {
   const { width } = useViewport();
-  const { menu, orientation, changeMenuSize, themeCustomizer } =
-    useLayoutContext();
-
+  const { menu, orientation, changeMenuSize, themeCustomizer } = useLayoutContext();
   const { user } = useAuthContext();
   const tenantSlug = user?.tenant;
   const tenantFirstName = user?.tenantFirstName;
+  const tenantToken = user?.tenantToken;
   const navbarCssClasses = navCssClasses || "";
   const containerCssClasses = !hideLogo ? "container-fluid" : "";
+  const { colour: primary } = useLogoColor();
 
-  // get the notifications
-  const [data, setData] = useState([]);
+  // Refs to prevent duplicate calls
+  const isMounted = useRef(true);
+  const isFetching = useRef(false);
+
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    nextPageUrl: null,
-    prevPageUrl: null,
-    pageSize: 10,
-  });
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // Fetch notifications
-  const fetchNotification = async (page = 1, pageSize = 10) => {
+  const fetchNotification = useCallback(async () => {
+    if (isFetching.current || !tenantToken || !tenantSlug) return;
+    
+    isFetching.current = true;
     setLoading(true);
-    setError(null);
+    
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/notification/view-my-notifications`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/notification/view-my-notifications`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
@@ -158,59 +74,78 @@ const Topbar = ({ hideLogo, navCssClasses }) => {
       }
 
       const result = await response.json();
-      console.log("Notification Result:", result);
-      if (result && Array.isArray(result)) {
-        const fetchedData = result;
-        fetchedData.sort(
+
+      if (isMounted.current) {
+        // Handle different response formats
+        let notificationData = [];
+        if (Array.isArray(result)) {
+          notificationData = result;
+        } else if (result.data && Array.isArray(result.data)) {
+          notificationData = result.data;
+        } else {
+          notificationData = [];
+        }
+
+        // Sort by date (most recent first)
+        const sortedData = [...notificationData].sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
-        setData(fetchedData);
-        setPagination({
-          currentPage: result.data.current_page,
-          totalPages: result.data.last_page,
-          nextPageUrl: result.data.next_page_url,
-          prevPageUrl: result.data.prev_page_url,
-          pageSize: pageSize,
-        });
-      } else {
-        throw new Error("Invalid response format");
+        
+        setNotifications(sortedData);
+        
+        // Count unread notifications
+        const unread = sortedData.filter(notif => notif.is_read === false || notif.is_read === 0).length;
+        setUnreadCount(unread);
       }
     } catch (error) {
-      setError(error.message);
+      if (isMounted.current) {
+        console.error("Error fetching notifications:", error);
+        // Don't show toast for notification errors to avoid spamming
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
+      isFetching.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  useEffect(() => {
-    fetchNotification();
-  }, [user?.tenantToken]);
+  // Fetch notifications on mount and periodically
+  // useEffect(() => {
+  //   if (tenantToken && tenantSlug) {
+  //     fetchNotification();
+      
+  //     // Set up polling for new notifications (every 60 seconds)
+  //     const intervalId = setInterval(() => {
+  //       fetchNotification();
+  //     }, 60000); // 60 seconds
+      
+  //     return () => clearInterval(intervalId);
+  //   }
+  // }, [tenantToken, tenantSlug, fetchNotification]);
 
-  // Notifications array
-  const Notifications = data.map((item, i) => ({
-    id: i,
-    text: item.name,
-    subText: item.description,
-    icon: "mdi mdi-comment-account-outline",
-    bgColor: "info",
-    time: item.updated_at,
-    redirectTo: "#",
-    is_read: item.is_read,
-  }));
+  // Format notifications for dropdown
+  const formattedNotifications = useCallback(() => {
+    return notifications.slice(0, 5).map((item, i) => ({
+      id: item.id || i,
+      text: item.name || "Notification",
+      subText: item.description || "",
+      icon: item.is_read ? "mdi mdi-bell-outline" : "mdi mdi-bell-ring-outline",
+      bgColor: item.is_read ? "secondary" : "primary",
+      time: item.updated_at || item.created_at,
+      redirectTo: "#",
+      is_read: item.is_read || false,
+    }));
+  }, [notifications]);
 
+  // Profile menu items
   const ProfileMenus = [
-    //   {
-    //   label: "My Account",
-    //   icon: "fe-user",
-    //   redirectTo: "#"
-    // },
     {
       label: "Settings",
       icon: "fe-settings",
       onClick: () => {
-        console.log("Settings clicked");
         themeCustomizer.toggle();
       },
     },
@@ -224,7 +159,7 @@ const Topbar = ({ hideLogo, navCssClasses }) => {
   /**
    * Toggle the leftmenu when having mobile screen
    */
-  const handleLeftMenuCallBack = () => {
+  const handleLeftMenuCallBack = useCallback(() => {
     if (width < 1140) {
       if (menu.size === "full") {
         showLeftSideBarBackdrop();
@@ -243,120 +178,92 @@ const Topbar = ({ hideLogo, navCssClasses }) => {
     } else {
       changeMenuSize("condensed");
     }
-  };
+  }, [width, menu.size, changeMenuSize]);
 
-  // create backdrop for leftsidebar
-  function showLeftSideBarBackdrop() {
+  // Create backdrop for leftsidebar
+  const showLeftSideBarBackdrop = useCallback(() => {
+    // Remove existing backdrop if any
+    hideLeftSideBarBackdrop();
+    
     const backdrop = document.createElement("div");
     backdrop.id = "custom-backdrop";
     backdrop.className = "offcanvas-backdrop fade show";
     document.body.appendChild(backdrop);
-    if (
-      document.getElementsByTagName("html")[0]?.getAttribute("dir") !== "rtl"
-    ) {
+    
+    if (document.getElementsByTagName("html")[0]?.getAttribute("dir") !== "rtl") {
       document.body.style.overflow = "hidden";
       if (width > 1140) {
         document.body.style.paddingRight = "15px";
       }
     }
+    
     backdrop.addEventListener("click", function () {
       toggleDocumentAttribute("class", "sidebar-enable", true);
       changeMenuSize("full");
       hideLeftSideBarBackdrop();
     });
-  }
-  function hideLeftSideBarBackdrop() {
+  }, [width, changeMenuSize]);
+
+  const hideLeftSideBarBackdrop = useCallback(() => {
     const backdrop = document.getElementById("custom-backdrop");
-    if (backdrop) {
-      document.body.removeChild(backdrop);
+    if (backdrop && backdrop.parentNode) {
+      backdrop.parentNode.removeChild(backdrop);
       document.body.style.overflow = "visible";
+      document.body.style.paddingRight = "";
     }
-  }
+  }, []);
+
+  // Clean up backdrop on unmount
+  useEffect(() => {
+    return () => {
+      hideLeftSideBarBackdrop();
+    };
+  }, [hideLeftSideBarBackdrop]);
+
   return (
     <React.Fragment>
-      <div className={`navbar-custom ${navbarCssClasses}`}>
+      <div className={`navbar-custom ${navbarCssClasses}`} style={{ backgroundColor: primary }}>
         <div className={`topbar ${containerCssClasses}`}>
           <div className="topbar-menu d-flex align-items-center gap-1">
-            {!hideLogo && (
-              <div className="logo-box">
-                {/* <Link to="/" className="logo logo-dark text-center">
-                  <span className="logo-sm">
-                    <img src={logoSm} alt="" height="22" />
-                  </span>
-                  <span className="logo-lg">
-                    <img
-                      src={orientation === "two-column" ? logoDark2 : logoDark}
-                      alt=""
-                      height="20"
-                    />
-                  </span>
-                </Link>
-                <Link to="/" className="logo logo-light text-center">
-                  <span className="logo-sm">
-                    <img src={logoSm} alt="" height="22" />
-                  </span>
-                  <span className="logo-lg">
-                    <img
-                      src={
-                        orientation === "two-column" ? logoLight2 : logoLight
-                      }
-                      alt=""
-                      height="20"
-                    />
-                  </span>
-                </Link> */}
-              </div>
-            )}
-
             <button
               className="button-toggle-menu"
               onClick={handleLeftMenuCallBack}
+              aria-label="Toggle menu"
             >
-              <i className="mdi mdi-menu" />
+              <i className="mdi mdi-menu" style={{ color: '#ffffff' }} />
             </button>
-
-            {/* <div className="dropdown d-none d-xl-block">
-                            <CreateNew otherOptions={otherOptions} />
-                        </div>
-
-                        <div className="dropdown dropdown-mega d-none d-xl-block">
-                            <MegaMenu subMenus={MegaMenuOptions} />
-                        </div> */}
           </div>
 
           <ul className="topbar-menu d-flex align-items-center">
-            {/* <li className="app-search dropdown d-none d-lg-block">
-                            <TopbarSearch items={SearchResults} />
-                        </li> */}
-            {/* <li className="dropdown d-inline-block d-lg-none">
-                         <SearchDropdown />
-                         </li> */}
+            {/* Search - commented out as it's not used
+            <li className="dropdown d-none d-xl-inline-block">
+              <TopbarSearch searchResults={SearchResults} />
+            </li>
+            */}
+
+            {/* Maximize Screen */}
             <li className="dropdown d-none d-lg-inline-block">
               <MaximizeScreen />
             </li>
-            {/* <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
-              <AppsDropdown />
-            </li> */}
-            {/* <li className="dropdown d-none d-lg-inline-block topbar-dropdown">
-                            <LanguageDropdown />
-                        </li> */}
+
+            {/* Notifications */}
             <li className="dropdown notification-list">
               <NotificationDropdown
-                notifications={Notifications}
+                notifications={formattedNotifications()}
+                totalCount={notifications.length}
+                unreadCount={unreadCount}
                 fetchNotification={fetchNotification}
+                loading={loading}
               />
             </li>
+
+            {/* Profile Dropdown */}
             <li className="dropdown">
               <ProfileDropdown
                 profilePic={profilePic}
                 menuItems={ProfileMenus}
-                username={tenantFirstName}
+                username={tenantFirstName || "User"}
               />
-            </li>
-            <li>
-              {/* <button className="nav-link dropdown-toggle right-bar-toggle waves-effect waves-light btn btn-link shadow-none" onClick={themeCustomizer.toggle}>
-                                <i className="fe-settings noti-icon font-22"></i>
-                            </button> */}
             </li>
           </ul>
         </div>
@@ -364,4 +271,5 @@ const Topbar = ({ hideLogo, navCssClasses }) => {
     </React.Fragment>
   );
 };
+
 export default Topbar;

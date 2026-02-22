@@ -1,161 +1,197 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useParams } from "react-router-dom";
 import { useLogoColor } from "../../../context/LogoColorContext.jsx";
 
-
 const COLOR_OPTIONS = [
-  "#FE0002",
-  "#FF5733", // Red-Orange
-  "#3498DB", // Blue
-  "#000080", // Navy
-  "#27AE60", // Green
-  "#8B8000", // Yellow
+  "#FE0002", "#FF5733", "#3498DB", "#000080", "#27AE60", "#8B8000", "#9B59B6", "#E67E22"
 ];
 
-const MAX_LOGO_SIZE = 2048 * 1024; // 2048 KB in bytes
+const MAX_LOGO_SIZE = 2 * 1024 * 1024; // 2MB
+const ALLOWED_FILE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/svg+xml"];
 
-
-const CompanyLogoAndColorRegistration = ({ show, onHide, myLogo, onSubmit }) => {
+const CompanyLogoAndColorRegistration = ({ show, onHide, logoData, onSubmit }) => {
   const { user } = useAuthContext();
-  const { tenantSlug: tenantUrlSlug } = useParams();
+  const tenantToken = user?.tenantToken;
   const tenantSlug = user?.tenant;
 
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [ error, setError] = useState(null);
+  const isMounted = useRef(true);
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
-    logo: "",
     colour: "",
   });
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
-
-  const { colour: primary } = useLogoColor();
-  const { refetchLogoData } = useLogoColor();
-
-
-  // Helper to fetch image as File
-  const fetchImageAsFile = async (imageUrl, fileName) => {
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
-    // Guess the type from the blob or fallback to png
-    const type = blob.type || "image/png";
-    return new File([blob], fileName, { type });
-  };
- 
-  useEffect(() => {
-    if (show && myLogo && myLogo.logo) {
-      // If editing, fetch the logo as a file
-      const imageUrl = `${import.meta.env.VITE_BACKEND_URL}/storage/uploads/tenant_logo/${myLogo.logo}`;
-      fetchImageAsFile(imageUrl, myLogo.logo).then((file) => {
-        setLogoFile(file);
-        setLogoPreview(imageUrl);
-      });
-    } else if (!show) {
-      setLogoFile(null);
-      setLogoPreview("");
-    }
-  }, [show, myLogo]);
-
   const [isLoading, setIsLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
 
+  const { colour: primary, refetchLogoData } = useLogoColor();
+
+  // Cleanup on unmount
   useEffect(() => {
-    if (myLogo) {
-      setFormData({
-        logo: myLogo.logo || "",
-        colour: myLogo.colour || "",
-      });
-      setLogoFile(null);
-    } else {
-      setFormData({
-        logo: "",
-        colour: "",
-      });
-      setLogoFile(null);
-    }
-  }, [myLogo]);
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      // Clean up object URL
+      if (logoPreview && logoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(logoPreview);
+      }
+    };
+  }, [logoPreview]);
 
+  // Fetch image as File helper
+  const fetchImageAsFile = useCallback(async (imageUrl, fileName) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const type = blob.type || "image/png";
+      return new File([blob], fileName, { type });
+    } catch (error) {
+      console.error("Error fetching image:", error);
+      return null;
+    }
+  }, []);
+
+  // Load existing logo data when editing
   useEffect(() => {
-    if (!show) {
-      setFormData({
-        logo: "",
-        colour: "",
-      });
-      setLogoFile(null);
-    }
-  }, [show]);
+    const loadLogoData = async () => {
+      if (show && logoData && logoData.logo) {
+        setFormData({
+          colour: logoData.colour || "",
+        });
+        
+        const imageUrl = `${import.meta.env.VITE_BACKEND_URL}/storage/uploads/tenant_logo/${logoData.logo}`;
+        const file = await fetchImageAsFile(imageUrl, logoData.logo);
+        if (file && isMounted.current) {
+          setLogoFile(file);
+          setLogoPreview(imageUrl);
+        }
+      } else if (!show) {
+        // Reset form when modal closes
+        setFormData({ colour: "" });
+        setLogoFile(null);
+        if (logoPreview && logoPreview.startsWith('blob:')) {
+          URL.revokeObjectURL(logoPreview);
+        }
+        setLogoPreview("");
+        setValidationErrors({});
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    };
 
-  const handleInputChange = (e) => {
+    loadLogoData();
+  }, [show, logoData, fetchImageAsFile]);
+
+  const handleColorSelect = useCallback((color) => {
+    setFormData((prev) => ({
+      ...prev,
+      colour: color,
+    }));
+    // Clear validation error for color
+    setValidationErrors(prev => ({ ...prev, colour: null }));
+  }, []);
+
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-  };
+    // Clear validation error for this field
+    setValidationErrors(prev => ({ ...prev, [name]: null }));
+  }, []);
 
- const handleLogoChange = (e) => {
+  const handleLogoChange = useCallback((e) => {
     const file = e.target.files[0];
-    if (
-      file &&
-      ["image/png", "image/jpeg", "image/jpg"].includes(file.type)
-    ) {
-      if (file.size > 2048 * 1024) {
-        toast.error("Logo file size must not exceed 2048 KB (2 MB).");
-        setLogoFile(null);
-        setLogoPreview("");
-        return;
-      }
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
-    } else {
-      toast.error("Please select a PNG, JPG, or JPEG file.");
+    
+    // Clear previous preview if it was a blob
+    if (logoPreview && logoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(logoPreview);
+    }
+    
+    if (!file) {
       setLogoFile(null);
       setLogoPreview("");
+      return;
     }
-  };
-  
-    const isFormValid =
-    (logoFile || (myLogo && formData.logo)) &&
-    formData.colour &&
-    /^#[0-9A-Fa-f]{6}$/.test(formData.colour);
 
-    
-  const handleColorSelect = (color) => {
-    setFormData((prev) => ({
-      ...prev,
-      colour: color,
-    }));
-  };
+    // Validate file type
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      toast.error("Please select a PNG, JPG, JPEG, or SVG file.");
+      setLogoFile(null);
+      setLogoPreview("");
+      e.target.value = "";
+      return;
+    }
 
-  const handleSubmit = async (e) => {
+    // Validate file size
+    if (file.size > MAX_LOGO_SIZE) {
+      toast.error(`Logo file size must not exceed ${MAX_LOGO_SIZE / (1024 * 1024)}MB.`);
+      setLogoFile(null);
+      setLogoPreview("");
+      e.target.value = "";
+      return;
+    }
+
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    setValidationErrors(prev => ({ ...prev, logo: null }));
+  }, [logoPreview]);
+
+  const validateForm = useCallback(() => {
+    const errors = {};
+
+    // Validate logo
+    if (!logoFile && !logoData) {
+      errors.logo = "Logo is required";
+    }
+
+    // Validate color
+    if (!formData.colour) {
+      errors.colour = "Color is required";
+    } else if (!/^#[0-9A-F]{6}$/i.test(formData.colour)) {
+      errors.colour = "Please enter a valid hex color code (e.g., #FF5733)";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [logoFile, logoData, formData.colour]);
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error("Please fix the validation errors");
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
-      if (!user?.tenantToken) throw new Error("Authorization token is missing.");
+      if (!tenantToken) throw new Error("Authorization token is missing.");
 
-      const url = myLogo
+      const url = logoData
         ? `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/update-details`
         : `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/add-details`;
 
-      const method = myLogo ? "POST" : "POST";
-
-      // Use FormData for file upload
       const submitData = new FormData();
+      
+      // Only append logo if a new file is selected
       if (logoFile) {
         submitData.append("logo", logoFile);
       }
+      
       submitData.append("colour", formData.colour);
 
       const response = await fetch(url, {
-        method,
+        method: "POST",
         headers: {
-          Authorization: `Bearer ${user?.tenantToken}`,
+          Authorization: `Bearer ${tenantToken}`,
         },
         body: submitData,
       });
@@ -164,22 +200,25 @@ const CompanyLogoAndColorRegistration = ({ show, onHide, myLogo, onSubmit }) => 
 
       if (response.ok) {
         toast.success(
-          myLogo
-            ? "Company's Logo and Color updated successfully!"
-            : "Company's Logo and Color added successfully!"
+          logoData
+            ? "Branding updated successfully!"
+            : "Branding added successfully!"
         );
+        
+        // Refresh the logo data in context
         await refetchLogoData();
-        if (!myLogo) {
-          setFormData({
-            logo: "",
-            colour: "",
-          });
-          setLogoFile(null);
+        
+        // Call onSubmit to refresh the list
+        if (onSubmit) {
+          await onSubmit();
         }
+        
+        // Close modal after success
         setTimeout(() => {
-          onSubmit();
-          onHide();
-        }, 1000);
+          if (isMounted.current) {
+            onHide();
+          }
+        }, 1500);
       } else {
         let errorMsg = "An error occurred.";
         if (result?.errors) {
@@ -190,76 +229,131 @@ const CompanyLogoAndColorRegistration = ({ show, onHide, myLogo, onSubmit }) => 
         toast.error(errorMsg);
       }
     } catch (error) {
+      console.error("Submission error:", error);
       toast.error("An error occurred. Contact Admin");
-      console.error(error);
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [tenantToken, tenantSlug, logoData, logoFile, formData.colour, onSubmit, onHide, refetchLogoData, validateForm]);
 
+  const isFormValid = (logoFile || logoData) && formData.colour && /^#[0-9A-F]{6}$/i.test(formData.colour);
 
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide} centered size="lg" backdrop="static">
       <Modal.Header className="bg-light" closeButton>
         <Modal.Title>
-          {myLogo ? "Company's Logo and Color" : "Add Your Company's Logo & Color"}
+          {logoData ? "Edit Branding" : "Add Branding"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="logo">
-            <Form.Label>Logo (PNG, JPG, JPEG) <span style={{color: "red"}}>*</span></Form.Label>
+            <Form.Label>
+              Company Logo <span style={{ color: "red" }}>*</span>
+            </Form.Label>
             <Form.Control
+              ref={fileInputRef}
               type="file"
               name="logo"
-              accept=".png,.jpg,.jpeg"
+              accept=".png,.jpg,.jpeg,.svg"
               onChange={handleLogoChange}
-              required={!myLogo}
+              isInvalid={!!validationErrors.logo}
+              disabled={isLoading}
             />
-            {formData.logo && (
-              <div style={{ marginTop: 8 }}>
-                <small>Selected: {formData.logo}</small>
+            <Form.Text className="text-muted">
+              Allowed: PNG, JPG, JPEG, SVG. Max size: 2MB
+            </Form.Text>
+            {validationErrors.logo && (
+              <Form.Control.Feedback type="invalid">
+                {validationErrors.logo}
+              </Form.Control.Feedback>
+            )}
+            
+            {/* Logo Preview */}
+            {logoPreview && (
+              <div className="mt-3">
+                <p className="mb-1">Preview:</p>
+                <img
+                  src={logoPreview}
+                  alt="Logo preview"
+                  style={{
+                    maxWidth: "200px",
+                    maxHeight: "100px",
+                    objectFit: "contain",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    padding: "4px",
+                    background: "#fff"
+                  }}
+                />
               </div>
             )}
           </Form.Group>
+
           <Form.Group className="mb-3" controlId="colour">
             <Form.Label>
-              Select Color <span style={{color: "red"}}>*</span>
+              Brand Color <span style={{ color: "red" }}>*</span>
             </Form.Label>
-            <div style={{ display: "flex", gap: "10px", marginBottom: "8px" }}>
-              {COLOR_OPTIONS.map((color) => (
-                <div
-                  key={color}
-                  onClick={() => handleColorSelect(color)}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: color,
-                    border:
-                      formData.colour === color
-                        ? "3px solid #333"
+            
+            {/* Color Picker Options */}
+            <div className="mb-3">
+              <p className="mb-2">Quick select:</p>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                {COLOR_OPTIONS.map((color) => (
+                  <div
+                    key={color}
+                    onClick={() => handleColorSelect(color)}
+                    role="button"
+                    tabIndex={0}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      background: color,
+                      border: formData.colour === color
+                        ? "3px solid #000"
                         : "2px solid #ccc",
-                    cursor: "pointer",
-                  }}
-                  title={color}
-                />
-              ))}
+                      cursor: isLoading ? "not-allowed" : "pointer",
+                      opacity: isLoading ? 0.5 : 1,
+                      transition: "transform 0.2s",
+                      transform: formData.colour === color ? "scale(1.1)" : "scale(1)",
+                    }}
+                    title={color}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleColorSelect(color);
+                      }
+                    }}
+                  />
+                ))}
+              </div>
             </div>
+
+            <Form.Label className="mb-1">Or enter manually:</Form.Label>
             <Form.Control
               type="text"
               name="colour"
               value={formData.colour}
               onChange={handleInputChange}
-              placeholder="or type your own e.g. #FF5733"
-              required
+              placeholder="#FF5733"
+              isInvalid={!!validationErrors.colour}
+              disabled={isLoading}
+              maxLength="7"
             />
-            {formData.colour && !/^#[0-9A-Fa-f]{6}$/.test(formData.colour) && (
-              <div style={{ color: "red", fontSize: 12 }}>
-                Please enter a valid hex colour code (e.g. #FF5733)
-              </div>
+            {validationErrors.colour ? (
+              <Form.Control.Feedback type="invalid">
+                {validationErrors.colour}
+              </Form.Control.Feedback>
+            ) : (
+              <Form.Text className="text-muted">
+                Enter a hex color code (e.g., #FF5733)
+              </Form.Text>
             )}
           </Form.Group>
+
           <Button
             type="submit"
             className="w-100"
@@ -267,19 +361,20 @@ const CompanyLogoAndColorRegistration = ({ show, onHide, myLogo, onSubmit }) => 
             style={{ background: primary, borderColor: primary, color: "#fff" }}
           >
             {isLoading ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : myLogo ? (
-              "Update"
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                {logoData ? "Updating..." : "Adding..."}
+              </>
             ) : (
-              "Add"
-            )}{" "}
-            Company's Logo and Color
+              <>{logoData ? "Update" : "Add"} Branding</>
+            )}
           </Button>
         </Form>
       </Modal.Body>

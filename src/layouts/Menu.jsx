@@ -1,3 +1,6 @@
+
+
+
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Collapse } from "react-bootstrap";
@@ -11,14 +14,54 @@ import { findAllParent, findMenuItem } from "../helpers/menu";
 
 // Inject dynamic style for menu-item and menuitem-active
 const menuItemDynamicStyle = `
+  /* Base white text for all menu items */
+  .menu-item .menu-link {
+    color: white !important;
+  }
+  
+  .menu-item .menu-text {
+    color: white !important;
+  }
+  
+  .menu-item .menu-icon {
+    color: white !important;
+  }
+  
+  /* Active state styling */
   .menu-item.menuitem-active {
-    color: var(--primary-menu, #fe0002) !important;
+    color: white !important;
     background-color: var(--secondary-menu, #FE000214) !important;
   }
+  
   .menu-item.menuitem-active > .menu-link,
+  .menu-item.menuitem-active .menu-text,
+  .menu-item.menuitem-active .menu-icon {
+    color: white !important;
+  }
+  
   .menu-item > .menu-link:hover,
   .menu-item > .menu-link:focus {
-    color: var(--primary-menu, #fe0002) !important;
+    color: white !important;
+    background-color: black !important;
+    opacity: 0.3;
+  }
+  
+  .menu-item > .menu-link:hover .menu-text,
+  .menu-item > .menu-link:hover .menu-icon,
+  .menu-item > .menu-link:focus .menu-text,
+  .menu-item > .menu-link:focus .menu-icon {
+    color: white !important;
+  }
+  
+  /* Menu titles in white */
+  .menu-title {
+    color: white !important;
+    opacity: 0.8;
+  }
+  
+  /* Badge styling */
+  .menu-item .badge {
+    color: white;
   }
 `;
 
@@ -195,7 +238,15 @@ useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return <>
-      <ul className="menu" ref={menuRef} id="main-side-menu">
+      <ul 
+        className="menu" 
+        style={{
+          backgroundColor: primary,
+          color: 'white' // Additional inline style for white text
+        }} 
+        ref={menuRef} 
+        id="main-side-menu"
+      >
         {(menuItems || []).map((item, idx) => {
         //
         return <React.Fragment key={idx}>

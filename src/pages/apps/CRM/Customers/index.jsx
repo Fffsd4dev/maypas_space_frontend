@@ -58,6 +58,10 @@ const columns = [{
   Header: "Customer",
   accessor: "name",
   sort: true,
+    //   Cell: ({ value }) =>
+    // value
+    //   ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+    //   : "",
   Cell: NameColumn,
   classes: "table-user"
 }, {

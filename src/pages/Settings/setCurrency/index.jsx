@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
-
 import CurrencyRegistrationModal from "./CurrencyRegistration";
 import TaxesRegistrationModal from "./TaxesRegistration";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
 import { toast } from "react-toastify";
-import { m } from "framer-motion";
 import { useLogoColor } from "../../../context/LogoColorContext";
-import { set } from "date-fns";
 
 const Currency = () => {
   const { user } = useAuthContext();
@@ -19,17 +16,22 @@ const Currency = () => {
   const tenantSlug = user?.tenant;
   const { colour: primary, secondaryColor: secondary } = useLogoColor();
 
-  const [show, setShow] = useState(false);
-  const [showPaystack, setShowPaystack] = useState(false);
-  const [showCurrency, setShowCurrency] = useState(false);
-  const [showTaxes, setShowTaxes] = useState(false);
-  const [data, setData] = useState([]);
+  // Refs to prevent duplicate calls
+  const isMounted = useRef(true);
+  const isFetchingCurrency = useRef(false);
+  const isFetchingTaxes = useRef(false);
+  const isFetchingLocations = useRef(false);
+
+  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
+  const [showTaxesModal, setShowTaxesModal] = useState(false);
+  const [currencyData, setCurrencyData] = useState([]);
   const [taxData, setTaxData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingTax, setLoadingTax] = useState(false);
+  const [loadingCurrency, setLoadingCurrency] = useState(true);
+  const [loadingTaxes, setLoadingTaxes] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedCurrency, setSelectedCurrency] = useState(null);
+  const [selectedTax, setSelectedTax] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState({
     message: "",
@@ -38,244 +40,237 @@ const Currency = () => {
     buttonLabel: "",
     buttonRoute: "",
   });
-  const [isError, setIsError] = useState(false);
   const [locations, setLocations] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
-
-  const [formData, setFormData] = useState({
-
-    
-    location_id: "",
-    bank_name: "",
-    account_number: "",
-    account_name: "" 
-});
-
+  const [selectedLocation, setSelectedLocation] = useState("");
 
   const [deletePopup, setDeletePopup] = useState({
     isVisible: false,
-    myCurrencyID: null,
+    currencyId: null,
   });
 
   const [taxDeletePopup, setTaxDeletePopup] = useState({
-  isVisible: false,
-  myTaxID: null,
-});
+    isVisible: false,
+    taxId: null,
+  });
 
-
-  const [pagination, setPagination] = useState({
+  const [currencyPagination, setCurrencyPagination] = useState({
     currentPage: 1,
     totalPages: 1,
-    nextPageUrl: null,
-    prevPageUrl: null,
     pageSize: 10,
   });
 
-  const formatDateTime = (isoString) => {
+  const [taxPagination, setTaxPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    pageSize: 10,
+  });
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const formatDateTime = useCallback((isoString) => {
+    if (!isoString) return "N/A";
     const options = {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     };
     return new Date(isoString).toLocaleDateString("en-US", options);
-  };
+  }, []);
 
-  const fetchLocations = async () => {
+  const fetchLocations = useCallback(async () => {
+    if (isFetchingLocations.current || !tenantToken || !tenantSlug) return;
+    
+    isFetchingLocations.current = true;
     setLoadingLocations(true);
+    
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/location/list-locations`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/location/list-locations?per_page=100`,
         {
-          headers: { Authorization: `Bearer ${user.tenantToken}` },
+          headers: { Authorization: `Bearer ${tenantToken}` },
         }
       );
       const result = await response.json();
-      if (response.ok) {
-        console.log("Location:", result.data.data);
-        setLocations(result.data.data || []);
-      } else {
+      
+      if (isMounted.current && response.ok) {
+        setLocations(result.data?.data || []);
+      } else if (isMounted.current) {
         throw new Error(result.message || "Failed to fetch locations.");
       }
     } catch (error) {
-      toast.error(error.message);
-      setIsError(true);
+      if (isMounted.current) {
+        toast.error(error.message);
+      }
     } finally {
-      setLoadingLocations(false);
+      if (isMounted.current) {
+        setLoadingLocations(false);
+      }
+      isFetchingLocations.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-  const fetchData = async ( page = 1, pageSize = 10) => {
-    setLoading(true);
+  const fetchCurrencyData = useCallback(async (locationId, page = 1, pageSize = 10) => {
+    if (isFetchingCurrency.current || !tenantToken || !tenantSlug || !locationId) return;
+    
+    isFetchingCurrency.current = true;
+    setLoadingCurrency(true);
     setError(null);
-    console.log("User Token:", user?.tenantToken);
-    console.log("selected Location:", selectedLocation);
+    
     try {
       const response = await fetch(
-        // `${
-        //   import.meta.env.VITE_BACKEND_URL
-        // }/api/${tenantSlug}/settings/workspace/time/all?location_id=${locationId}&page=${page}&per_page=${pageSize}`
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/fetch/currency/location`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/fetch/currency/location`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
-          body: JSON.stringify({ location_id: selectedLocation  }),
+          body: JSON.stringify({ location_id: locationId }),
         }
       );
-  
+
       if (!response.ok) {
         throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
-  
+
       const result = await response.json();
-      console.log(result);
-  
-      if (Array.isArray(result.data)) {
-        // Sort the data by updated_at or created_at
-        const sortedData = result.data.sort(
+
+      if (isMounted.current && Array.isArray(result.data)) {
+        const sortedData = [...result.data].sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
-        setData(sortedData);
-        console.log("Sorted Data:", sortedData);
-  
-        // Update pagination state (if needed)
-        setPagination((prev) => ({
-          ...prev,
+        
+        setCurrencyData(sortedData);
+        
+        // Client-side pagination
+        const totalPages = Math.ceil(sortedData.length / pageSize);
+        setCurrencyPagination({
           currentPage: page,
-          totalPages: Math.ceil(result.length / pageSize),
-        }));
-      } else {
+          totalPages: totalPages,
+          pageSize: pageSize,
+        });
+      } else if (isMounted.current) {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message);
-      setError(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+        setError(error.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoadingCurrency(false);
+      }
+      isFetchingCurrency.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
-    const fetchTaxData = async ( page = 1, pageSize = 10) => {
-    setLoadingTax(true);
+  const fetchTaxData = useCallback(async (page = 1, pageSize = 10) => {
+    if (isFetchingTaxes.current || !tenantToken || !tenantSlug) return;
+    
+    isFetchingTaxes.current = true;
+    setLoadingTaxes(true);
     setError(null);
-    console.log("User Token:", user?.tenantToken);
+    
     try {
       const response = await fetch(
-        // `${
-        //   import.meta.env.VITE_BACKEND_URL
-        // }/api/${tenantSlug}/settings/workspace/time/all?location_id=${locationId}&page=${page}&per_page=${pageSize}`
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/${tenantSlug}/taxes`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/taxes?page=${page}&per_page=${pageSize}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
           },
         }
       );
-  
+
       if (!response.ok) {
         throw new Error(`Contact Support! HTTP error! Status: ${response.status}`);
       }
-  
+
       const result = await response.json();
-      console.log("Tax data:", result);
-  
-      if (Array.isArray(result)) {
-        // Sort the data by updated_at or created_at
-        const sortedData = result.sort(
+
+      if (isMounted.current && Array.isArray(result)) {
+        const sortedData = [...result].sort(
           (a, b) =>
             new Date(b.updated_at || b.created_at) -
             new Date(a.updated_at || a.created_at)
         );
+        
         setTaxData(sortedData);
-        console.log("Sorted Data:", sortedData);
-  
-        // Update pagination state (if needed)
-        setPagination((prev) => ({
-          ...prev,
+        
+        // Client-side pagination
+        const totalPages = Math.ceil(sortedData.length / pageSize);
+        setTaxPagination({
           currentPage: page,
-          totalPages: Math.ceil(result.length / pageSize),
-        }));
-      } else {
+          totalPages: totalPages,
+          pageSize: pageSize,
+        });
+      } else if (isMounted.current) {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      toast.error(error.message);
-      setError(error.message);
+      if (isMounted.current) {
+        toast.error(error.message);
+        setError(error.message);
+      }
     } finally {
-      setLoadingTax(false);
+      if (isMounted.current) {
+        setLoadingTaxes(false);
+      }
+      isFetchingTaxes.current = false;
     }
-  };
+  }, [tenantToken, tenantSlug]);
 
+  // Fetch locations on mount
   useEffect(() => {
-    if (user?.tenantToken) {
+    if (tenantToken && tenantSlug) {
       fetchLocations();
+      fetchTaxData();
     }
-  }, [user?.tenantToken]);
+  }, [tenantToken, tenantSlug, fetchLocations, fetchTaxData]);
 
-useEffect(() => {
-  if (user?.tenantToken) {
-    fetchLocations();
-    fetchTaxData(); // Tax data is not location-dependent
-  }
-}, [user?.tenantToken]);
-
-useEffect(() => {
-  if (user?.tenantToken && selectedLocation) {
-    fetchData(selectedLocation, pagination.currentPage, pagination.pageSize);
-  }
-  // eslint-disable-next-line
-}, [user?.tenantToken, selectedLocation, pagination.currentPage, pagination.pageSize]);
-
-
- const handleEditClick = (myCurrency) => {
-  setSelectedUser(myCurrency);
-  setShowCurrency(true);
-};
-
-const handleTaxEditClick = (myTaxes) => {
-  setSelectedUser(myTaxes);
-  setShowTaxes(true);
-};
-
-
-  const handlePaystackClick = (myPaystack) => {
-    
-    setSelectedUser(myPaystack);
-    setShow(true);
-  };
-
-  const handleClose = () => {
-    setShow(false);
-    setShowPaystack(false);
-    setShowTaxes(false);
-    setShowCurrency(false);
-    setSelectedUser(null);
-    if (user?.tenantToken && selectedLocation) {
-      fetchData(selectedLocation);
-      // Reload users after closing the modal
+  // Fetch currency data when location changes
+  useEffect(() => {
+    if (tenantToken && tenantSlug && selectedLocation) {
+      fetchCurrencyData(selectedLocation, currencyPagination.currentPage, currencyPagination.pageSize);
+    } else {
+      setCurrencyData([]);
     }
-    setFormData({}); // Reset inputs after success
+  }, [tenantToken, tenantSlug, selectedLocation, currencyPagination.currentPage, currencyPagination.pageSize, fetchCurrencyData]);
 
-  };
+  const handleCurrencyEditClick = useCallback((currency) => {
+    setSelectedCurrency(currency);
+    setShowCurrencyModal(true);
+  }, []);
 
+  const handleTaxEditClick = useCallback((tax) => {
+    setSelectedTax(tax);
+    setShowTaxesModal(true);
+  }, []);
 
-  const handleDelete = async (myCurrencyID) => {
-    if (!user?.tenantToken) return;
-  
+  const handleCloseCurrencyModal = useCallback(() => {
+    setShowCurrencyModal(false);
+    setSelectedCurrency(null);
+  }, []);
+
+  const handleCloseTaxesModal = useCallback(() => {
+    setShowTaxesModal(false);
+    setSelectedTax(null);
+  }, []);
+
+  const handleDeleteCurrency = useCallback(async (currencyId) => {
+    if (!tenantToken) return;
+
     setIsLoading(true);
     try {
       const response = await fetch(
@@ -283,119 +278,148 @@ const handleTaxEditClick = (myTaxes) => {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${user?.tenantToken}`,
+            Authorization: `Bearer ${tenantToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: myCurrencyID  }),
+          body: JSON.stringify({ id: currencyId }),
         }
       );
       const result = await response.json();
-      console.log(result);
+      
       if (!response.ok) throw new Error(result.message || "Failed to delete.");
-  
+
       setPopup({
-        message: "Currency detail deleted successfully!",
+        message: "Currency deleted successfully!",
         type: "success",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
-  
-      fetchData();
+
+      // Refresh data
+      if (selectedLocation) {
+        fetchCurrencyData(selectedLocation, currencyPagination.currentPage, currencyPagination.pageSize);
+      }
     } catch (error) {
-      toast.error("Failed to delete this currency details!");
-      console.error("Error deleting bank details:", error);
+      console.error("Error deleting currency:", error);
+      toast.error("Failed to delete currency!");
       setPopup({
-        message: "Failed to this bank details!",
+        message: "Failed to delete currency!",
         type: "error",
         isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [tenantToken, tenantSlug, selectedLocation, fetchCurrencyData, currencyPagination.currentPage, currencyPagination.pageSize]);
 
+  const handleDeleteTax = useCallback(async (taxId) => {
+    if (!tenantToken) return;
 
-  const handleTaxDelete = async (myTaxID) => {
-  if (!user?.tenantToken) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/taxes/delete/${taxId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${tenantToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const result = await response.json();
+      
+      if (!response.ok) throw new Error(result.message || "Failed to delete.");
 
-  setIsLoading(true);
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/taxes/delete/${myTaxID}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${user?.tenantToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.message || "Failed to delete.");
+      setPopup({
+        message: "Tax deleted successfully!",
+        type: "success",
+        isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
+      });
 
-    setPopup({
-      message: "Tax deleted successfully!",
-      type: "success",
-      isVisible: true,
-    });
+      // Refresh data
+      fetchTaxData(taxPagination.currentPage, taxPagination.pageSize);
+    } catch (error) {
+      console.error("Error deleting tax:", error);
+      toast.error("Failed to delete tax!");
+      setPopup({
+        message: "Failed to delete tax!",
+        type: "error",
+        isVisible: true,
+        buttonLabel: "",
+        buttonRoute: "",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [tenantToken, tenantSlug, fetchTaxData, taxPagination.currentPage, taxPagination.pageSize]);
 
-    fetchTaxData();
-  } catch (error) {
-    toast.error("Failed to delete this tax!");
-    setPopup({
-      message: "Failed to delete this tax!",
-      type: "error",
-      isVisible: true,
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-const handleTaxDeleteButton = (myTaxID) => {
-  setTaxDeletePopup({
-    isVisible: true,
-    myTaxID,
-  });
-};
-const confirmTaxDelete = () => {
-  handleTaxDelete(taxDeletePopup.myTaxID);
-  setTaxDeletePopup({ isVisible: false, myTaxID: null });
-};
-
-
-  const handleDeleteButton = (myCurrencyID) => {
+  const handleDeleteButton = useCallback((currencyId) => {
     setDeletePopup({
       isVisible: true,
-      myCurrencyID
+      currencyId,
     });
-  };
-  
-  const confirmDelete = () => {
-    handleDelete(deletePopup.myCurrencyID);
-    setDeletePopup({ isVisible: false, myCurrencyID: null });
-  };
-  
-  const formatTime = (time) => {
-    if (!time) return ""; // Handle empty or undefined time
-    const [hour, minute] = time.split(":").map(Number);
-    const period = hour >= 12 ? "PM" : "AM";
-    const formattedHour = hour % 12 || 12; // Convert 24-hour to 12-hour format
-    return `${formattedHour}:${minute.toString().padStart(2, "0")} ${period}`;
-  };
- 
+  }, []);
 
-  const handleLocationChange = (e) => {
+  const handleTaxDeleteButton = useCallback((taxId) => {
+    setTaxDeletePopup({
+      isVisible: true,
+      taxId,
+    });
+  }, []);
+
+  const confirmCurrencyDelete = useCallback(() => {
+    handleDeleteCurrency(deletePopup.currencyId);
+    setDeletePopup({ isVisible: false, currencyId: null });
+  }, [deletePopup, handleDeleteCurrency]);
+
+  const confirmTaxDelete = useCallback(() => {
+    handleDeleteTax(taxDeletePopup.taxId);
+    setTaxDeletePopup({ isVisible: false, taxId: null });
+  }, [taxDeletePopup, handleDeleteTax]);
+
+  const handleLocationChange = useCallback((e) => {
     const locationId = e.target.value;
     setSelectedLocation(locationId);
-    setFormData((prev) => ({
-      ...prev,
-      location_id: locationId, // Update formData with the selected location ID
-    }));
-  };
-  const columns = [
+    setCurrencyPagination(prev => ({ ...prev, currentPage: 1 }));
+  }, []);
+
+  const handleCurrencyPageChange = useCallback((page) => {
+    setCurrencyPagination(prev => ({ ...prev, currentPage: page }));
+  }, []);
+
+  const handleCurrencyPageSizeChange = useCallback((pageSize) => {
+    setCurrencyPagination(prev => ({ ...prev, pageSize, currentPage: 1 }));
+  }, []);
+
+  const handleTaxPageChange = useCallback((page) => {
+    setTaxPagination(prev => ({ ...prev, currentPage: page }));
+  }, []);
+
+  const handleTaxPageSizeChange = useCallback((pageSize) => {
+    setTaxPagination(prev => ({ ...prev, pageSize, currentPage: 1 }));
+  }, []);
+
+  const handleRefreshCurrency = useCallback(() => {
+    if (selectedLocation) {
+      fetchCurrencyData(selectedLocation, currencyPagination.currentPage, currencyPagination.pageSize);
+    }
+  }, [selectedLocation, fetchCurrencyData, currencyPagination.currentPage, currencyPagination.pageSize]);
+
+  const handleRefreshTaxes = useCallback(() => {
+    fetchTaxData(taxPagination.currentPage, taxPagination.pageSize);
+  }, [fetchTaxData, taxPagination.currentPage, taxPagination.pageSize]);
+
+  // Memoized currency columns
+  const currencyColumns = useMemo(() => [
     {
       Header: "S/N",
-      accessor: (row, i) => i + 1,
+      accessor: (row, i) => i + 1 + (currencyPagination.currentPage - 1) * currencyPagination.pageSize,
       id: "serialNo",
       sort: false,
     },
@@ -403,6 +427,8 @@ const confirmTaxDelete = () => {
       Header: "Currency Name",
       accessor: "name",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
       Header: "Currency Symbol",
@@ -415,36 +441,45 @@ const confirmTaxDelete = () => {
       sort: true,
       Cell: ({ row }) => formatDateTime(row.original.updated_at),
     },
+    {
+      Header: "Action",
+      accessor: "action",
+      sort: false,
+      Cell: ({ row }) => (
+        <div style={{ whiteSpace: "nowrap" }}>
+          <Link
+            to="#"
+            className="action-icon"
+            onClick={(e) => {
+              e.preventDefault();
+              handleCurrencyEditClick(row.original);
+            }}
+            style={{ marginRight: "10px" }}
+            title="Edit Currency"
+          >
+            <i className="mdi mdi-square-edit-outline"></i>
+          </Link>
+          <Link
+            to="#"
+            className="action-icon text-danger"
+            onClick={(e) => {
+              e.preventDefault();
+              handleDeleteButton(row.original.id);
+            }}
+            title="Delete Currency"
+          >
+            <i className="mdi mdi-delete"></i>
+          </Link>
+        </div>
+      ),
+    },
+  ], [currencyPagination.currentPage, currencyPagination.pageSize, handleCurrencyEditClick, handleDeleteButton, formatDateTime]);
 
-      {
-    Header: "Action",
-    accessor: "action",
-    sort: false,
-    Cell: ({ row }) => (
-      <>
-        <Link
-          to="#"
-          className="action-icon"
-          onClick={() => handleEditClick(row.original)}
-        >
-          <i className="mdi mdi-square-edit-outline"></i>
-        </Link>
-        <Link
-          to="#"
-          className="action-icon"
-          onClick={() => handleDeleteButton(row.original.id)}
-        >
-          <i className="mdi mdi-delete"></i>
-        </Link>
-      </>
-    ),
-  },
-  ];
-
-  const taxColumns = [
+  // Memoized tax columns
+  const taxColumns = useMemo(() => [
     {
       Header: "S/N",
-      accessor: (row, i) => i + 1,
+      accessor: (row, i) => i + 1 + (taxPagination.currentPage - 1) * taxPagination.pageSize,
       id: "serialNo",
       sort: false,
     },
@@ -452,11 +487,19 @@ const confirmTaxDelete = () => {
       Header: "Tax Name",
       accessor: "name",
       sort: true,
+      Cell: ({ value }) =>
+        value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : "",
     },
     {
-      Header: "Tax Rate(%)",
+      Header: "Description",
+      accessor: "description",
+      sort: true,
+    },
+    {
+      Header: "Rate (%)",
       accessor: "percentage",
       sort: true,
+      Cell: ({ value }) => value ? `${value}%` : "0%",
     },
     {
       Header: "Updated On",
@@ -464,37 +507,59 @@ const confirmTaxDelete = () => {
       sort: true,
       Cell: ({ row }) => formatDateTime(row.original.updated_at),
     },
+    {
+      Header: "Action",
+      accessor: "action",
+      sort: false,
+      Cell: ({ row }) => (
+        <div style={{ whiteSpace: "nowrap" }}>
+          <Link
+            to="#"
+            className="action-icon"
+            onClick={(e) => {
+              e.preventDefault();
+              handleTaxEditClick(row.original);
+            }}
+            style={{ marginRight: "10px" }}
+            title="Edit Tax"
+          >
+            <i className="mdi mdi-square-edit-outline"></i>
+          </Link>
+          <Link
+            to="#"
+            className="action-icon text-danger"
+            onClick={(e) => {
+              e.preventDefault();
+              handleTaxDeleteButton(row.original.id);
+            }}
+            title="Delete Tax"
+          >
+            <i className="mdi mdi-delete"></i>
+          </Link>
+        </div>
+      ),
+    },
+  ], [taxPagination.currentPage, taxPagination.pageSize, handleTaxEditClick, handleTaxDeleteButton, formatDateTime]);
 
-     {
-    Header: "Action",
-    accessor: "action",
-    sort: false,
-    Cell: ({ row }) => (
-      <>
-        <Link
-          to="#"
-          className="action-icon"
-          onClick={() => handleTaxEditClick(row.original)}
-        >
-          <i className="mdi mdi-square-edit-outline"></i>
-        </Link>
-        <Link
-          to="#"
-          className="action-icon"
-          onClick={() => handleTaxDeleteButton(row.original.id)}
-        >
-          <i className="mdi mdi-delete"></i>
-        </Link>
-      </>
-    ),
-  },
-  ];
+  // Paginate currency data
+  const paginatedCurrencyData = useMemo(() => {
+    const start = (currencyPagination.currentPage - 1) * currencyPagination.pageSize;
+    const end = start + currencyPagination.pageSize;
+    return currencyData.slice(start, end);
+  }, [currencyData, currencyPagination.currentPage, currencyPagination.pageSize]);
+
+  // Paginate tax data
+  const paginatedTaxData = useMemo(() => {
+    const start = (taxPagination.currentPage - 1) * taxPagination.pageSize;
+    const end = start + taxPagination.pageSize;
+    return taxData.slice(start, end);
+  }, [taxData, taxPagination.currentPage, taxPagination.pageSize]);
 
   return (
     <>
       <PageTitle
         breadCrumbItems={[
-          { label: "Cuurency", path: "/Settings/set-currency", active: true },
+          { label: "Currency & Taxes", path: "/settings/currency-taxes", active: true },
         ]}
         title="Currency & Taxes"
       />
@@ -504,239 +569,168 @@ const confirmTaxDelete = () => {
           <Card>
             <Card.Body>
               <Row className="mb-2">
-
-                     <Col className="mt-2">
-                      <Button
+                <Col sm={6}>
+                  <Button
                     variant="danger"
+                    className="waves-effect waves-light me-2"
+                    onClick={() => {
+                      setSelectedCurrency(null);
+                      setShowCurrencyModal(true);
+                    }}
+                    style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
+                  >
+                    <i className="mdi mdi-plus-circle me-1"></i> Set Currency
+                  </Button>
+                  
+                  <Button
+                    variant="outline-primary"
                     className="waves-effect waves-light"
                     onClick={() => {
-                      setShowCurrency(true);
-                      setSelectedUser(null);
+                      setSelectedTax(null);
+                      setShowTaxesModal(true);
                     }}
-                                                                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
+                    style={{ borderColor: primary, color: primary }}
                   >
-                    <i className="mdi mdi-plus-circle me-1"></i> Set Your Currency                  </Button>
-                  </Col>
-
-                     {/* <Col className="mt-2">
-                      <Button
-                    variant="danger"
-                    className="waves-effect waves-light"
-                    onClick={() => {
-                      setShowTaxes(true);
-                      setSelectedUser(null);
-                    }}
-                                                                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
-                  >
-                    <i className="mdi mdi-plus-circle me-1"></i> Set Taxes                  </Button>
-                  </Col> */}
-
+                    <i className="mdi mdi-plus-circle me-1"></i> Add Tax
+                  </Button>
+                </Col>
               </Row>
 
-              <Card>
-                <Card.Body
-                  style={{
-                    background: secondary,
-                    marginTop: "30px",
-                  }}
-                >
-                  
-
-                <>
-
-                   {loadingLocations ? (
-                    <div className="text-center">
+              {/* Currency Section */}
+              <Card className="mb-4">
+                <Card.Header>
+                  <Row>
+                    <Col>
+                      <h5 className="mb-0">Currency Settings</h5>
+                    </Col>
+                    <Col className="text-end">
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={handleRefreshCurrency}
+                        disabled={loadingCurrency || !selectedLocation}
+                      >
+                        <i className="mdi mdi-refresh me-1"></i>
+                        Refresh
+                      </Button>
+                    </Col>
+                  </Row>
+                </Card.Header>
+                <Card.Body style={{ background: secondary }}>
+                  {loadingLocations ? (
+                    <div className="text-center py-4">
                       <Spinner animation="border" role="status">
                         <span className="visually-hidden">Loading...</span>
-                      </Spinner>{" "}
-                      Loading your locations...
+                      </Spinner>
+                      <p className="mt-2">Loading locations...</p>
                     </div>
                   ) : (
-                    <div>
-                      <p style={{ marginBottom: "10px", fontSize: "1rem" }}>
-                        Select which location you want to view or update currency details.
-                      </p>
+                    <div className="mb-3">
                       <Form.Select
-                        style={{ marginBottom: "25px", fontSize: "1rem" }}
-                        value={selectedLocation || ""}
-                        onChange={handleLocationChange} // Use the new handler
+                        value={selectedLocation}
+                        onChange={handleLocationChange}
                         required
                       >
-                        <option value="" disabled>
-                          Select a location
-                        </option>
+                        <option value="">Select a location</option>
                         {locations.map((location) => (
                           <option key={location.id} value={location.id}>
-                            {location.name} at {location.state}
+                            {location.name} - {location.state}
                           </option>
                         ))}
                       </Form.Select>
                     </div>
                   )}
+                  
                   {selectedLocation && (
                     <>
-                      {error ? (
-                        <p className="text-danger">Error: {error}</p>
-                      ) : loading ? (
-                        <p>Loading your currencies details...</p>
-                      ) : isLoading ? (
-                        <div className="text-center">
+                      {error && !loadingCurrency ? (
+                        <div className="alert alert-danger">
+                          <i className="mdi mdi-alert-circle-outline me-2"></i>
+                          Error: {error}
+                        </div>
+                      ) : loadingCurrency ? (
+                        <div className="text-center py-4">
                           <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Deleting...</span>
-                          </Spinner>{" "}
-                          Deleting...
+                            <span className="visually-hidden">Loading...</span>
+                          </Spinner>
+                          <p className="mt-2">Loading currencies...</p>
                         </div>
                       ) : (
                         <Table2
-                          columns={columns}
-                          data={data}
-                          pageSize={pagination.pageSize}
+                          columns={currencyColumns}
+                          data={paginatedCurrencyData}
+                          pageSize={currencyPagination.pageSize}
                           isSortable
                           isSearchable
+                          pagination
                           tableClass="table-striped dt-responsive nowrap w-100"
                           searchBoxClass="my-2"
                           paginationProps={{
-                            currentPage: pagination.currentPage,
-                            totalPages: pagination.totalPages,
-                            onPageChange: (page) =>
-                              setPagination((prev) => ({
-                                ...prev,
-                                currentPage: page,
-                              })),
-                            onPageSizeChange: (pageSize) =>
-                              setPagination((prev) => ({ ...prev, pageSize })),
+                            currentPage: currencyPagination.currentPage,
+                            totalPages: currencyPagination.totalPages,
+                            onPageChange: handleCurrencyPageChange,
+                            onPageSizeChange: handleCurrencyPageSizeChange,
                           }}
                         />
                       )}
-
-                     
                     </>
                   )}
-
-{/* <Row className="mt-3">
-  <Col>
-  <Button
-  variant="primary"
-  disabled={!selectedLocation}
-  onClick={() => handleEditClick(selectedLocation)}
->
-  Edit Working Hours
-</Button>{" "}
-    <Button
-      variant="danger"
-      disabled={!selectedLocation}
-      onClick={() => handleDeleteButton(selectedLocation)}
-    >
-      Delete Working Hours
-    </Button>
-  </Col>
-</Row> */}
-
-                  </>
-              
-
                 </Card.Body>
               </Card>
-               <Card>
-                  <Row className="mb-2">
 
-                     {/* <Col className="mt-2">
+              {/* Taxes Section */}
+              <Card>
+                <Card.Header>
+                  <Row>
+                    <Col>
+                      <h5 className="mb-0">Tax Settings</h5>
+                    </Col>
+                    <Col className="text-end">
                       <Button
-                    variant="danger"
-                    className="waves-effect waves-light"
-                    onClick={() => {
-                      setShowCurrency(true);
-                      setSelectedUser(null);
-                    }}
-                                                                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
-                  >
-                    <i className="mdi mdi-plus-circle me-1"></i> Set Your Currency                  </Button>
-                  </Col> */}
-
-                     <Col className="mt-2">
-                      <Button
-                    variant="danger"
-                    className="waves-effect waves-light"
-                    onClick={() => {
-                      setShowTaxes(true);
-                      setSelectedUser(null);
-                    }}
-                                                                                  style={{ backgroundColor: primary, borderColor: primary, color: "#fff" }}
-
-                  >
-                    <i className="mdi mdi-plus-circle me-1"></i> Add a Tax                  </Button>
-                  </Col>
-
-              </Row>
-                <Card.Body
-                  style={{
-                    background: secondary,
-                    marginTop: "30px",
-                  }}
-                >
-                  
-
-                <>
-
-                  {error ? (
-                    <p className="text-danger">Error: {error}</p>
-                  ) : loadingTax ? (
-                    <p>Loading your Taxes...</p>
-                  ) : isLoading ? (
-                    <div className="text-center">
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={handleRefreshTaxes}
+                        disabled={loadingTaxes}
+                      >
+                        <i className="mdi mdi-refresh me-1"></i>
+                        Refresh
+                      </Button>
+                    </Col>
+                  </Row>
+                </Card.Header>
+                <Card.Body style={{ background: secondary }}>
+                  {loadingTaxes ? (
+                    <div className="text-center py-4">
                       <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Deleting...</span>
-                      </Spinner>{" "}
-                      Deleting...
+                        <span className="visually-hidden">Loading...</span>
+                      </Spinner>
+                      <p className="mt-2">Loading taxes...</p>
+                    </div>
+                  ) : isLoading ? (
+                    <div className="text-center py-4">
+                      <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Processing...</span>
+                      </Spinner>
+                      <p className="mt-2">Processing...</p>
                     </div>
                   ) : (
                     <Table2
                       columns={taxColumns}
-                      data={taxData}
-                      pageSize={pagination.pageSize}
+                      data={paginatedTaxData}
+                      pageSize={taxPagination.pageSize}
                       isSortable
                       isSearchable
+                      pagination
                       tableClass="table-striped dt-responsive nowrap w-100"
                       searchBoxClass="my-2"
-                    //   paginationProps={{
-                    //     currentPage: pagination.currentPage,
-                    //     totalPages: pagination.totalPages,
-                    //     onPageChange: (page) =>
-                    //       setPagination((prev) => ({
-                    //         ...prev,
-                    //         currentPage: page,
-                    //       })),
-                    //     onPageSizeChange: (pageSize) =>
-                    //       setPagination((prev) => ({ ...prev, pageSize })),
-                    //   }}
+                      paginationProps={{
+                        currentPage: taxPagination.currentPage,
+                        totalPages: taxPagination.totalPages,
+                        onPageChange: handleTaxPageChange,
+                        onPageSizeChange: handleTaxPageSizeChange,
+                      }}
                     />
                   )}
-
-{/* <Row className="mt-3">
-  <Col>
-  <Button
-  variant="primary"
-  disabled={!selectedLocation}
-  onClick={() => handleEditClick(selectedLocation)}
->
-  Edit Working Hours
-</Button>{" "}
-    <Button
-      variant="danger"
-      disabled={!selectedLocation}
-      onClick={() => handleDeleteButton(selectedLocation)}
-    >
-      Delete Working Hours
-    </Button>
-  </Col>
-</Row> */}
-
-                  </>
-              
-
                 </Card.Body>
               </Card>
             </Card.Body>
@@ -744,21 +738,26 @@ const confirmTaxDelete = () => {
         </Col>
       </Row>
 
+      <CurrencyRegistrationModal
+        show={showCurrencyModal}
+        onHide={handleCloseCurrencyModal}
+        currency={selectedCurrency}
+        locations={locations}
+        onSubmit={() => {
+          if (selectedLocation) {
+            fetchCurrencyData(selectedLocation, currencyPagination.currentPage, currencyPagination.pageSize);
+          }
+        }}
+      />
 
-
-<CurrencyRegistrationModal
-  showCurrency={showCurrency}
-  onHide={handleClose}
-  myCurrency={selectedUser}
-  onSubmit={() => fetchData(selectedLocation)}
-/>
-
-<TaxesRegistrationModal
-  showTaxes={showTaxes}
-  onHide={handleClose}
-  myTaxes={selectedUser}
-  onSubmit={() => fetchData(selectedLocation)}
-/>
+      <TaxesRegistrationModal
+        show={showTaxesModal}
+        onHide={handleCloseTaxesModal}
+        tax={selectedTax}
+        onSubmit={() => {
+          fetchTaxData(taxPagination.currentPage, taxPagination.pageSize);
+        }}
+      />
 
       {popup.isVisible && (
         <Popup
@@ -772,28 +771,23 @@ const confirmTaxDelete = () => {
 
       {deletePopup.isVisible && (
         <Popup
-          message="Are you sure you want to delete this currency details?"
+          message="Are you sure you want to delete this currency?"
           type="confirm"
-          onClose={() =>
-            setDeletePopup({ isVisible: false, myCurrencyID: null })
-          }
-          buttonLabel="Yes"
-          onAction={confirmDelete}
+          onClose={() => setDeletePopup({ isVisible: false, currencyId: null })}
+          buttonLabel="Yes, Delete"
+          onAction={confirmCurrencyDelete}
         />
       )}
 
       {taxDeletePopup.isVisible && (
-  <Popup
-    message="Are you sure you want to delete this tax?"
-    type="confirm"
-    onClose={() =>
-      setTaxDeletePopup({ isVisible: false, myTaxID: null })
-    }
-    buttonLabel="Yes"
-    onAction={confirmTaxDelete}
-  />
-)}
-
+        <Popup
+          message="Are you sure you want to delete this tax?"
+          type="confirm"
+          onClose={() => setTaxDeletePopup({ isVisible: false, taxId: null })}
+          buttonLabel="Yes, Delete"
+          onAction={confirmTaxDelete}
+        />
+      )}
     </>
   );
 };

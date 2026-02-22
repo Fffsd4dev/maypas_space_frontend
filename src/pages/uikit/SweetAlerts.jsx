@@ -206,7 +206,6 @@ const SweetAlerts = () => {
                       if (
                       // Read more about handling dismissals
                       result.dismiss === ReactSwal.DismissReason.timer) {
-                        console.log("I was closed by the timer");
                       }
                     })}>
                                             Click me

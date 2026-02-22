@@ -700,7 +700,7 @@ const Statistics = ({
   <StatisticsWidget
     variant="primary"
     description="Total Bookings (Current Period)"
-    stats={stats.totalCategories.toString()}
+    stats={stats.totalCategories}
     icon="fe-list"
   />
 </Col>
@@ -716,7 +716,7 @@ const Statistics = ({
   <StatisticsWidget
     variant="info"
     description="Total Hours Booked (Current Period)"
-    stats={stats.totalAmount.toLocaleString()}
+    stats={stats.totalAmount}
     icon="fe-clock"
   />
 </Col>
@@ -724,7 +724,7 @@ const Statistics = ({
   <StatisticsWidget
     variant="warning"
     description="Accounts Processed in all Categories"
-    stats={paymentAnalytics.account.totalAccountProcessedB.toLocaleString()}
+    stats={paymentAnalytics.account.totalAccountProcessedB}
     icon="fe-users"
   />
 </Col>

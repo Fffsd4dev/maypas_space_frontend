@@ -36,6 +36,135 @@ const createDebouncer = () => {
   };
 };
 
+// Pagination Component for Bookings
+const BookingsPagination = ({ data, itemsPerPage = 15, renderTable }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  
+  // Get current page data
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+  
+  // Change page
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+  
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5; // Show 5 page numbers at a time
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total pages are less than max visible
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show pages with ellipsis
+      if (currentPage <= 3) {
+        // Near the start
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Near the end
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        // Middle
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      }
+    }
+    
+    return pageNumbers;
+  };
+
+  return (
+    <div>
+      {/* Render the table with paginated data */}
+      {renderTable(currentItems)}
+      
+      {/* Pagination Controls */}
+      {data.length > itemsPerPage && (
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <div>
+            <small className="text-muted">
+              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, data.length)} of {data.length} entries
+            </small>
+          </div>
+          
+          <nav aria-label="Bookings pagination">
+            <ul className="pagination mb-0">
+              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                <button 
+                  className="page-link" 
+                  onClick={goToPrevPage}
+                  disabled={currentPage === 1}
+                >
+                  <i className="fe-chevron-left"></i> Previous
+                </button>
+              </li>
+              
+              {getPageNumbers().map((page, index) => (
+                <li 
+                  key={index} 
+                  className={`page-item ${page === currentPage ? 'active' : ''} ${page === '...' ? 'disabled' : ''}`}
+                >
+                  {page === '...' ? (
+                    <span className="page-link">...</span>
+                  ) : (
+                    <button 
+                      className="page-link" 
+                      onClick={() => goToPage(page)}
+                    >
+                      {page}
+                    </button>
+                  )}
+                </li>
+              ))}
+              
+              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                <button 
+                  className="page-link" 
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next <i className="fe-chevron-right"></i>
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Statistics = ({ 
   categories, 
   locations, 
@@ -86,6 +215,23 @@ const Statistics = ({
     totalAmount: 0,
     loading: true,
     error: null,
+  });
+
+  // Today's bookings state
+  const [todayBookings, setTodayBookings] = useState({
+    count: 0,
+    data: [],
+    loading: true,
+    error: null
+  });
+
+  // Booking filter modal state
+  const [showBookingFilterModal, setShowBookingFilterModal] = useState(false);
+  const [showBookingsDataModal, setShowBookingsDataModal] = useState(false);
+  const [bookingFilter, setBookingFilter] = useState({
+    startDate: new Date(new Date().setHours(0, 0, 0, 0)),
+    endDate: new Date(new Date().setHours(23, 59, 0, 0)),
+    bookingType: 'today'
   });
 
   // Chart view states
@@ -179,6 +325,103 @@ const Statistics = ({
     if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous) * 100;
   }, []);
+
+  // Fetch today's bookings with filters - UPDATED to handle API response
+  const fetchTodayBookings = useCallback(async (startDate, endDate, bookingType) => {
+    try {
+      setTodayBookings(prev => ({ ...prev, loading: true, error: null }));
+      
+      const formattedStart = formatAPIDateTime(startDate);
+      const formattedEnd = formatAPIDateTime(endDate);
+      
+      const url = `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/spot/get?start_time=${encodeURIComponent(formattedStart)}&end_time=${encodeURIComponent(formattedEnd)}&booking_type=${bookingType}`;
+      
+      const res = await abortableFetch(url, { method: "GET" });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch bookings: ${res.status}`);
+      }
+      
+      const response = await res.json();
+      const bookingsArray = response?.data || [];
+      
+      // Transform the API data to match our table structure
+      const transformedBookings = bookingsArray.map(booking => {
+        // Parse chosen_days if it's a string
+        let chosenDays = [];
+        try {
+          chosenDays = typeof booking.chosen_days === 'string' 
+            ? JSON.parse(booking.chosen_days) 
+            : booking.chosen_days || [];
+        } catch (e) {
+          console.error('Error parsing chosen_days:', e);
+        }
+
+        // Get the first day's start time for display
+        const firstDay = chosenDays[0] || {};
+        const bookingDate = firstDay.start_time ? new Date(firstDay.start_time) : new Date(booking.created_at);
+        
+        // Determine status based on book_status
+        let status = booking.book_status || 'unknown';
+        let statusVariant = 'secondary';
+        
+        switch(status.toLowerCase()) {
+          case 'ongoing':
+            statusVariant = 'success';
+            break;
+          case 'awaiting':
+            statusVariant = 'warning';
+            break;
+          case 'expired':
+          case 'cancelled':
+            statusVariant = 'danger';
+            break;
+          default:
+            statusVariant = 'secondary';
+        }
+
+        return {
+          id: booking.id,
+          booking_ref: booking.booked_ref?.booked_ref || `BK-${booking.id}`,
+          spot_id: booking.spot_id,
+          user_id: booking.user_id,
+          customer_name: `User ${booking.user_id}`,
+          date: bookingDate,
+          start_time: booking.start_time,
+          expiry_day: booking.expiry_day,
+          fee: parseFloat(booking.fee) || 0,
+          status: booking.book_status,
+          statusVariant: statusVariant,
+          type: booking.type,
+          invoice_ref: booking.invoice_ref,
+          spot: booking.spot,
+          space: booking.spot?.space,
+          category: booking.spot?.space?.category,
+          location_id: booking.spot?.location_id,
+          floor_id: booking.spot?.floor_id
+        };
+      });
+      
+      if (isMounted.current) {
+        setTodayBookings({
+          count: transformedBookings.length,
+          data: transformedBookings,
+          loading: false,
+          error: null
+        });
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') return;
+      if (isMounted.current) {
+        setTodayBookings(prev => ({
+          ...prev,
+          loading: false,
+          error: error.message
+        }));
+      }
+      console.error("Error fetching today's bookings:", error);
+    }
+  }, [abortableFetch, tenantSlug, formatAPIDateTime]);
 
   // Fetch analytics data with selected filters and authorization
   const fetchAnalyticsData = useCallback(async () => {
@@ -303,6 +546,11 @@ const Statistics = ({
     }
   }, [abortableFetch, tenantSlug, periodAStart, periodAEnd, periodBStart, periodBEnd, formatAPIDateTime]);
 
+  // Fetch today's bookings on mount and when filters change
+  useEffect(() => {
+    fetchTodayBookings(bookingFilter.startDate, bookingFilter.endDate, bookingFilter.bookingType);
+  }, [bookingFilter.startDate, bookingFilter.endDate, bookingFilter.bookingType, fetchTodayBookings]);
+
   // Fetch all analytics when filters are ready or changed
   useEffect(() => {
     if (selectedCategoryId && selectedLocationId) {
@@ -326,6 +574,56 @@ const Statistics = ({
       clearTimeout(handler);
     };
   }, [periodAStart, periodAEnd, periodBStart, periodBEnd, selectedCategoryId, selectedLocationId, fetchAnalyticsData, fetchPaymentAnalytics]);
+
+  // Handle booking filter change
+  const handleBookingFilterChange = useCallback((newFilter) => {
+    setBookingFilter(prev => ({ ...prev, ...newFilter }));
+  }, []);
+
+  // Handle apply booking filter
+  const handleApplyBookingFilter = useCallback(() => {
+    fetchTodayBookings(bookingFilter.startDate, bookingFilter.endDate, bookingFilter.bookingType);
+    setShowBookingFilterModal(false);
+  }, [bookingFilter, fetchTodayBookings]);
+
+  // Handle reset to today
+  const handleBackToToday = useCallback(() => {
+    const now = new Date();
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(now.setHours(23, 59, 0, 0));
+    
+    const todayFilter = {
+      bookingType: 'today',
+      startDate: startOfDay,
+      endDate: endOfDay
+    };
+    
+    setBookingFilter(todayFilter);
+    fetchTodayBookings(startOfDay, endOfDay, 'today');
+  }, [fetchTodayBookings]);
+
+  // Handle view bookings data
+  const handleViewBookingsData = useCallback(() => {
+    setShowBookingsDataModal(true);
+  }, []);
+
+  // Get title based on filter
+  const getTitleText = useCallback(() => {
+    switch(bookingFilter.bookingType) {
+      case 'today':
+        return "Bookings For Today";
+      case 'valid':
+        return "Valid Bookings";
+      case 'expired':
+        return "Expired Bookings";
+      case 'past':
+        return "Past Bookings";
+      case 'all':
+        return "All Bookings";
+      default:
+        return "Bookings";
+    }
+  }, [bookingFilter.bookingType]);
 
   // Prepare chart data
   const getFinanceChartData = useCallback(() => {
@@ -683,6 +981,7 @@ const Statistics = ({
                   onClick={() => {
                     fetchAnalyticsData();
                     fetchPaymentAnalytics();
+                    fetchTodayBookings(bookingFilter.startDate, bookingFilter.endDate, bookingFilter.bookingType);
                   }}
                   style={{ backgroundColor: primary, borderColor: primary }}
                   className="w-100"
@@ -696,38 +995,98 @@ const Statistics = ({
       </Col>
       
       {/* StatisticsWidget Cards */}
-<Col md={6} xl={6}>
-  <StatisticsWidget
-    variant="primary"
-    description="Total Bookings (Current Period)"
-    stats={stats.totalCategories}
-    icon="fe-list"
-  />
-</Col>
-<Col md={6} xl={6}>
-  <StatisticsWidget
-    variant="success"
-    description="Total Payment Amount in all Categories"
-    stats={paymentAnalytics.duration.totalAmountForDurationB}
-    icon="fe-credit-card"
-  />
-</Col>
-<Col md={6} xl={6}>
-  <StatisticsWidget
-    variant="info"
-    description="Total Hours Booked (Current Period)"
-    stats={stats.totalAmount}
-    icon="fe-clock"
-  />
-</Col>
-<Col md={6} xl={6}>
-  <StatisticsWidget
-    variant="warning"
-    description="Accounts Processed in all Categories"
-    stats={paymentAnalytics.account.totalAccountProcessedB}
-    icon="fe-users"
-  />
-</Col>
+      <Col md={6} xl={6}>
+        <StatisticsWidget
+          variant="primary"
+          description="Total Bookings (Current Period)"
+          stats={stats.totalCategories}
+          icon="fe-list"
+        />
+      </Col>
+      <Col md={6} xl={6}>
+        <StatisticsWidget
+          variant="success"
+          description="Total Payment Amount in all Categories"
+          stats={paymentAnalytics.duration.totalAmountForDurationB}
+          icon="fe-credit-card"
+        />
+      </Col>
+      <Col md={6} xl={6}>
+        <StatisticsWidget
+          variant="info"
+          description="Total Hours Booked (Current Period)"
+          stats={stats.totalAmount}
+          icon="fe-clock"
+        />
+      </Col>
+      <Col md={6} xl={6}>
+        <StatisticsWidget
+          variant="warning"
+          description="Accounts Processed in all Categories"
+          stats={paymentAnalytics.account.totalAccountProcessedB}
+          icon="fe-users"
+        />
+      </Col>
+      
+      {/* STYLED BOOKINGS CARD */}
+      <Col md={6} xl={12}>
+        <Card className="mb-3">
+          <Card.Body>
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <div style={{ fontWeight: "bold" }}>
+                  {getTitleText()}
+                  {bookingFilter.bookingType !== 'today' && (
+                    <> from {format(bookingFilter.startDate, "MMM dd, yyyy HH:mm")} to {format(bookingFilter.endDate, "MMM dd, yyyy HH:mm")}</>
+                  )}
+                </div>
+                
+                <div style={{ fontSize: "2rem" }}>
+                  {todayBookings.loading ? (
+                    <div className="spinner-border spinner-border-sm text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  ) : todayBookings.error ? (
+                    <span className="text-danger small">Error loading</span>
+                  ) : (
+                    todayBookings.count.toLocaleString()
+                  )}
+                </div>
+
+                {bookingFilter.bookingType !== 'today' && (
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    className="mt-2"
+                    onClick={handleBackToToday}
+                  >
+                    Back to Today
+                  </Button>
+                )}
+              </div>
+
+              <div className="d-flex flex-column align-items-end">
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  className="mb-2"
+                  onClick={() => setShowBookingFilterModal(true)}
+                >
+                  Filter Bookings
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleViewBookingsData}
+                  style={{backgroundColor: primary, borderColor: primary}}
+                >
+                  View Bookings Data
+                </Button>
+              </div>
+            </div>
+          </Card.Body>
+        </Card>
+      </Col>
       
       {/* Payment Analytics Section */}
       <Col md={12} className="mb-4">
@@ -808,21 +1167,18 @@ const Statistics = ({
                 <div className="row mt-3">
                   <div className="col-6 text-center">
                     <div className="text-muted small">Period A</div>
-                    <h5>${paymentAnalytics.duration.totalAmountForDurationA.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h5>
+                    <h5>₦{paymentAnalytics.duration.totalAmountForDurationA.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h5>
                     <small className="text-muted">Accounts: {paymentAnalytics.account.totalAccountProcessedA}</small>
                   </div>
                   <div className="col-6 text-center">
                     <div className="text-muted small">Period B</div>
-                    <h5>${paymentAnalytics.duration.totalAmountForDurationB.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h5>
+                    <h5>₦{paymentAnalytics.duration.totalAmountForDurationB.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h5>
                     <small className="text-muted">Accounts: {paymentAnalytics.account.totalAccountProcessedB}</small>
                   </div>
                 </div>
                 
                 {/* Manual Calculations Section */}
                 <div className="row mt-1">
-                  {/* <div className="col-12">
-                    <h6 className="text-center mb-3">Manual Calculations (Period B vs Period A)</h6>
-                  </div> */}
                   <div className="col-6 text-center">
                     {(() => {
                       const manualAmountPercentage = calculatePercentageChange(
@@ -1039,6 +1395,228 @@ const Statistics = ({
           </Card.Body>
         </Card>
       </Col>
+
+      {/* BOOKING FILTER MODAL */}
+      <Modal show={showBookingFilterModal} onHide={() => setShowBookingFilterModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Filter Bookings</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label><strong>Booking Type</strong></Form.Label>
+              <Form.Select 
+                value={bookingFilter.bookingType}
+                onChange={(e) => handleBookingFilterChange({ bookingType: e.target.value })}
+              >
+                <option value="today">Today</option>
+                <option value="valid">Valid</option>
+                <option value="expired">Expired</option>
+                <option value="past">Past</option>
+                <option value="all">All</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label><strong>Start Date & Time</strong></Form.Label>
+              <DatePicker
+                selected={bookingFilter.startDate}
+                onChange={(date) => handleBookingFilterChange({ startDate: date })}
+                maxDate={new Date()}
+                showTimeSelect
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                dateFormat="yyyy-MM-dd HH:mm"
+                className="form-control"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label><strong>End Date & Time</strong></Form.Label>
+              <DatePicker
+                selected={bookingFilter.endDate}
+                onChange={(date) => handleBookingFilterChange({ endDate: date })}
+                minDate={bookingFilter.startDate}
+                maxDate={new Date()}
+                showTimeSelect
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                dateFormat="yyyy-MM-dd HH:mm"
+                className="form-control"
+              />
+            </Form.Group>
+
+            <div className="alert alert-info small">
+              <i className="fe-info me-1"></i>
+              Default is today's bookings (00:00 to 23:59). You can filter by any date range and booking type.
+            </div>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowBookingFilterModal(false)}>
+            Cancel
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleApplyBookingFilter}
+            style={{ backgroundColor: primary, borderColor: primary }}
+          >
+            Apply Filter
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* ENHANCED BOOKINGS DATA MODAL WITH PAGINATION */}
+      <Modal show={showBookingsDataModal} onHide={() => setShowBookingsDataModal(false)} size="xl" centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {bookingFilter.bookingType === 'today' ? "Today's" :
+             bookingFilter.bookingType === 'valid' ? "Valid" :
+             bookingFilter.bookingType === 'expired' ? "Expired" :
+             bookingFilter.bookingType === 'past' ? "Past" :
+             bookingFilter.bookingType === 'all' ? "All" : ""} Bookings Details
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {todayBookings.loading ? (
+            <div className="text-center py-4">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : todayBookings.error ? (
+            <div className="alert alert-danger">Error loading bookings data</div>
+          ) : (
+            <div>
+              <div className="mb-4">
+                <h5>Summary</h5>
+                <p><strong>Total Count:</strong> {todayBookings.count.toLocaleString()}</p>
+                <p><strong>Date Range:</strong> {format(bookingFilter.startDate, "MMM dd, yyyy HH:mm")} to {format(bookingFilter.endDate, "MMM dd, yyyy HH:mm")}</p>
+                <p><strong>Booking Type:</strong> {bookingFilter.bookingType.charAt(0).toUpperCase() + bookingFilter.bookingType.slice(1)}</p>
+              </div>
+              
+              <div>
+                <h5>Bookings List</h5>
+                
+                {/* Pagination Component */}
+                {todayBookings.data.length > 0 && (
+                  <BookingsPagination 
+                    data={todayBookings.data}
+                    itemsPerPage={15}
+                    renderTable={(paginatedData) => (
+                      <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                        <table className="table table-striped table-hover">
+                          <thead className="sticky-top bg-white">
+                            <tr>
+                              <th>ID</th>
+                              <th>Booking Ref</th>
+                              <th>User ID</th>
+                              <th>Space</th>
+                              <th>Category</th>
+                              <th>Date/Time</th>
+                              <th>Expiry</th>
+                              <th>Status</th>
+                              <th>Fee (₦)</th>
+                              <th>Invoice</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {paginatedData.map((booking) => (
+                              <tr key={booking.id}>
+                                <td>#{booking.id}</td>
+                                <td>
+                                  <small>{booking.booking_ref}</small>
+                                </td>
+                                <td>{booking.user_id}</td>
+                                <td>
+                                  {booking.space?.space_name || 'N/A'}
+                                  <small className="d-block text-muted">
+                                    {booking.spot?.floor_id && `Floor: ${booking.spot.floor_id}`}
+                                  </small>
+                                </td>
+                                <td>
+                                  {booking.category?.category || 'N/A'}
+                                </td>
+                                <td>
+                                  {booking.date ? format(new Date(booking.date), 'MMM dd, yyyy HH:mm') : 'N/A'}
+                                </td>
+                                <td>
+                                  {booking.expiry_day ? format(new Date(booking.expiry_day), 'MMM dd, yyyy HH:mm') : 'N/A'}
+                                </td>
+                                <td>
+                                  <span className={`badge bg-${booking.statusVariant}`}>
+                                    {booking.status}
+                                  </span>
+                                </td>
+                                <td>₦{booking.fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td>
+                                  <small>{booking.invoice_ref || 'N/A'}</small>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  />
+                )}
+                
+                {todayBookings.data.length === 0 && (
+                  <div className="text-center py-4">
+                    <i className="fe-info me-2"></i>
+                    No bookings found for this period
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <div className="d-flex justify-content-between align-items-center w-100">
+            <div>
+              <small className="text-muted">
+                Total: {todayBookings.count} bookings
+              </small>
+            </div>
+            <div>
+              <Button variant="secondary" onClick={() => setShowBookingsDataModal(false)} className="me-2">
+                Close
+              </Button>
+              <Button 
+                variant="primary"
+                onClick={() => {
+                  // Export functionality
+                  const csvContent = [
+                    ['ID', 'Booking Ref', 'User ID', 'Space', 'Category', 'Date', 'Expiry', 'Status', 'Fee (₦)', 'Invoice'],
+                    ...todayBookings.data.map(b => [
+                      b.id,
+                      b.booking_ref,
+                      b.user_id,
+                      b.space?.space_name || 'N/A',
+                      b.category?.category || 'N/A',
+                      b.date ? format(new Date(b.date), 'yyyy-MM-dd HH:mm') : 'N/A',
+                      b.expiry_day ? format(new Date(b.expiry_day), 'yyyy-MM-dd HH:mm') : 'N/A',
+                      b.status,
+                      b.fee,
+                      b.invoice_ref || 'N/A'
+                    ])
+                  ].map(row => row.join(',')).join('\n');
+                  
+                  const blob = new Blob([csvContent], { type: 'text/csv' });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `bookings_${bookingFilter.bookingType}_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
+                  a.click();
+                }}
+                style={{backgroundColor: primary, borderColor: primary}}
+              >
+                Export CSV
+              </Button>
+            </div>
+          </div>
+        </Modal.Footer>
+      </Modal>
 
       {/* Analytics Configuration Modal with Time Support */}
       <Modal show={showAnalyticsModal} onHide={() => setShowAnalyticsModal(false)} size="lg" centered>

@@ -217,9 +217,10 @@ const Statistics = ({
     error: null,
   });
 
-  // Today's bookings state
+  // Today's bookings and payments state
   const [todayBookings, setTodayBookings] = useState({
     count: 0,
+    totalFees: 0,
     data: [],
     loading: true,
     error: null
@@ -326,7 +327,7 @@ const Statistics = ({
     return ((current - previous) / previous) * 100;
   }, []);
 
-  // Fetch today's bookings with filters - UPDATED to handle API response
+  // Fetch today's bookings with filters - UPDATED to calculate total fees
   const fetchTodayBookings = useCallback(async (startDate, endDate, bookingType) => {
     try {
       setTodayBookings(prev => ({ ...prev, loading: true, error: null }));
@@ -344,6 +345,11 @@ const Statistics = ({
       
       const response = await res.json();
       const bookingsArray = response?.data || [];
+      
+      // Calculate total fees from all bookings
+      const totalFees = bookingsArray.reduce((sum, booking) => {
+        return sum + (parseFloat(booking.fee) || 0);
+      }, 0);
       
       // Transform the API data to match our table structure
       const transformedBookings = bookingsArray.map(booking => {
@@ -405,6 +411,7 @@ const Statistics = ({
       if (isMounted.current) {
         setTodayBookings({
           count: transformedBookings.length,
+          totalFees: totalFees,
           data: transformedBookings,
           loading: false,
           error: null
@@ -611,7 +618,7 @@ const Statistics = ({
   const getTitleText = useCallback(() => {
     switch(bookingFilter.bookingType) {
       case 'today':
-        return "Bookings For Today";
+        return "Total Bookings For Today";
       case 'valid':
         return "Valid Bookings";
       case 'expired':
@@ -1029,7 +1036,7 @@ const Statistics = ({
       </Col>
       
       {/* STYLED BOOKINGS CARD */}
-      <Col md={6} xl={12}>
+      <Col md={6} xl={6}>
         <Card className="mb-3">
           <Card.Body>
             <div className="d-flex justify-content-between align-items-center">
@@ -1081,6 +1088,66 @@ const Statistics = ({
                   style={{backgroundColor: primary, borderColor: primary}}
                 >
                   View Bookings Data
+                </Button>
+              </div>
+            </div>
+          </Card.Body>
+        </Card>
+      </Col>
+
+      {/* STYLED PAYMENTS CARD - Now shows total fees from bookings API */}
+      <Col md={6} xl={6}>
+        <Card className="mb-3">
+          <Card.Body>
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <div style={{ fontWeight: "bold" }}>
+                  Total Payments Received Today
+                  {bookingFilter.bookingType !== 'today' && (
+                    <> from {format(bookingFilter.startDate, "MMM dd, yyyy HH:mm")} to {format(bookingFilter.endDate, "MMM dd, yyyy HH:mm")}</>
+                  )}
+                </div>
+                
+                <div style={{ fontSize: "2rem" }}>
+                  {todayBookings.loading ? (
+                    <div className="spinner-border spinner-border-sm text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  ) : todayBookings.error ? (
+                    <span className="text-danger small">Error loading</span>
+                  ) : (
+                    `₦${todayBookings.totalFees.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  )}
+                </div>
+
+                {bookingFilter.bookingType !== 'today' && (
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    className="mt-2"
+                    onClick={handleBackToToday}
+                  >
+                    Back to Today
+                  </Button>
+                )}
+              </div>
+
+              <div className="d-flex flex-column align-items-end">
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  className="mb-2"
+                  onClick={() => setShowBookingFilterModal(true)}
+                >
+                  Filter Payments
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleViewBookingsData}
+                  style={{backgroundColor: primary, borderColor: primary}}
+                >
+                  View Payment Details
                 </Button>
               </div>
             </div>
@@ -1399,7 +1466,7 @@ const Statistics = ({
       {/* BOOKING FILTER MODAL */}
       <Modal show={showBookingFilterModal} onHide={() => setShowBookingFilterModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Filter Bookings</Modal.Title>
+          <Modal.Title>Filter Bookings & Payments</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -1448,7 +1515,7 @@ const Statistics = ({
 
             <div className="alert alert-info small">
               <i className="fe-info me-1"></i>
-              Default is today's bookings (00:00 to 23:59). You can filter by any date range and booking type.
+              Default is today's bookings (00:00 to 23:59). You can filter by any date range and booking type. The payments card will show the total fees from these bookings.
             </div>
           </Form>
         </Modal.Body>
@@ -1474,7 +1541,7 @@ const Statistics = ({
              bookingFilter.bookingType === 'valid' ? "Valid" :
              bookingFilter.bookingType === 'expired' ? "Expired" :
              bookingFilter.bookingType === 'past' ? "Past" :
-             bookingFilter.bookingType === 'all' ? "All" : ""} Bookings Details
+             bookingFilter.bookingType === 'all' ? "All" : ""} Bookings & Payments Details
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -1490,7 +1557,17 @@ const Statistics = ({
             <div>
               <div className="mb-4">
                 <h5>Summary</h5>
-                <p><strong>Total Count:</strong> {todayBookings.count.toLocaleString()}</p>
+                <Row>
+                  <Col md={4}>
+                    <p><strong>Total Bookings:</strong> {todayBookings.count.toLocaleString()}</p>
+                  </Col>
+                  <Col md={4}>
+                    <p><strong>Total Payments:</strong> ₦{todayBookings.totalFees.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  </Col>
+                  <Col md={4}>
+                    <p><strong>Average per Booking:</strong> ₦{(todayBookings.count > 0 ? (todayBookings.totalFees / todayBookings.count) : 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  </Col>
+                </Row>
                 <p><strong>Date Range:</strong> {format(bookingFilter.startDate, "MMM dd, yyyy HH:mm")} to {format(bookingFilter.endDate, "MMM dd, yyyy HH:mm")}</p>
                 <p><strong>Booking Type:</strong> {bookingFilter.bookingType.charAt(0).toUpperCase() + bookingFilter.bookingType.slice(1)}</p>
               </div>
@@ -1575,7 +1652,7 @@ const Statistics = ({
           <div className="d-flex justify-content-between align-items-center w-100">
             <div>
               <small className="text-muted">
-                Total: {todayBookings.count} bookings
+                Total: {todayBookings.count} bookings | Total Fees: ₦{todayBookings.totalFees.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </small>
             </div>
             <div>

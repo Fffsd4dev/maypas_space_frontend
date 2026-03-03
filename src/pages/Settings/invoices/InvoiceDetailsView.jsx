@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useState, useEffect } from "react";
-import { Button, Spinner } from "react-bootstrap";
+import { Button, Spinner, Badge } from "react-bootstrap";
 import html2pdf from "html2pdf.js";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import { useLogoColor } from "../../../context/LogoColorContext";
@@ -25,28 +25,21 @@ const InvoiceDetailsView = ({
   const [companyName, setCompanyName] = useState("");
   const [loadingLogo, setLoadingLogo] = useState(false);
 
-  /* ================= FETCH COMPANY DETAILS ================= */
+  // Fetch company details
   useEffect(() => {
     const fetchCompanyDetails = async () => {
       if (!tenantToken || !tenantSlug) return;
-
       setLoadingLogo(true);
-
       try {
         const response = await fetch(
           `${import.meta.env.VITE_BACKEND_URL}/api/${tenantSlug}/view-details`,
           {
-            headers: {
-              Authorization: `Bearer ${tenantToken}`,
-            },
+            headers: { Authorization: `Bearer ${tenantToken}` },
           }
         );
-
         const result = await response.json();
-
         if (response.ok && result.data) {
           const { logo, company_name } = result.data;
-
           if (logo) setLogo(logo);
           if (company_name) setCompanyName(company_name);
         }
@@ -56,12 +49,10 @@ const InvoiceDetailsView = ({
         setLoadingLogo(false);
       }
     };
-
     fetchCompanyDetails();
   }, [tenantToken, tenantSlug]);
 
-  /* ================= CALCULATIONS ================= */
-
+  // Calculations
   const calculateChargesTotal = useCallback(() => {
     return charges.reduce(
       (total, charge) => total + (Number(charge.fee) || 0),
@@ -76,7 +67,6 @@ const InvoiceDetailsView = ({
 
   const handleDownloadPDF = useCallback(() => {
     if (!printRef.current || !invoice) return;
-
     const opt = {
       margin: 0.5,
       filename: `Invoice_${invoice.invoice_ref}.pdf`,
@@ -84,178 +74,193 @@ const InvoiceDetailsView = ({
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
     };
-
     html2pdf().set(opt).from(printRef.current).save();
   }, [invoice]);
 
   const getLogoSrc = useCallback(() => {
     if (logo) {
       if (logo.startsWith("http")) return logo;
-
       return `${import.meta.env.VITE_BACKEND_URL}/storage/uploads/tenant_logo/${logo}`;
     }
-
     return profileImg;
   }, [logo]);
 
+  // Helper functions
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return "N/A";
+    return new Date(timeString).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      'paid': 'success',
+      'pending': 'warning',
+      'cancelled': 'danger',
+      'overdue': 'danger',
+      'completed': 'success'
+    };
+    return statusMap[status?.toLowerCase()] || 'secondary';
+  };
+
   if (!invoice) return null;
+
+  const expiryDate = invoice?.book_spot?.expiry_day;
+  const isExpired = expiryDate ? new Date(expiryDate) < new Date() : false;
 
   return (
     <>
       {loadingLogo && (
         <div className="text-center mb-4 p-3 bg-light rounded no-print">
           <Spinner animation="border" size="sm" />
-          <span className="ms-2 text-muted">
-            Loading company details...
-          </span>
+          <span className="ms-2 text-muted">Loading company details...</span>
         </div>
       )}
 
       <div ref={printRef} className="invoice-container p-4 bg-white">
-
-        {/* ================= HEADER WITH SPACE DETAILS ON LEFT ================= */}
-        <div className="row mb-5" style={{ display: 'flex', alignItems: 'baseline' }}>
-          {/* Left Column - Space Details */}
+        {/* Header with Logo and Company Info */}
+        <div className="row mb-4">
           <div className="col-6">
-            {space && (
-              <div style={{ display: 'inline-block', verticalAlign: 'baseline' }}>
-                <h5
-                  style={{
-                    fontWeight: "700",
-                    letterSpacing: "2px",
-                    marginBottom: "15px",
-                    lineHeight: "1.2",
-                  }}
-                >
-                  SPACE DETAILS
-                </h5>
-                <div>
+            <img
+              src={getLogoSrc()}
+              alt="Company Logo"
+              style={{
+                maxHeight: "80px",
+                maxWidth: "200px",
+                objectFit: "contain",
+              }}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = profileImg;
+              }}
+            />
+            <h4 className="mt-2" style={{ color: brandColor }}>
+              {companyName}
+            </h4>
+          </div>
+          <div className="col-6 text-end">
+            <h2 className="mb-2" style={{ fontWeight: "700" }}>
+              INVOICE
+            </h2>
+            <p className="mb-1">
+              <strong>Invoice #:</strong> {invoice.invoice_ref}
+            </p>
+            <p className="mb-1">
+              <strong>Date:</strong> {formatDateTime(invoice.created_at)}
+            </p>
+            <p className="mb-0">
+              <strong>Status:</strong>{" "}
+              <Badge bg={getStatusBadge(invoice.status)}>
+                {invoice.status?.toUpperCase()}
+              </Badge>
+            </p>
+          </div>
+        </div>
+
+        {/* Bill To and Invoice Details */}
+        <div className="row mb-4">
+          <div className="col-6">
+            <h5 style={{ borderBottom: `2px solid ${brandColor}`, paddingBottom: "6px" }}>
+              Bill To
+            </h5>
+            <p className="mb-1 fw-semibold mt-3">
+              {invoice?.user?.first_name} {invoice?.user?.last_name}
+            </p>
+          </div>
+        </div>
+
+        {/* Space Details */}
+        {space && (
+          <div className="mb-4">
+            <h5 style={{ borderBottom: `2px solid ${brandColor}`, paddingBottom: "6px" }}>
+              Space Details
+            </h5>
+            <div className="row mt-3">
+              <div className="col-md-6">
+                <p className="mb-1">
+                  <strong>Space:</strong> {space.space_name}
+                </p>
+                <p className="mb-1">
+                  <strong>Category:</strong> {space.category_name}
+                </p>
+                <p className="mb-1">
+                  <strong>Floor:</strong> {space.floor_name}
+                </p>
+                <p className="mb-1">
+                  <strong>Location:</strong> {space.location_name}
+                </p>
+              </div>
+              <div className="col-md-6">
+                <p className="mb-1">
+                  <strong>Booking Type:</strong> {space.booking_type}
+                </p>
+                <p className="mb-1">
+                  <strong>Space Fee:</strong> {currencySymbol} {Number(space.space_fee).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Expiry Information */}
+        {expiryDate && (
+          <div className={`mb-4 p-3 rounded ${isExpired ? 'bg-light-danger' : 'bg-light-info'}`}>
+            <h5 style={{ borderBottom: `2px solid ${brandColor}`, paddingBottom: "6px" }}>
+              Validity Period
+            </h5>
+            <div className="mt-3">
+              <div className="row">
+                <div className="col-md-6">
                   <p className="mb-1">
-                    <strong>Space Name:</strong> {space.space_name}
+                    <strong>Valid From:</strong> {formatDateTime(invoice?.book_spot?.start_time)}
                   </p>
+                </div>
+                <div className="col-md-6">
                   <p className="mb-1">
-                    <strong>Type:</strong> {space.type}
+                    <strong>Valid Until:</strong> {formatDateTime(expiryDate)}
                   </p>
-                  <p className="mb-1">
-                    <strong>Capacity:</strong> {space.capacity} people
-                  </p>
-                  {space.amenities && (
-                    <p className="mb-1">
-                      <strong>Amenities:</strong> {space.amenities}
-                    </p>
-                  )}
-                  {space.location && (
-                    <p className="mb-1">
-                      <strong>Location:</strong> {space.location}
-                    </p>
-                  )}
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Right Column - Logo and Company Info (from second component) */}
-          <div className="col-6 text-end">
-            <div style={{ display: 'inline-block', verticalAlign: 'baseline' }}>
-              {/* COMPANY LOGO */}
-              <div className="mb-3">
-                <img
-                  src={getLogoSrc()}
-                  alt="Company Logo"
-                  style={{
-                    maxHeight: "130px",
-                    maxWidth: "280px",
-                    objectFit: "contain",
-                  }}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = profileImg;
-                  }}
-                />
-              </div>
-
-              {/* COMPANY NAME */}
-              <h4
-                className="mb-3"
-                style={{
-                  color: brandColor,
-                  fontWeight: "700",
-                  letterSpacing: "1px",
-                }}
-              >
-                {companyName}
-              </h4>
-
-              {/* INVOICE TITLE */}
-              <h2
-                className="mb-3"
-                style={{
-                  fontWeight: "700",
-                  letterSpacing: "2px",
-                }}
-              >
-                INVOICE
-              </h2>
-
-              {/* INVOICE DETAILS */}
-              <p className="mb-1">
-                <strong>Invoice #:</strong> {invoice.invoice_ref}
-              </p>
-              <p className="mb-1">
-                <strong>Date:</strong>{" "}
-                {formatDateTime(invoice.created_at)}
-              </p>
-              <p className="mb-0">
-                <strong>Status:</strong>{" "}
-                <span
-                  className={`badge ${
-                    invoice.status === "completed"
-                      ? "bg-success"
-                      : "bg-warning text-dark"
-                  }`}
-                >
-                  {invoice.status?.toUpperCase() || "PENDING"}
-                </span>
+              <p className="mb-0 mt-2">
+                <Badge bg={isExpired ? 'danger' : 'info'}>
+                  {isExpired ? 'Expired' : 'Active'}
+                </Badge>
               </p>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* ================= BILL TO ================= */}
-        <div className="mb-4">
-          <h5
-            style={{
-              borderBottom: `2px solid ${brandColor}`,
-              paddingBottom: "6px",
-            }}
-          >
-            Bill To
-          </h5>
-
-          <p className="mb-1 fw-semibold mt-3">
-            {invoice?.user?.first_name} {invoice?.user?.last_name}
-          </p>
-          <p className="mb-1 text-muted">{invoice.email}</p>
-          <p className="text-muted">{invoice.phone_number}</p>
-        </div>
-
-        {/* ================= TABLE ================= */}
+        {/* Charges Table */}
         <div className="table-responsive mb-4">
           <table className="table">
             <thead style={{ backgroundColor: "#f8f9fa" }}>
               <tr>
                 <th>Description</th>
-                <th className="text-end">
-                  Amount ({currencySymbol})
-                </th>
+                <th className="text-end">Amount ({currencySymbol})</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Space Booking</td>
+                <td>
+                  <strong>Space Booking</strong>
+                  <br />
+                  <small className="text-muted">
+                    {space?.space_name} - {space?.booking_type}
+                  </small>
+                </td>
                 <td className="text-end">
-                  {currencySymbol}{" "}
-                  {calculateBaseAmount().toLocaleString()}
+                  {currencySymbol} {calculateBaseAmount().toLocaleString()}
                 </td>
               </tr>
 
@@ -263,42 +268,37 @@ const InvoiceDetailsView = ({
                 <tr key={index}>
                   <td>{charge.name}</td>
                   <td className="text-end">
-                    {currencySymbol}{" "}
-                    {Number(charge.fee).toLocaleString()}
+                    {currencySymbol} {Number(charge.fee).toLocaleString()}
                   </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr>
-                <td className="text-end fw-bold">Total:</td>
+                <td className="text-end fw-bold" style={{ fontSize: "1.1em" }}>
+                  Total Amount:
+                </td>
                 <td
                   className="text-end fw-bold"
-                  style={{ color: brandColor }}
+                  style={{ color: brandColor, fontSize: "1.1em" }}
                 >
-                  {currencySymbol}{" "}
-                  {Number(invoice.amount).toLocaleString()}
+                  {currencySymbol} {Number(invoice.amount).toLocaleString()}
                 </td>
               </tr>
             </tfoot>
           </table>
         </div>
 
-        {/* ================= PAYMENT ACCOUNTS ================= */}
+        {/* Payment Details */}
         {bank && (
           <div className="mb-4">
-            <h5
-              style={{
-                borderBottom: `2px solid ${brandColor}`,
-                paddingBottom: "6px",
-              }}
-            >
+            <h5 style={{ borderBottom: `2px solid ${brandColor}`, paddingBottom: "6px" }}>
               Payment Details
             </h5>
             <div className="row mt-3">
               <div className="col-md-6">
                 <p className="mb-1">
-                  <strong>Bank Name:</strong> {bank.bank_name}
+                  <strong>Bank:</strong> {bank.bank_name}
                 </p>
                 <p className="mb-1">
                   <strong>Account Name:</strong> {bank.account_name}
@@ -308,53 +308,13 @@ const InvoiceDetailsView = ({
                 <p className="mb-1">
                   <strong>Account Number:</strong> {bank.account_number}
                 </p>
-                {bank.swift_code && (
-                  <p className="mb-1">
-                    <strong>Swift Code:</strong> {bank.swift_code}
-                  </p>
-                )}
-                {bank.routing_number && (
-                  <p className="mb-1">
-                    <strong>Routing Number:</strong> {bank.routing_number}
-                  </p>
-                )}
-                {bank.iban && (
-                  <p className="mb-1">
-                    <strong>IBAN:</strong> {bank.iban}
-                  </p>
-                )}
               </div>
             </div>
           </div>
         )}
-
-        {/* ================= ADDITIONAL NOTES ================= */}
-        {invoice.notes && (
-          <div className="mb-4">
-            <h5
-              style={{
-                borderBottom: `2px solid ${brandColor}`,
-                paddingBottom: "6px",
-              }}
-            >
-              Notes
-            </h5>
-            <p className="mt-3">{invoice.notes}</p>
-          </div>
-        )}
-
-        {/* ================= FOOTER ================= */}
-        <div className="text-center mt-5 pt-4 border-top">
-          <p className="fw-semibold" style={{ color: brandColor }}>
-            Thank you for your business!
-          </p>
-          <small className="text-muted">
-            Invoice ID: {invoice.id}
-          </small>
-        </div>
       </div>
 
-      {/* ================= ACTION BUTTONS ================= */}
+      {/* Action Buttons */}
       <div className="d-flex justify-content-end gap-2 mt-4 no-print">
         <Button variant="outline-secondary" onClick={onBack}>
           Back
@@ -374,30 +334,15 @@ const InvoiceDetailsView = ({
             body { background: white; }
             .no-print { display: none !important; }
           }
-          
-          /* Ensure images print properly */
           .invoice-container img {
             max-width: 100% !important;
             height: auto !important;
           }
-
-          /* Baseline alignment for columns */
-          .row {
-            display: flex;
-            align-items: baseline;
+          .bg-light-danger {
+            background-color: #fff2f0;
           }
-          
-          .col-6 {
-            vertical-align: baseline;
-          }
-          
-          /* Flexbox utilities */
-          .d-flex {
-            display: flex !important;
-          }
-          
-          .justify-content-end {
-            justify-content: flex-end !important;
+          .bg-light-info {
+            background-color: #e6f7ff;
           }
         `}
       </style>
@@ -406,3 +351,6 @@ const InvoiceDetailsView = ({
 };
 
 export default InvoiceDetailsView;
+
+
+

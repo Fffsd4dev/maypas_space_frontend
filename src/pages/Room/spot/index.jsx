@@ -2362,7 +2362,7 @@ const SeatBookingSystem = () => {
                         name="number_weeks"
                         value={bookingFormData.number_weeks}
                         onChange={handleBookingInputChange}
-                        min="1"
+                        min="0"
                         required={bookingFormData.type === "recurrent"}
                       />
                     </Form.Group>

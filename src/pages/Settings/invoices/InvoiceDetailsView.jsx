@@ -224,6 +224,7 @@ const InvoiceDetailsView = ({
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Valid From:</strong> {formatDateTime(invoice?.book_spot?.start_time)}
+                    {/* <strong>Valid From:</strong> {formatDateTime(invoice?.book_spot?.start_time)} */}
                   </p>
                 </div>
                 <div className="col-md-6">

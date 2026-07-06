@@ -97,41 +97,41 @@ const VisitorCategory = () => {
       logout();
     }
   }, [visitorSlug, removeSession, navigate, tenantToken]);
-    const fetchCurrencySymbol = async (locationId) => {
-      if (!locationId) {
-        setCurrencySymbol("$");
-        return;
-      }
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/fetch/currency/location`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${user?.tenantToken}`,
-            },
-            body: JSON.stringify({ location_id: locationId }),
-          }
-        );
-        const result = await response.json();
-        if (Array.isArray(result.data) && result.data.length > 0) {
-          setCurrencySymbol(result.data[0].symbol || "₦");
-        } else {
-          setCurrencySymbol("$");
-      }
-      } catch (err) {
+
+  const fetchCurrencySymbol = async (locationId) => {
+    if (!locationId) {
+      setCurrencySymbol("$");
+      return;
+    }
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/fetch/currency/location`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user?.tenantToken}`,
+          },
+          body: JSON.stringify({ location_id: locationId }),
+        }
+      );
+      const result = await response.json();
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        setCurrencySymbol(result.data[0].symbol || "₦");
+      } else {
         setCurrencySymbol("$");
       }
-    };
-  
-    // Update currency symbol when location changes
-    useEffect(() => {
-      if (selectedLocation) {
-        fetchCurrencySymbol(selectedLocation);
-      }
-    }, [selectedLocation]);
-  
+    } catch (err) {
+      setCurrencySymbol("$");
+    }
+  };
+
+  // Update currency symbol when location changes
+  useEffect(() => {
+    if (selectedLocation) {
+      fetchCurrencySymbol(selectedLocation);
+    }
+  }, [selectedLocation]);
 
   useEffect(() => {
     if (!window.PaystackPop) {
@@ -625,39 +625,167 @@ const VisitorCategory = () => {
   const [loadingLogo, setLoadingLogo] = useState(true);
   const [error, setError] = useState(null);
 
+  // FIXED: Updated fetchLogoData to handle object responses
   const fetchLogoData = async (page = 1, pageSize = 10) => {
-    setLoadingLogo;
+    setLoadingLogo(true);
     setError(null);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/${visitorSlug}/view-details`,
         {
           method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...(visitorToken && { Authorization: `Bearer ${visitorToken}` })
+          },
         }
       );
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          `Contact Support! HTTP error! Status: ${response.status}`
+          errorData.message || `Contact Support! HTTP error! Status: ${response.status}`
         );
       }
 
       const result = await response.json();
+      
+      // Debug log to see the actual response structure
+      console.log('Logo API Response:', result);
+      console.log('Response type:', typeof result);
+      console.log('Data type:', result.data ? typeof result.data : 'undefined');
+      console.log('Is data array?', Array.isArray(result.data));
 
-      if (Array.isArray(result.data)) {
-        // Sort the data by updated_at or created_at
-        const sortedLogoData = result.data.sort(
-          (a, b) =>
-            new Date(b.updated_at || b.created_at) -
-            new Date(a.updated_at || a.created_at)
-        );
-        setLogoData(sortedLogoData);
-      } else {
-        throw new Error("Invalid response format");
+      let logoDataArray = [];
+
+      // Handle the response - since it's an object, not an array
+      if (result && typeof result === 'object') {
+        // Check if result has a data property
+        if (result.data) {
+          // If data is an object (not an array), convert to array
+          if (typeof result.data === 'object' && !Array.isArray(result.data)) {
+            // Check if it has numeric keys (like {0: {...}, 1: {...}})
+            const keys = Object.keys(result.data);
+            if (keys.length > 0) {
+              // Check if keys are numeric indices
+              const isNumericKeys = keys.every(key => !isNaN(key));
+              if (isNumericKeys) {
+                // It's an object with numeric indices, convert to array
+                logoDataArray = Object.values(result.data);
+              } else {
+                // It's an object with named properties
+                // Check if the object itself contains the data we need (logo, colour)
+                if (result.data.logo !== undefined || result.data.colour !== undefined) {
+                  // It's a single logo object
+                  logoDataArray = [result.data];
+                } else {
+                  // Try to find any object in the data that has logo/colour properties
+                  const values = Object.values(result.data);
+                  const foundLogoData = values.find(
+                    item => item && typeof item === 'object' && (item.logo !== undefined || item.colour !== undefined)
+                  );
+                  if (foundLogoData) {
+                    logoDataArray = Array.isArray(foundLogoData) ? foundLogoData : [foundLogoData];
+                  } else {
+                    // If we can't find specific logo data, use the whole data object
+                    // Check if it's a paginated response or similar
+                    if (result.data.items && Array.isArray(result.data.items)) {
+                      logoDataArray = result.data.items;
+                    } else if (result.data.rows && Array.isArray(result.data.rows)) {
+                      logoDataArray = result.data.rows;
+                    } else if (result.data.results && Array.isArray(result.data.results)) {
+                      logoDataArray = result.data.results;
+                    } else {
+                      logoDataArray = [result.data];
+                    }
+                  }
+                }
+              }
+            } else {
+              // Empty object
+              logoDataArray = [];
+            }
+          } else if (Array.isArray(result.data)) {
+            // If data is an array, use it directly
+            logoDataArray = result.data;
+          } else {
+            // Data is some other type (string, number, etc.)
+            logoDataArray = [];
+          }
+        } else {
+          // No data property, check if result itself contains logo data
+          if (result.logo !== undefined || result.colour !== undefined) {
+            logoDataArray = [result];
+          } else if (result.items && Array.isArray(result.items)) {
+            logoDataArray = result.items;
+          } else if (result.rows && Array.isArray(result.rows)) {
+            logoDataArray = result.rows;
+          } else if (result.results && Array.isArray(result.results)) {
+            logoDataArray = result.results;
+          } else {
+            // Try to find any object in the result that has logo/colour properties
+            const values = Object.values(result);
+            const foundLogoData = values.find(
+              item => item && typeof item === 'object' && (item.logo !== undefined || item.colour !== undefined)
+            );
+            if (foundLogoData) {
+              logoDataArray = Array.isArray(foundLogoData) ? foundLogoData : [foundLogoData];
+            } else {
+              // If still nothing, check if the result itself is an array
+              if (Array.isArray(result)) {
+                logoDataArray = result;
+              } else {
+                logoDataArray = [];
+              }
+            }
+          }
+        }
       }
+
+      // If no data found, set default
+      if (logoDataArray.length === 0) {
+        console.warn('No logo data found, using default');
+        setLogoData([{
+          logo: null,
+          colour: '#fe0002',
+        }]);
+        setError(null);
+        return;
+      }
+
+      // Filter out invalid items
+      const validData = logoDataArray.filter(item => 
+        item && typeof item === 'object' && item !== null
+      );
+
+      if (validData.length === 0) {
+        setLogoData([{
+          logo: null,
+          colour: '#fe0002',
+        }]);
+        return;
+      }
+
+      // Sort the data by updated_at or created_at
+      const sortedLogoData = validData.sort(
+        (a, b) => {
+          const dateA = new Date(a.updated_at || a.created_at || 0);
+          const dateB = new Date(b.updated_at || b.created_at || 0);
+          return dateB - dateA;
+        }
+      );
+      
+      setLogoData(sortedLogoData);
+      setError(null);
     } catch (error) {
-      toast.error(error.message);
+      console.error('Fetch Logo Error:', error);
+      toast.error(error.message || "Failed to fetch logo data");
       setError(error.message);
+      // Set default data on error to prevent UI from breaking
+      setLogoData([{
+        logo: null,
+        colour: '#fe0002',
+      }]);
     } finally {
       setLoadingLogo(false);
     }
@@ -746,111 +874,111 @@ const VisitorCategory = () => {
       {/* Grouped by Category: Show category name, images, and spots as cards with original styling */}
       <Row>
         {roomsData && roomsData.length > 0 ? (
-  roomsData.map((category, idx) => (
-    <Col key={category.category_id || idx} xs={12} className="mb-4">
-      <div
-        className="mb-4 p-3 rounded"
-        style={{
-          background:
-            idx % 2 === 0
-              ? "linear-gradient(to right, #f8f9fa, #e9ecef)"
-              : "linear-gradient(to right, #f4f9e7, #e7f1ee)",
-        }}
-      >
-        {/* Category title as a link */}
-        <h4>
-          <Link
-            to={`/${visitorSlug}/${category.category_name
-              .toLowerCase()
-              .replace(/\s+/g, "_")}`}
-            style={{
-              textDecoration: "underline",
-              color: "#007bff",
-            }}
-          >
-            {category.category_name}
-          </Link>
-        </h4>
-        {/* Category images */}
-        {category.images && category.images.length > 0 && (
-          <div className="mb-3 d-flex flex-wrap align-items-center">
-            {category.images.map((img, imgIdx) => (
-              <img
-                key={imgIdx}
-                src={`${import.meta.env.VITE_BACKEND_URL}/storage/uploads/${img}`}
-                alt={category.category_name}
+          roomsData.map((category, idx) => (
+            <Col key={category.category_id || idx} xs={12} className="mb-4">
+              <div
+                className="mb-4 p-3 rounded"
                 style={{
-                  width: 80,
-                  height: 80,
-                  objectFit: "cover",
-                  borderRadius: 8,
-                  marginRight: 8,
+                  background:
+                    idx % 2 === 0
+                      ? "linear-gradient(to right, #f8f9fa, #e9ecef)"
+                      : "linear-gradient(to right, #f4f9e7, #e7f1ee)",
                 }}
-              />
-            ))}
-          </div>
-        )}
-        <Row>
-          {category.spots && category.spots.length > 0 ? (
-            category.spots.map((room, roomIdx) => (
-              <Col key={room.spot_id} md={3} className="mb-3">
-                <Card className="h-100">
-                  <Card.Body className="d-flex flex-column">
-                    <Card.Title>{room.space_name}</Card.Title>
-                    <Card.Text className="flex-grow-1">
-                      <div>
-                        <strong>Number:</strong> {roomIdx + 1}
-                      </div>
-                      <span>
-                        <strong>Fee:</strong> {currencySymbol}{room.space_fee}
-                      </span>
-                      <br />
-                      <span>
-                        <strong>Location:</strong> {room.location_name}
-                      </span>
-                      <br />
-                      <span>
-                        <strong>Floor/Section:</strong> {room.floor_name}
-                      </span>
-                    </Card.Text>
-                    <div className="text-center mb-1">
-                      <strong>Charged: {category.booking_type} </strong>
-                    </div>
-                    <div className="mt-auto">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        className="w-100"
-                        onClick={() => handleBookNowClick(room)}
+              >
+                {/* Category title as a link */}
+                <h4>
+                  <Link
+                    to={`/${visitorSlug}/${category.category_name
+                      .toLowerCase()
+                      .replace(/\s+/g, "_")}`}
+                    style={{
+                      textDecoration: "underline",
+                      color: "#007bff",
+                    }}
+                  >
+                    {category.category_name}
+                  </Link>
+                </h4>
+                {/* Category images */}
+                {category.images && category.images.length > 0 && (
+                  <div className="mb-3 d-flex flex-wrap align-items-center">
+                    {category.images.map((img, imgIdx) => (
+                      <img
+                        key={imgIdx}
+                        src={`${import.meta.env.VITE_BACKEND_URL}/storage/uploads/${img}`}
+                        alt={category.category_name}
                         style={{
-                          backgroundColor: primary,
-                          borderColor: primary,
-                          color: "#fff",
+                          width: 80,
+                          height: 80,
+                          objectFit: "cover",
+                          borderRadius: 8,
+                          marginRight: 8,
                         }}
-                      >
-                        Book Now
-                      </Button>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))
-          ) : (
-            <Col xs={12}>
-              <Alert variant="info">No spaces in this category.</Alert>
+                      />
+                    ))}
+                  </div>
+                )}
+                <Row>
+                  {category.spots && category.spots.length > 0 ? (
+                    category.spots.map((room, roomIdx) => (
+                      <Col key={room.spot_id} md={3} className="mb-3">
+                        <Card className="h-100">
+                          <Card.Body className="d-flex flex-column">
+                            <Card.Title>{room.space_name}</Card.Title>
+                            <Card.Text className="flex-grow-1">
+                              <div>
+                                <strong>Number:</strong> {roomIdx + 1}
+                              </div>
+                              <span>
+                                <strong>Fee:</strong> {currencySymbol}{room.space_fee}
+                              </span>
+                              <br />
+                              <span>
+                                <strong>Location:</strong> {room.location_name}
+                              </span>
+                              <br />
+                              <span>
+                                <strong>Floor/Section:</strong> {room.floor_name}
+                              </span>
+                            </Card.Text>
+                            <div className="text-center mb-1">
+                              <strong>Charged: {category.booking_type} </strong>
+                            </div>
+                            <div className="mt-auto">
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                className="w-100"
+                                onClick={() => handleBookNowClick(room)}
+                                style={{
+                                  backgroundColor: primary,
+                                  borderColor: primary,
+                                  color: "#fff",
+                                }}
+                              >
+                                Book Now
+                              </Button>
+                            </div>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))
+                  ) : (
+                    <Col xs={12}>
+                      <Alert variant="info">No spaces in this category.</Alert>
+                    </Col>
+                  )}
+                </Row>
+              </div>
             </Col>
-          )}
-        </Row>
-      </div>
-    </Col>
-  ))
-) : null}
+          ))
+        ) : null}
         {/* Only show this if there are truly no rooms for any location and not loading */}
         {!loading && roomsData && roomsData.every((cat) => !cat.spots || cat.spots.length === 0) && (
-  <Col xs={12} className="text-center mt-4">
-    <Alert variant="info">No room in this location</Alert>
-  </Col>
-)}
+          <Col xs={12} className="text-center mt-4">
+            <Alert variant="info">No room in this location</Alert>
+          </Col>
+        )}
       </Row>
 
       {/* Booking Popup */}

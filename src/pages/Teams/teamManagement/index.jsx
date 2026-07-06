@@ -12,9 +12,6 @@ import PageTitle from "../../components/PageTitle";
 import Table2 from "../../components/Table2";
 import AddSubscription from "./AddSubscription";
 
-// dummy data
-// import { subscriptions } from "./data";
-
 /* name column render */
 const NameColumn = ({ row }) => {
   return (

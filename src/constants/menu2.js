@@ -42,14 +42,6 @@ const MENU_ITEMS = [
       variant: "success",
       text: "",
     },
-    // children: [
-    //   {
-    //     key: "ds-dashboard-3",
-    //     label: "Dashboaaaard 3",
-    //     url: "/dashboard-3",
-    //     parentKey: "dashboards",
-    //   },
-    // ],
   },
   {
     key: "accounts",
@@ -76,12 +68,6 @@ const MENU_ITEMS = [
         url: "/account/roles",
         parentKey: "accounts",
       },
-      // {
-      //   key: "Submit tenant plan",
-      //   label: "Submit Tenant Plan",
-      //   url: "/getallsub",
-      //   parentKey: "accounts",
-      // },
     ],
   },
   {
@@ -104,13 +90,6 @@ const MENU_ITEMS = [
         url: "/TenantSub",
         parentKey: "subscription",
       },
-      // {
-      //   key: "administrators",
-      //   label: "Administrators",
-      //   // url: "/dashboard-4",
-      //   url: "/account/admin",
-      //   parentKey: "accounts",
-      // },
     ],
   },
 

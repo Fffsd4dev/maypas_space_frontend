@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Row, Col, Card, Button, Spinner, Form, Tooltip, OverlayTrigger } from "react-bootstrap";
 import PageTitle from "../../../components/PageTitle";
 import InvoicesModal from "./InvoicesForm";
+import RefundModal from "./RefundModal";
 import { useAuthContext } from "@/context/useAuthContext.jsx";
 import Popup from "../../../components/Popup/Popup";
 import Table2 from "../../../components/Table2";
@@ -24,6 +25,7 @@ const Invoices = () => {
   const initialFetchDone = useRef(false);
 
   const [show, setShow] = useState(false);
+  const [showRefund, setShowRefund] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingLocations, setLoadingLocations] = useState(true);
@@ -362,6 +364,14 @@ const Invoices = () => {
     setSelectedInvoice(null);
   }, []);
 
+  const handleOpenRefund = useCallback(() => {
+    setShowRefund(true);
+  }, []);
+
+  const handleCloseRefund = useCallback(() => {
+    setShowRefund(false);
+  }, []);
+
   const handleCloseInvoice = useCallback(async (invoiceId, invoiceRef) => {
     if (!tenantToken) return;
 
@@ -505,7 +515,7 @@ const Invoices = () => {
       Header: "Amount",
       accessor: (row) => {
         const spacePayment = getSpacePayment(row);
-        const symbol = currencySymbolsRef.current[row.location_id] || "$";
+        const symbol = currencySymbolsRef.current[row.location_id] || "₦";
         return `${symbol} ${Number(spacePayment.amount || 0).toLocaleString()}`;
       },
       sort: true,
@@ -646,15 +656,26 @@ const Invoices = () => {
                       Back to Invoices
                     </Button>
                   ) : (
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={handleRefresh}
-                      disabled={loading}
-                    >
-                      <i className="mdi mdi-refresh me-1"></i>
-                      Refresh
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        className="me-2"
+                        onClick={handleOpenRefund}
+                      >
+                        <i className="mdi mdi-cash-refund me-1"></i>
+                        Refund
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={handleRefresh}
+                        disabled={loading}
+                      >
+                        <i className="mdi mdi-refresh me-1"></i>
+                        Refresh
+                      </Button>
+                    </>
                   )}
                 </Col>
               </Row>
@@ -730,6 +751,12 @@ const Invoices = () => {
         bankAccount={selectedInvoice}
         onSubmit={fetchData}
         locations={locations}
+      />
+
+      <RefundModal
+        show={showRefund}
+        onHide={handleCloseRefund}
+        onSuccess={fetchData}
       />
 
       {popup.isVisible && (

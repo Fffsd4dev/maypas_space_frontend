@@ -92,6 +92,7 @@ const SetAccount = React.lazy(() => import('../pages/Settings/setAccount'))
 const SetCurrency = React.lazy(() => import('../pages/Settings/setCurrency'))
 const SetLogoAndColor = React.lazy(() => import('../pages/Settings/setLogo'))
 const Invoices = React.lazy(() => import('../pages/Settings/invoices'))
+const RefundedInvoices = React.lazy(() => import('../pages/Settings/refundedInvoices'))
 const CreateNotification = React.lazy(() => import('../pages/Settings/notifications'))
 const ManageTeams = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeams'))
 const ManageTeamMembers = React.lazy(() => import('../pages/Settings/teamManagement/ManageTeamMembers'))
@@ -460,6 +461,12 @@ const workspacesRoutes = {
       path: "/:tenantSlug/settings/invoices",
       name: "Invoices",
       element: <Invoices />,
+      route: PrivateRoute
+    },
+    {
+      path: "/:tenantSlug/settings/invoices/refund",
+      name: "Refunded Invoices",
+      element: <RefundedInvoices />,
       route: PrivateRoute
     },
     {

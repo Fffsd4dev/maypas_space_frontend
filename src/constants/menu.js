@@ -173,7 +173,7 @@ export const MENU_ITEMS = (tenantSlug = "") => [
     url: `/${tenantSlug}/settings/operating-hours`,
   },
 
-    {
+  {
     key: "time-zone",
     label: "Set Operating Time Zone",
     isTitle: false,
@@ -205,14 +205,28 @@ export const MENU_ITEMS = (tenantSlug = "") => [
     url: `/${tenantSlug}/settings/set-logo-and-color`,
   },
 
-
 {
+  key: "invoices",
+  label: "INVOICES",
+  isTitle: true,
+},
+
+
+  {
     key: "invoices",
     label: "Invoices",
     isTitle: false,
     icon: FiFileText ,
     url: `/${tenantSlug}/settings/invoices`,
   },
+
+  {
+    key: "invoices",
+    label: "Refunded Invoices",
+    isTitle: false,
+    icon: FiFileText ,
+    url: `/${tenantSlug}/settings/invoices/refund`,
+  }
   
     
 

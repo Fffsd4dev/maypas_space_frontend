@@ -11,6 +11,7 @@ const STATUS_BADGE_MAP = {
   cancelled: "danger",
   overdue: "danger",
   completed: "success",
+  refunded: "secondary",
 };
 
 const formatCurrency = (amount, currencySymbol) =>
@@ -21,7 +22,7 @@ const InvoiceDetailsView = ({
   bank,
   space,
   charges = [],
-  currencySymbol = "$",
+  currencySymbol = "₦",
   formatDateTime,
   onBack,
 }) => {
@@ -218,14 +219,22 @@ const InvoiceDetailsView = ({
               </tr>
             </thead>
             <tbody>
-              {charges.map((charge) => (
-                <tr key={charge.payment_list_id ?? charge.name}>
-                  <td>{charge.name}</td>
-                  <td className="text-end">
-                    {formatCurrency(charge.refunded_fee, currencySymbol)}
+              {charges.length > 0 ? (
+                charges.map((charge) => (
+                  <tr key={charge.payment_list_id ?? charge.name}>
+                    <td>{charge.name}</td>
+                    <td className="text-end">
+                      {formatCurrency(charge.refunded_fee, currencySymbol)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={2} className="text-center text-muted">
+                    No charges found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
             <tfoot>
               <tr>
